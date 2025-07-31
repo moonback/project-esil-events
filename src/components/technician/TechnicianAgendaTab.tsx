@@ -178,6 +178,19 @@ export function TechnicianAgendaTab() {
     })
   }, [])
 
+  const handleMissionClick = useCallback((assignment: AcceptedMission) => {
+    const missionDate = parseISO(assignment.missions.date_start)
+    const endDate = parseISO(assignment.missions.date_end)
+    
+    setSelectedEvent({
+      resource: assignment,
+      title: assignment.missions.title,
+      start: missionDate,
+      end: endDate,
+      type: 'mission'
+    })
+  }, [])
+
   const handleDateSelect = useCallback((selectInfo: any) => {
     console.log('Nouvelle disponibilité créée:', selectInfo)
     // Ici vous pouvez ouvrir un modal pour créer une nouvelle disponibilité
@@ -213,6 +226,7 @@ export function TechnicianAgendaTab() {
             variant={viewMode === 'calendar' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setViewMode('calendar')}
+            className={viewMode === 'calendar' ? 'bg-blue-600 hover:bg-blue-700' : 'border-blue-200 text-blue-600 hover:bg-blue-50'}
           >
             <CalendarDays className="h-4 w-4 mr-2" />
             Calendrier
@@ -221,6 +235,7 @@ export function TechnicianAgendaTab() {
             variant={viewMode === 'list' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setViewMode('list')}
+            className={viewMode === 'list' ? 'bg-indigo-600 hover:bg-indigo-700' : 'border-indigo-200 text-indigo-600 hover:bg-indigo-50'}
           >
             <List className="h-4 w-4 mr-2" />
             Liste
@@ -293,6 +308,7 @@ export function TechnicianAgendaTab() {
                       variant={calendarView === 'dayGridMonth' ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => setCalendarView('dayGridMonth')}
+                      className={calendarView === 'dayGridMonth' ? 'bg-blue-600 hover:bg-blue-700' : 'border-blue-200 text-blue-600 hover:bg-blue-50'}
                     >
                       Mois
                     </Button>
@@ -300,6 +316,7 @@ export function TechnicianAgendaTab() {
                       variant={calendarView === 'timeGridWeek' ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => setCalendarView('timeGridWeek')}
+                      className={calendarView === 'timeGridWeek' ? 'bg-indigo-600 hover:bg-indigo-700' : 'border-indigo-200 text-indigo-600 hover:bg-indigo-50'}
                     >
                       Semaine
                     </Button>
@@ -307,6 +324,7 @@ export function TechnicianAgendaTab() {
                       variant={calendarView === 'listWeek' ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => setCalendarView('listWeek')}
+                      className={calendarView === 'listWeek' ? 'bg-purple-600 hover:bg-purple-700' : 'border-purple-200 text-purple-600 hover:bg-purple-50'}
                     >
                       Liste
                     </Button>
@@ -468,7 +486,7 @@ export function TechnicianAgendaTab() {
                       )}
 
                       <div className="flex gap-2 pt-2 border-t">
-                        <Button size="sm" className="flex-1">
+                        <Button size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700">
                           <Eye className="h-3 w-3 mr-1" />
                           Voir détails
                         </Button>
@@ -493,7 +511,7 @@ export function TechnicianAgendaTab() {
                       </div>
 
                       <div className="flex gap-2 pt-2 border-t">
-                        <Button size="sm" className="flex-1">
+                        <Button size="sm" className="flex-1 bg-indigo-600 hover:bg-indigo-700">
                           <Edit className="h-3 w-3 mr-1" />
                           Modifier
                         </Button>
@@ -566,7 +584,7 @@ export function TechnicianAgendaTab() {
                         </div>
                         
                         <div className="flex items-center space-x-2">
-                          <Button size="sm" variant="outline">
+                          <Button size="sm" variant="outline" className="border-blue-200 text-blue-600 hover:bg-blue-50" onClick={() => handleMissionClick(assignment)}>
                             <Eye className="h-4 w-4 mr-1" />
                             Voir
                           </Button>
@@ -578,6 +596,65 @@ export function TechnicianAgendaTab() {
               )}
             </CardContent>
           </Card>
+
+          {/* Détails de la mission sélectionnée dans la vue liste */}
+          {selectedEvent && selectedEvent.type === 'mission' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center justify-between">
+                  Détails de la mission
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedEvent(null)}
+                  >
+                    <XCircle className="h-4 w-4" />
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-lg">{selectedEvent.title}</h4>
+                  <Badge className={getMissionTypeColor(selectedEvent.resource.missions.type)}>
+                    {selectedEvent.resource.missions.type}
+                  </Badge>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2 text-sm">
+                    <MapPin className="h-4 w-4 text-gray-500" />
+                    <span>{selectedEvent.resource.missions.location}</span>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 text-sm">
+                    <Clock className="h-4 w-4 text-gray-500" />
+                    <span>
+                      {format(selectedEvent.start, 'dd/MM/yyyy HH:mm', { locale: fr })} - {format(selectedEvent.end, 'HH:mm', { locale: fr })}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 text-sm">
+                    <Euro className="h-4 w-4 text-gray-500" />
+                    <span className="font-medium">{selectedEvent.resource.missions.forfeit}€</span>
+                  </div>
+                </div>
+
+                {selectedEvent.resource.missions.description && (
+                  <div className="text-sm">
+                    <strong>Description:</strong>
+                    <p className="mt-1 text-gray-600">{selectedEvent.resource.missions.description}</p>
+                  </div>
+                )}
+
+                <div className="flex gap-2 pt-2 border-t">
+                  <Button size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700">
+                    <Eye className="h-3 w-3 mr-1" />
+                    Voir détails complets
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
     </div>

@@ -25,31 +25,31 @@ export function TechnicianDashboard() {
       </div> */}
 
       <Tabs defaultValue="availability" className="space-y-8">
-        <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm border border-gray-200 shadow-lg rounded-xl p-1">
+        <TabsList className="grid w-full grid-cols-4 bg-white border border-gray-200 shadow-sm rounded-lg p-1">
           <TabsTrigger 
             value="availability" 
-            className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-lg transition-all duration-300 hover:scale-105"
+            className="flex items-center space-x-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-md transition-all duration-200 text-sm font-medium hover:bg-blue-50 data-[state=active]:hover:bg-blue-600"
           >
             <Clock className="h-4 w-4" />
             <span>Disponibilités</span>
           </TabsTrigger>
           <TabsTrigger 
             value="missions" 
-            className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-300 hover:scale-105"
+            className="flex items-center space-x-2 data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-md transition-all duration-200 text-sm font-medium hover:bg-indigo-50 data-[state=active]:hover:bg-indigo-600"
           >
             <Calendar className="h-4 w-4" />
             <span>Missions Proposées</span>
           </TabsTrigger>
           <TabsTrigger 
             value="billing" 
-            className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white rounded-lg transition-all duration-300 hover:scale-105"
+            className="flex items-center space-x-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white rounded-md transition-all duration-200 text-sm font-medium hover:bg-purple-50 data-[state=active]:hover:bg-purple-600"
           >
             <CreditCard className="h-4 w-4" />
             <span>Facturation</span>
           </TabsTrigger>
           <TabsTrigger 
             value="agenda" 
-            className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white rounded-lg transition-all duration-300 hover:scale-105"
+            className="flex items-center space-x-2 data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-md transition-all duration-200 text-sm font-medium hover:bg-green-50 data-[state=active]:hover:bg-green-600"
           >
             <CheckCircle className="h-4 w-4" />
             <span>Mes Missions</span>

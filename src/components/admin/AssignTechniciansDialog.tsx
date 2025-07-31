@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useMissionsStore } from '@/store/missionsStore'
+import { useAdminStore } from '@/store/adminStore'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -21,7 +21,7 @@ interface TechnicianWithAssignment extends User {
 }
 
 export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignTechniciansDialogProps) {
-  const { fetchMissions } = useMissionsStore()
+  const { fetchMissions } = useAdminStore()
   const [loading, setLoading] = useState(false)
   const [technicians, setTechnicians] = useState<TechnicianWithAssignment[]>([])
   const [selectedTechnicians, setSelectedTechnicians] = useState<string[]>([])
@@ -136,7 +136,7 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
         if (error) throw error
       }
 
-      // Rafraîchir les données
+      // Rafraîchir les données dans le store admin
       await fetchMissions()
       onOpenChange(false)
     } catch (error) {

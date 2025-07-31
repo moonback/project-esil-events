@@ -6,7 +6,7 @@ import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
 import { format, parseISO, isValid, startOfDay, endOfDay, addHours } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { useMissionsStore } from '@/store/missionsStore'
+import { useAdminStore } from '@/store/adminStore'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -138,7 +138,7 @@ const useMissionFilters = (missions: MissionWithAssignments[]) => {
 }
 
 export function AdminAgendaTab() {
-  const { missions } = useMissionsStore()
+  const { missions } = useAdminStore()
   const missionsWithAssignments = missions as MissionWithAssignments[]
   const [selectedEvent, setSelectedEvent] = useState<any>(null)
   const [showFilters, setShowFilters] = useState(false)

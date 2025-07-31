@@ -73,11 +73,16 @@ export function MissionsTab() {
     const refusedCount = assignments.filter((a: any) => a.status === 'refusé').length
     const pendingCount = assignments.filter((a: any) => a.status === 'proposé').length
     
-    if (acceptedCount > 0) return { status: 'accepté', color: 'bg-green-100 text-green-800', icon: CheckCircle }
+    // Vérifier si la mission est complète
+    const requiredPeople = mission.required_people || 1
+    const isComplete = acceptedCount >= requiredPeople
+    
+    if (isComplete) return { status: 'complet', color: 'bg-green-100 text-green-800', icon: CheckCircle }
+    if (acceptedCount > 0) return { status: 'partiellement_assigné', color: 'bg-blue-100 text-blue-800', icon: Activity }
     if (refusedCount === assignments.length) return { status: 'refusé', color: 'bg-red-100 text-red-800', icon: XCircle }
     if (pendingCount > 0) return { status: 'en_attente', color: 'bg-yellow-100 text-yellow-800', icon: Clock }
     
-    return { status: 'mixte', color: 'bg-blue-100 text-blue-800', icon: Activity }
+    return { status: 'mixte', color: 'bg-orange-100 text-orange-800', icon: Activity }
   }
 
   if (loading.missions) {
@@ -126,8 +131,13 @@ export function MissionsTab() {
         <div className="bg-white rounded-lg p-3 border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-gray-600">Assignées</p>
-              <p className="text-lg font-bold text-green-600">{missionStats.assignedCount}</p>
+              <p className="text-xs font-medium text-gray-600">Complètes</p>
+              <p className="text-lg font-bold text-green-600">
+                {missions.filter(m => {
+                  const acceptedCount = m.mission_assignments?.filter((a: any) => a.status === 'accepté').length || 0
+                  return acceptedCount >= (m.required_people || 1)
+                }).length}
+              </p>
             </div>
             <CheckCircle className="h-5 w-5 text-green-600" />
           </div>
@@ -244,6 +254,20 @@ export function MissionsTab() {
 
                         {mission.mission_assignments && mission.mission_assignments.length > 0 && (
                           <div className="mt-3 pt-3 border-t border-gray-100">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs text-gray-500">Assignations</span>
+                              <span className="text-xs font-medium">
+                                {mission.mission_assignments.filter((a: any) => a.status === 'accepté').length}/{mission.required_people || 1}
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                              <div
+                                className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                                style={{
+                                  width: `${Math.min(100, (mission.mission_assignments.filter((a: any) => a.status === 'accepté').length / (mission.required_people || 1)) * 100)}%`
+                                }}
+                              />
+                            </div>
                             <div className="flex flex-wrap gap-1">
                               {mission.mission_assignments.slice(0, 3).map((assignment: any) => (
                                 <div key={assignment.id} className="flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded text-xs">

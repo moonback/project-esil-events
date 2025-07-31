@@ -7,6 +7,7 @@ import { useMissionsStore } from '@/store/missionsStore'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { getMissionTypeColor } from '@/lib/utils'
+import type { MissionType, Mission } from '@/types/database'
 
 // Configuration moment en français
 moment.locale('fr')
@@ -29,6 +30,15 @@ const messages = {
   showMore: (total: number) => `+ ${total} mission(s) supplémentaire(s)`
 }
 
+// Mapping des couleurs typé
+const missionTypeColors: Record<MissionType, string> = {
+  'Livraison jeux': '#3B82F6',
+  'Presta sono': '#10B981',
+  'DJ': '#8B5CF6',
+  'Manutention': '#F59E0B',
+  'Déplacement': '#6B7280'
+}
+
 export function AdminAgendaTab() {
   const { missions } = useMissionsStore()
   const [selectedEvent, setSelectedEvent] = useState<any>(null)
@@ -44,14 +54,8 @@ export function AdminAgendaTab() {
 
   // Style personnalisé pour les événements
   const eventStyleGetter = (event: any) => {
-    const mission = event.resource
-    const baseColor = {
-      'Livraison jeux': '#3B82F6',
-      'Presta sono': '#10B981',
-      'DJ': '#8B5CF6',
-      'Manutention': '#F59E0B',
-      'Déplacement': '#6B7280'
-    }[mission.type] || '#6B7280'
+    const mission = event.resource as Mission
+    const baseColor = missionTypeColors[mission.type] || '#6B7280'
 
     return {
       style: {
@@ -82,8 +86,8 @@ export function AdminAgendaTab() {
                   startAccessor="start"
                   endAccessor="end"
                   messages={messages}
-                  Esil-eventspGetter={eventStyleGetter}
-                  onSelectEvent={(event) => setSelectedEvent(event)}
+                  eventPropGetter={eventStyleGetter}
+                  onSelectEvent={(event: any) => setSelectedEvent(event)}
                   views={['month', 'week', 'day', 'agenda']}
                   defaultView="month"
                   popup
@@ -101,18 +105,12 @@ export function AdminAgendaTab() {
               <CardTitle className="text-base">Types de missions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {['Livraison jeux', 'Presta sono', 'DJ', 'Manutention', 'Déplacement'].map((type) => (
+              {(Object.keys(missionTypeColors) as MissionType[]).map((type) => (
                 <div key={type} className="flex items-center space-x-2">
                   <div 
                     className="w-3 h-3 rounded"
                     style={{
-                      backgroundColor: {
-                        'Livraison jeux': '#3B82F6',
-                        'Presta sono': '#10B981',
-                        'DJ': '#8B5CF6',
-                        'Manutention': '#F59E0B',
-                        'Déplacement': '#6B7280'
-                      }[type]
+                      backgroundColor: missionTypeColors[type]
                     }}
                   />
                   <span className="text-sm">{type}</span>

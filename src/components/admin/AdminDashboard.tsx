@@ -16,20 +16,7 @@ export function AdminDashboard() {
 
   return (
     <div className="space-y-8 animate-fade-in-up">
-      <div className="text-center space-y-4">
-        <div className="flex items-center justify-center space-x-3 mb-6">
-          <div className="relative">
-            <Crown className="h-10 w-10 text-indigo-600 animate-pulse-slow" />
-            <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-yellow-400 animate-bounce-slow" />
-          </div>
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Tableau de bord Administrateur
-          </h2>
-        </div>
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-          Gérez vos missions, techniciens et facturation avec une interface moderne et intuitive
-        </p>
-      </div>
+      
 
       <Tabs defaultValue="missions" className="space-y-8">
         <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm border border-gray-200 shadow-lg rounded-xl p-1">

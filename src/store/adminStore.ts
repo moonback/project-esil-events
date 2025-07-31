@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
-import type { User, BillingWithDetails, MissionWithAssignments } from '@/types/database'
+import type { User, BillingWithDetails, MissionWithAssignments, TechnicianWithStats } from '@/types/database'
 
 interface AdminState {
   // États de chargement
@@ -12,7 +12,7 @@ interface AdminState {
   
   // Données
   missions: MissionWithAssignments[]
-  technicians: User[]
+  technicians: TechnicianWithStats[]
   billings: BillingWithDetails[]
   
   // Synchronisation
@@ -213,11 +213,20 @@ export const useAdminStore = create<AdminState>((set, get) => ({
 
       if (availError) throw availError
 
+      // Récupérer les indisponibilités
+      const { data: unavailabilities, error: unavailError } = await supabase
+        .from('unavailability')
+        .select('*')
+        .order('start_time', { ascending: true })
+
+      if (unavailError) throw unavailError
+
       // Calculer les statistiques pour chaque technicien
       const techniciansWithStats = technicians.map(tech => {
         const techAssignments = assignments.filter(assign => assign.technician_id === tech.id)
         const techBillings = billings.filter(billing => billing.technician_id === tech.id)
         const techAvailabilities = availabilities.filter(avail => avail.technician_id === tech.id)
+        const techUnavailabilities = unavailabilities.filter(unavail => unavail.technician_id === tech.id)
 
         // Calculer les statistiques des missions
         const totalAssignments = techAssignments.length
@@ -264,6 +273,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
               assignment
             })),
           availabilities: techAvailabilities,
+          unavailabilities: techUnavailabilities,
           billings: techBillings
         }
       })

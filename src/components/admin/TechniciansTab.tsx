@@ -34,11 +34,14 @@ import {
   CalendarCheck,
   CalendarX,
   Contact,
-  Mail
+  Mail,
+  Ban,
+  CheckCircle2,
+  Clock4
 } from 'lucide-react'
 import { format, parseISO, isValid } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import type { User, MissionAssignment, Mission, Availability, Billing, TechnicianWithStats } from '@/types/database'
+import type { User, MissionAssignment, Mission, Availability, Unavailability, Billing, TechnicianWithStats } from '@/types/database'
 
 export function TechniciansTab() {
   const { technicians, loading, stats } = useAdminStore()
@@ -48,15 +51,91 @@ export function TechniciansTab() {
   const [showFilters, setShowFilters] = useState(false)
   const [sortBy, setSortBy] = useState<'name' | 'missions' | 'revenue' | 'rating'>('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable' | 'unknown'>('all')
   const [contactDialogOpen, setContactDialogOpen] = useState(false)
   const [selectedTechnicianForContact, setSelectedTechnicianForContact] = useState<User | null>(null)
 
+  // Fonction pour déterminer le statut de disponibilité d'un technicien
+  const getAvailabilityStatus = (technician: TechnicianWithStats) => {
+    const now = new Date()
+    const currentTime = now.getTime()
+    
+    const currentUnavailability = technician.unavailabilities?.find(unavail => {
+      const start = parseISO(unavail.start_time)
+      const end = parseISO(unavail.end_time)
+      return currentTime >= start.getTime() && currentTime <= end.getTime()
+    })
+    
+    if (currentUnavailability) {
+      return {
+        status: 'indisponible',
+        text: 'Indisponible',
+        color: 'bg-red-100 text-red-800',
+        icon: Ban,
+        reason: currentUnavailability.reason || 'Indisponible'
+      }
+    }
+    
+    const currentAvailability = technician.availabilities?.find(avail => {
+      const start = parseISO(avail.start_time)
+      const end = parseISO(avail.end_time)
+      return currentTime >= start.getTime() && currentTime <= end.getTime()
+    })
+    
+    if (currentAvailability) {
+      return {
+        status: 'disponible',
+        text: 'Disponible',
+        color: 'bg-green-100 text-green-800',
+        icon: CheckCircle2,
+        reason: 'Disponible maintenant'
+      }
+    }
+    
+    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000)
+    const futureAvailability = technician.availabilities?.find(avail => {
+      const start = parseISO(avail.start_time)
+      return start.getTime() <= tomorrow.getTime() && start.getTime() > currentTime
+    })
+    
+    if (futureAvailability) {
+      return {
+        status: 'disponible_soon',
+        text: 'Disponible bientôt',
+        color: 'bg-blue-100 text-blue-800',
+        icon: Clock4,
+        reason: `Disponible le ${format(parseISO(futureAvailability.start_time), 'dd/MM à HH:mm', { locale: fr })}`
+      }
+    }
+    
+    return {
+      status: 'unknown',
+      text: 'Statut inconnu',
+      color: 'bg-gray-100 text-gray-800',
+      icon: AlertTriangle,
+      reason: 'Aucune disponibilité définie'
+    }
+  }
+
   // Les données sont maintenant gérées par le store admin avec les statistiques calculées
 
-  const filteredTechnicians = technicians.filter(tech =>
-    tech.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    tech.phone?.includes(searchTerm)
-  )
+  const filteredTechnicians = technicians.filter(tech => {
+    // Filtre par recherche
+    const matchesSearch = tech.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         tech.phone?.includes(searchTerm)
+    
+    if (!matchesSearch) return false
+    
+    // Filtre par disponibilité
+    if (availabilityFilter !== 'all') {
+      const availabilityStatus = getAvailabilityStatus(tech)
+      if (availabilityFilter === 'available' && availabilityStatus.status !== 'disponible') return false
+      if (availabilityFilter === 'unavailable' && availabilityStatus.status !== 'indisponible') return false
+      if (availabilityFilter === 'unknown' && availabilityStatus.status !== 'unknown') return false
+    }
+    
+    return true
+  })
 
   const sortedTechnicians = [...filteredTechnicians].sort((a, b) => {
     let aValue: any, bValue: any
@@ -103,6 +182,8 @@ export function TechniciansTab() {
     if (rating >= 3.5) return { text: 'Moyen', color: 'bg-yellow-100 text-yellow-800' }
     return { text: 'À améliorer', color: 'bg-red-100 text-red-800' }
   }
+
+
 
   const handleOpenContact = (technician: User) => {
     setSelectedTechnicianForContact(technician)
@@ -196,6 +277,19 @@ export function TechniciansTab() {
                     <option value="desc">Décroissant</option>
                   </select>
                 </div>
+                <div>
+                  <Label className="text-xs font-medium mb-2 block">Disponibilité</Label>
+                  <select
+                    value={availabilityFilter}
+                    onChange={(e) => setAvailabilityFilter(e.target.value as any)}
+                    className="w-full text-sm border border-gray-300 rounded-md px-3 py-2"
+                  >
+                    <option value="all">Tous</option>
+                    <option value="available">Disponibles</option>
+                    <option value="unavailable">Indisponibles</option>
+                    <option value="unknown">Statut inconnu</option>
+                  </select>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -203,7 +297,7 @@ export function TechniciansTab() {
       )}
 
       {/* Statistiques globales */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 px-6">
         <div className="bg-white rounded-lg p-3 border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
@@ -254,6 +348,18 @@ export function TechniciansTab() {
             <Clock3 className="h-5 w-5 text-orange-600" />
           </div>
         </div>
+
+        <div className="bg-white rounded-lg p-3 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-gray-600">Disponibles</p>
+              <p className="text-lg font-bold text-green-600">
+                {technicians.filter(tech => getAvailabilityStatus(tech).status === 'disponible').length}
+              </p>
+            </div>
+            <CheckCircle2 className="h-5 w-5 text-green-600" />
+          </div>
+        </div>
       </div>
 
       {/* Liste des techniciens */}
@@ -291,6 +397,16 @@ export function TechniciansTab() {
                         </div>
                         
                         <div className="flex items-center space-x-2">
+                          {(() => {
+                            const availabilityStatus = getAvailabilityStatus(technician)
+                            const Icon = availabilityStatus.icon
+                            return (
+                              <Badge className={availabilityStatus.color} title={availabilityStatus.reason}>
+                                <Icon className="h-3 w-3 mr-1" />
+                                {availabilityStatus.text}
+                              </Badge>
+                            )
+                          })()}
                           <Badge className={getPerformanceBadge(technician.stats?.averageRating || 0).color}>
                             {getPerformanceBadge(technician.stats?.averageRating || 0).text}
                           </Badge>
@@ -444,6 +560,36 @@ export function TechniciansTab() {
                                 ))
                               ) : (
                                 <div className="text-gray-500 text-xs">Aucune disponibilité</div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Indisponibilités */}
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
+                              <CalendarX className="h-4 w-4 mr-2" />
+                              Indisponibilités ({technician.unavailabilities?.length || 0})
+                            </h4>
+                            <div className="space-y-1">
+                              {technician.unavailabilities && technician.unavailabilities.length > 0 ? (
+                                technician.unavailabilities.slice(0, 3).map((unavailability) => (
+                                  <div key={unavailability.id} className="flex items-center justify-between p-2 bg-red-50 rounded text-xs">
+                                    <div>
+                                      <div>
+                                        {format(parseISO(unavailability.start_time), 'dd/MM HH:mm', { locale: fr })} - 
+                                        {format(parseISO(unavailability.end_time), 'HH:mm', { locale: fr })}
+                                      </div>
+                                      {unavailability.reason && (
+                                        <div className="text-gray-600 mt-1">
+                                          <Ban className="h-3 w-3 inline mr-1" />
+                                          {unavailability.reason}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="text-gray-500 text-xs">Aucune indisponibilité</div>
                               )}
                             </div>
                           </div>

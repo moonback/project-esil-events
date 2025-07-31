@@ -243,5 +243,6 @@ export type TechnicianWithStats = User & {
   stats: TechnicianStats
   recentMissions: (Mission & { assignment: MissionAssignment })[]
   availabilities: Availability[]
+  unavailabilities: Unavailability[]
   billings: Billing[]
 }

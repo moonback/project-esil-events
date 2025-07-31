@@ -1,15 +1,14 @@
-import React, { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useMissionsStore } from '@/store/missionsStore'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { 
-  Plus, Edit, Trash2, Users, UserPlus, Calendar, MapPin, DollarSign, 
-  Clock, Filter, Search, MoreVertical, CheckCircle, XCircle, AlertCircle,
-  TrendingUp, Activity, Eye,
-  Sparkles
-} from 'lucide-react'
-import { formatDateTime, formatCurrency, getMissionTypeColor, getStatusColor, cn } from '@/lib/utils'
+  Plus, Edit, Trash2, Users, UserPlus, Calendar, MapPin, 
+  Clock, Filter, Search, CheckCircle, XCircle, AlertCircle,
+  TrendingUp, Activity
+  } from 'lucide-react'
+import { formatDateTime, formatCurrency, getMissionTypeColor, getStatusColor } from '@/lib/utils'
 import { MissionDialog } from './MissionDialog'
 import { AssignTechniciansDialog } from './AssignTechniciansDialog'
 import type { Mission, MissionWithAssignments } from '@/types/database'

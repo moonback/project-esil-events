@@ -9,7 +9,7 @@ import { Wrench, Calendar, CreditCard, Clock, Sparkles } from 'lucide-react'
 export function TechnicianDashboard() {
   return (
     <div className="space-y-8 animate-fade-in-up">
-      <div className="text-center space-y-4">
+      {/* <div className="text-center space-y-4">
         <div className="flex items-center justify-center space-x-3 mb-6">
           <div className="relative">
             <Wrench className="h-10 w-10 text-blue-600 animate-pulse-slow" />
@@ -22,7 +22,7 @@ export function TechnicianDashboard() {
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
           Gérez vos disponibilités, missions et rémunérations avec une interface intuitive
         </p>
-      </div>
+      </div> */}
 
       <Tabs defaultValue="availability" className="space-y-8">
         <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm border border-gray-200 shadow-lg rounded-xl p-1">

@@ -95,6 +95,8 @@
 - ✅ Détection automatique des conflits
 - ✅ Interface réactive avec animations
 - ✅ Feedback utilisateur amélioré
+- ✅ Gestion des indisponibilités des techniciens
+- ✅ Planification améliorée avec prévention des conflits
 
 ## 🚀 Prochaines étapes recommandées
 

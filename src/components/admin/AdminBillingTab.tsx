@@ -224,109 +224,113 @@ export function AdminBillingTab() {
       </div>
 
       {/* Filtres */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="h-5 w-5 text-blue-600" />
-            <h3 className="text-lg font-semibold text-gray-800">Filtres</h3>
+      <Card className="bg-white border-gray-200 shadow-sm">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-gray-600" />
+              <h3 className="text-sm font-semibold text-gray-700">Filtres</h3>
+            </div>
+            {(filter !== 'all' || technicianFilter !== 'all') && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setFilter('all')
+                  setTechnicianFilter('all')
+                }}
+                className="h-6 px-2 text-xs text-gray-500 hover:text-red-600"
+              >
+                <X className="h-3 w-3 mr-1" />
+                Effacer
+              </Button>
+            )}
           </div>
           
-          <div className="space-y-6">
+          <div className="space-y-3">
             {/* Filtre par statut */}
-            <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                <CreditCard className="h-4 w-4 text-blue-500" />
-                Statut de paiement
-              </h4>
-              <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-2">
+              <CreditCard className="h-3 w-3 text-gray-500 flex-shrink-0" />
+              <div className="flex flex-wrap gap-1">
                 <Button
-                  variant={filter === 'all' ? 'default' : 'outline'}
+                  variant={filter === 'all' ? 'default' : 'ghost'}
                   onClick={() => setFilter('all')}
                   size="sm"
-                  className={`transition-all duration-200 ${
+                  className={`h-6 px-2 text-xs ${
                     filter === 'all' 
-                      ? 'bg-blue-600 hover:bg-blue-700 shadow-md' 
-                      : 'hover:bg-blue-50 border-blue-200'
+                      ? 'bg-blue-600 hover:bg-blue-700' 
+                      : 'hover:bg-blue-50'
                   }`}
                 >
-                  <Check className="h-4 w-4 mr-2" />
                   Toutes
                 </Button>
                 <Button
-                  variant={filter === 'en_attente' ? 'default' : 'outline'}
+                  variant={filter === 'en_attente' ? 'default' : 'ghost'}
                   onClick={() => setFilter('en_attente')}
                   size="sm"
-                  className={`transition-all duration-200 ${
+                  className={`h-6 px-2 text-xs ${
                     filter === 'en_attente' 
-                      ? 'bg-yellow-600 hover:bg-yellow-700 shadow-md' 
-                      : 'hover:bg-yellow-50 border-yellow-200'
+                      ? 'bg-yellow-600 hover:bg-yellow-700' 
+                      : 'hover:bg-yellow-50'
                   }`}
                 >
-                  <Clock className="h-4 w-4 mr-2" />
                   En attente
                 </Button>
                 <Button
-                  variant={filter === 'validé' ? 'default' : 'outline'}
+                  variant={filter === 'validé' ? 'default' : 'ghost'}
                   onClick={() => setFilter('validé')}
                   size="sm"
-                  className={`transition-all duration-200 ${
+                  className={`h-6 px-2 text-xs ${
                     filter === 'validé' 
-                      ? 'bg-blue-600 hover:bg-blue-700 shadow-md' 
-                      : 'hover:bg-blue-50 border-blue-200'
+                      ? 'bg-blue-600 hover:bg-blue-700' 
+                      : 'hover:bg-blue-50'
                   }`}
                 >
-                  <CheckCircle className="h-4 w-4 mr-2" />
                   Validées
                 </Button>
                 <Button
-                  variant={filter === 'payé' ? 'default' : 'outline'}
+                  variant={filter === 'payé' ? 'default' : 'ghost'}
                   onClick={() => setFilter('payé')}
                   size="sm"
-                  className={`transition-all duration-200 ${
+                  className={`h-6 px-2 text-xs ${
                     filter === 'payé' 
-                      ? 'bg-green-600 hover:bg-green-700 shadow-md' 
-                      : 'hover:bg-green-50 border-green-200'
+                      ? 'bg-green-600 hover:bg-green-700' 
+                      : 'hover:bg-green-50'
                   }`}
                 >
-                  <CreditCard className="h-4 w-4 mr-2" />
                   Payées
                 </Button>
               </div>
             </div>
 
             {/* Filtre par technicien */}
-            <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                <Users className="h-4 w-4 text-purple-500" />
-                Technicien
-              </h4>
-              <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-2">
+              <Users className="h-3 w-3 text-gray-500 flex-shrink-0" />
+              <div className="flex flex-wrap gap-1">
                 <Button
-                  variant={technicianFilter === 'all' ? 'default' : 'outline'}
+                  variant={technicianFilter === 'all' ? 'default' : 'ghost'}
                   onClick={() => setTechnicianFilter('all')}
                   size="sm"
-                  className={`transition-all duration-200 ${
+                  className={`h-6 px-2 text-xs ${
                     technicianFilter === 'all' 
-                      ? 'bg-purple-600 hover:bg-purple-700 shadow-md' 
-                      : 'hover:bg-purple-50 border-purple-200'
+                      ? 'bg-purple-600 hover:bg-purple-700' 
+                      : 'hover:bg-purple-50'
                   }`}
                 >
-                  <Users className="h-4 w-4 mr-2" />
-                  Tous les techniciens
+                  Tous
                 </Button>
                 {technicians.map((technician) => (
                   <Button
                     key={technician.id}
-                    variant={technicianFilter === technician.id ? 'default' : 'outline'}
+                    variant={technicianFilter === technician.id ? 'default' : 'ghost'}
                     onClick={() => setTechnicianFilter(technician.id)}
                     size="sm"
-                    className={`transition-all duration-200 ${
+                    className={`h-6 px-2 text-xs ${
                       technicianFilter === technician.id 
-                        ? 'bg-purple-600 hover:bg-purple-700 shadow-md' 
-                        : 'hover:bg-purple-50 border-purple-200'
+                        ? 'bg-purple-600 hover:bg-purple-700' 
+                        : 'hover:bg-purple-50'
                     }`}
                   >
-                    <div className="w-2 h-2 bg-purple-400 rounded-full mr-2"></div>
                     {technician.name}
                   </Button>
                 ))}
@@ -339,36 +343,17 @@ export function AdminBillingTab() {
       {/* Liste des facturations */}
       <div className="space-y-4">
         {/* Indicateur de résultats */}
-        <div className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-blue-50 p-4 rounded-lg border border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-gray-700">
-                {filteredBillings.length} facturation{filteredBillings.length > 1 ? 's' : ''} 
-                {filteredBillings.length !== billings.length && (
-                  <span className="text-gray-500"> sur {billings.length} total</span>
-                )}
-              </span>
-            </div>
-            {(filter !== 'all' || technicianFilter !== 'all') && (
-              <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">
-                Filtres actifs
-              </Badge>
+        <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
+          <span>
+            {filteredBillings.length} facturation{filteredBillings.length > 1 ? 's' : ''} 
+            {filteredBillings.length !== billings.length && (
+              <span> sur {billings.length} total</span>
             )}
-          </div>
+          </span>
           {(filter !== 'all' || technicianFilter !== 'all') && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setFilter('all')
-                setTechnicianFilter('all')
-              }}
-              className="hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all duration-200"
-            >
-              <X className="h-4 w-4 mr-2" />
-              Effacer les filtres
-            </Button>
+            <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-600 border-blue-200">
+              Filtres actifs
+            </Badge>
           )}
         </div>
 

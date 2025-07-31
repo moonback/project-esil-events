@@ -1,32 +1,30 @@
-import React, { useState, useEffect } from 'react'
-import { Calendar, momentLocalizer } from 'react-big-calendar'
-import moment from 'moment'
-import 'moment/locale/fr'
-import 'react-big-calendar/lib/css/react-big-calendar.css'
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import FullCalendar from '@fullcalendar/react'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import timeGridPlugin from '@fullcalendar/timegrid'
+import interactionPlugin from '@fullcalendar/interaction'
+import listPlugin from '@fullcalendar/list'
+import { format, parseISO, isValid, addHours, startOfDay } from 'date-fns'
+import { fr } from 'date-fns/locale'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { formatDateTime, formatCurrency, getMissionTypeColor } from '@/lib/utils'
+import { 
+  Calendar as CalendarIcon, 
+  Clock, 
+  MapPin, 
+  Euro, 
+  Users, 
+  CheckCircle,
+  AlertTriangle,
+  Plus,
+  Edit,
+  XCircle
+} from 'lucide-react'
 import type { Mission, MissionAssignment, Availability } from '@/types/database'
-
-moment.locale('fr')
-const localizer = momentLocalizer(moment)
-
-const messages = {
-  allDay: 'Toute la journée',
-  previous: 'Précédent',
-  next: 'Suivant',
-  today: 'Aujourd\'hui',
-  month: 'Mois',
-  week: 'Semaine',
-  day: 'Jour',
-  agenda: 'Agenda',
-  date: 'Date',
-  time: 'Heure',
-  event: 'Événement',
-  noEventsInRange: 'Aucun événement dans cette période.',
-}
 
 interface AcceptedMission extends MissionAssignment {
   missions: Mission
@@ -38,6 +36,8 @@ export function TechnicianAgendaTab() {
   const [availabilities, setAvailabilities] = useState<Availability[]>([])
   const [selectedEvent, setSelectedEvent] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [calendarView, setCalendarView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek'>('dayGridMonth')
+  const calendarRef = useRef<any>(null)
 
   useEffect(() => {
     if (profile) {
@@ -74,99 +74,288 @@ export function TechnicianAgendaTab() {
     }
   }
 
-  // Créer les événements pour le calendrier
-  const events = [
-    // Missions acceptées
-    ...acceptedMissions.map((assignment) => ({
-      id: `mission-${assignment.id}`,
-      title: assignment.missions.title,
-      start: new Date(assignment.missions.date_start),
-      end: new Date(assignment.missions.date_end),
-      resource: {
-        type: 'mission',
-        data: assignment
+  // Créer les événements pour le calendrier avec FullCalendar
+  const events = useMemo(() => {
+    const missionEvents = acceptedMissions.map((assignment) => {
+      let startDate: Date
+      let endDate: Date
+      
+      try {
+        const startMoment = parseISO(assignment.missions.date_start)
+        const endMoment = parseISO(assignment.missions.date_end)
+        
+        if (!isValid(startMoment) || !isValid(endMoment)) {
+          console.error(`Dates invalides pour la mission ${assignment.missions.title}`)
+          startDate = addHours(startOfDay(new Date()), 9)
+          endDate = addHours(startOfDay(new Date()), 17)
+        } else {
+          startDate = startMoment
+          endDate = endMoment
+          
+          if (endDate < startDate) {
+            endDate = addHours(startDate, 2)
+          }
+        }
+      } catch (error) {
+        console.error(`Erreur parsing dates pour ${assignment.missions.title}:`, error)
+        startDate = addHours(startOfDay(new Date()), 9)
+        endDate = addHours(startOfDay(new Date()), 17)
       }
-    })),
-    // Disponibilités
-    ...availabilities.map((availability) => ({
-      id: `availability-${availability.id}`,
-      title: 'Disponible',
-      start: new Date(availability.start_time),
-      end: new Date(availability.end_time),
-      resource: {
-        type: 'availability',
-        data: availability
-      }
-    }))
-  ]
-
-  // Style des événements
-  const eventStyleGetter = (event: any) => {
-    if (event.resource.type === 'mission') {
-      const mission = event.resource.data.missions
-      const baseColor = {
-        'Livraison jeux': '#3B82F6',
-        'Presta sono': '#10B981',
-        'DJ': '#8B5CF6',
-        'Manutention': '#F59E0B',
-        'Déplacement': '#6B7280'
-      }[mission.type] || '#6B7280'
-
+      
       return {
-        style: {
-          backgroundColor: baseColor,
-          borderColor: baseColor,
-          color: 'white',
-          fontWeight: 'bold'
+        id: `mission-${assignment.id}`,
+        title: assignment.missions.title,
+        start: startDate,
+        end: endDate,
+        backgroundColor: '#3B82F6',
+        borderColor: '#3B82F6',
+        textColor: '#ffffff',
+        extendedProps: {
+          type: 'mission',
+          data: assignment
         }
       }
-    } else {
-      // Disponibilité
+    })
+
+    const availabilityEvents = availabilities.map((availability) => {
+      let startDate: Date
+      let endDate: Date
+      
+      try {
+        const startMoment = parseISO(availability.start_time)
+        const endMoment = parseISO(availability.end_time)
+        
+        if (!isValid(startMoment) || !isValid(endMoment)) {
+          console.error(`Dates invalides pour la disponibilité ${availability.id}`)
+          startDate = addHours(startOfDay(new Date()), 9)
+          endDate = addHours(startOfDay(new Date()), 17)
+        } else {
+          startDate = startMoment
+          endDate = endMoment
+          
+          if (endDate < startDate) {
+            endDate = addHours(startDate, 2)
+          }
+        }
+      } catch (error) {
+        console.error(`Erreur parsing dates pour la disponibilité ${availability.id}:`, error)
+        startDate = addHours(startOfDay(new Date()), 9)
+        endDate = addHours(startOfDay(new Date()), 17)
+      }
+      
       return {
-        style: {
-          backgroundColor: '#10B981',
-          borderColor: '#10B981',
-          color: 'white',
-          opacity: 0.7
+        id: `availability-${availability.id}`,
+        title: 'Disponible',
+        start: startDate,
+        end: endDate,
+        backgroundColor: '#10B981',
+        borderColor: '#10B981',
+        textColor: '#ffffff',
+        extendedProps: {
+          type: 'availability',
+          data: availability
         }
       }
-    }
-  }
+    })
+
+    return [...missionEvents, ...availabilityEvents]
+  }, [acceptedMissions, availabilities])
+
+  const handleEventClick = useCallback((info: any) => {
+    setSelectedEvent({
+      resource: info.event.extendedProps.data,
+      title: info.event.title,
+      start: info.event.start,
+      end: info.event.end,
+      type: info.event.extendedProps.type
+    })
+  }, [])
+
+  const handleDateSelect = useCallback((selectInfo: any) => {
+    console.log('Nouvelle disponibilité créée:', selectInfo)
+    // Ici vous pouvez ouvrir un modal pour créer une nouvelle disponibilité
+  }, [])
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-gray-500">Chargement de votre agenda...</div>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement de votre agenda...</p>
+        </div>
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-xl font-semibold">Mon Agenda</h3>
-        <p className="text-gray-600">
-          Vue d'ensemble de vos missions acceptées et disponibilités
-        </p>
+      {/* Statistiques rapides */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-600 font-medium">Missions acceptées</p>
+                <p className="text-2xl font-bold text-blue-800">{acceptedMissions.length}</p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-green-600 font-medium">Disponibilités</p>
+                <p className="text-2xl font-bold text-green-800">{availabilities.length}</p>
+              </div>
+              <Clock className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-purple-600 font-medium">Revenus totaux</p>
+                <p className="text-2xl font-bold text-purple-800">
+                  {formatCurrency(acceptedMissions.reduce((sum, assignment) => sum + assignment.missions.forfeit, 0))}
+                </p>
+              </div>
+              <Euro className="h-8 w-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3">
           <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Mon agenda</span>
+                <div className="flex items-center space-x-2">
+                                     <Button
+                     variant={calendarView === 'dayGridMonth' ? 'default' : 'outline'}
+                     size="sm"
+                     onClick={() => {
+                       setCalendarView('dayGridMonth')
+                       if (calendarRef.current) {
+                         calendarRef.current.getApi().changeView('dayGridMonth')
+                       }
+                     }}
+                   >
+                     Mois
+                   </Button>
+                   <Button
+                     variant={calendarView === 'timeGridWeek' ? 'default' : 'outline'}
+                     size="sm"
+                     onClick={() => {
+                       setCalendarView('timeGridWeek')
+                       if (calendarRef.current) {
+                         calendarRef.current.getApi().changeView('timeGridWeek')
+                       }
+                     }}
+                   >
+                     Semaine
+                   </Button>
+                   <Button
+                     variant={calendarView === 'listWeek' ? 'default' : 'outline'}
+                     size="sm"
+                     onClick={() => {
+                       setCalendarView('listWeek')
+                       if (calendarRef.current) {
+                         calendarRef.current.getApi().changeView('listWeek')
+                       }
+                     }}
+                   >
+                     Liste
+                   </Button>
+                </div>
+              </CardTitle>
+            </CardHeader>
             <CardContent className="p-6">
               <div style={{ height: '600px' }}>
-                <Calendar
-                  localizer={localizer}
-                  events={events}
-                  startAccessor="start"
-                  endAccessor="end"
-                  messages={messages}
-                  Esil-eventspGetter={eventStyleGetter}
-                  onSelectEvent={(event) => setSelectedEvent(event)}
-                  views={['month', 'week', 'day', 'agenda']}
-                  defaultView="week"
-                  popup
-                />
+                                                    <FullCalendar
+                   ref={calendarRef}
+                   plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
+                     headerToolbar={{
+                       left: 'prev,next today',
+                       center: 'title',
+                       right: ''
+                     }}
+                     initialView={calendarView}
+                     views={{
+                       dayGridMonth: {
+                         titleFormat: { year: 'numeric', month: 'long' },
+                         dayMaxEvents: 3
+                       },
+                       timeGridWeek: {
+                         titleFormat: { year: 'numeric', month: 'long', day: 'numeric' },
+                         slotMinTime: '06:00:00',
+                         slotMaxTime: '22:00:00',
+                         slotDuration: '00:30:00',
+                         allDaySlot: false
+                       },
+                       listWeek: {
+                         titleFormat: { year: 'numeric', month: 'long' },
+                         listDayFormat: { weekday: 'long', day: 'numeric', month: 'long' },
+                         listDaySideFormat: { year: 'numeric', month: 'long', day: 'numeric' }
+                       }
+                     }}
+                     locale="fr"
+                     events={events}
+                     eventClick={handleEventClick}
+                     selectable={true}
+                     select={handleDateSelect}
+                     height="100%"
+                     eventDisplay="block"
+                     eventTimeFormat={{
+                       hour: '2-digit',
+                       minute: '2-digit',
+                       meridiem: false,
+                       hour12: false
+                     }}
+                     buttonText={{
+                       today: 'Aujourd\'hui',
+                       month: 'Mois',
+                       week: 'Semaine',
+                       day: 'Jour',
+                       list: 'Liste'
+                     }}
+                     noEventsText="Aucun événement dans cette période"
+                     eventDidMount={(info) => {
+                       const event = info.event
+                       const data = event.extendedProps.data
+                       if (data) {
+                         let tooltip = ''
+                         if (event.extendedProps.type === 'mission') {
+                           tooltip = `
+                             <div class="p-2">
+                               <strong>${data.missions.title}</strong><br>
+                               <small>${data.missions.type}</small><br>
+                               <small>${data.missions.location}</small><br>
+                               <small>${data.missions.forfeit}€</small>
+                             </div>
+                           `
+                         } else {
+                           tooltip = `
+                             <div class="p-2">
+                               <strong>Disponible</strong><br>
+                               <small>${format(parseISO(data.start_time), 'dd/MM/yyyy HH:mm', { locale: fr })} - ${format(parseISO(data.end_time), 'HH:mm', { locale: fr })}</small>
+                             </div>
+                           `
+                         }
+                         info.el.title = tooltip
+                       }
+                     }}
+                     viewDidMount={(info) => {
+                       // Mettre à jour la vue actuelle quand elle change
+                       setCalendarView(info.view.type as any)
+                     }}
+                   />
               </div>
             </CardContent>
           </Card>
@@ -180,26 +369,13 @@ export function TechnicianAgendaTab() {
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 rounded bg-green-500 opacity-70" />
+                <div className="w-3 h-3 rounded bg-blue-500"></div>
+                <span className="text-sm">Missions acceptées</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 rounded bg-green-500"></div>
                 <span className="text-sm">Disponibilités</span>
               </div>
-              {['Livraison jeux', 'Presta sono', 'DJ', 'Manutention', 'Déplacement'].map((type) => (
-                <div key={type} className="flex items-center space-x-2">
-                  <div 
-                    className="w-3 h-3 rounded"
-                    style={{
-                      backgroundColor: {
-                        'Livraison jeux': '#3B82F6',
-                        'Presta sono': '#10B981',
-                        'DJ': '#8B5CF6',
-                        'Manutention': '#F59E0B',
-                        'Déplacement': '#6B7280'
-                      }[type]
-                    }}
-                  />
-                  <span className="text-sm">{type}</span>
-                </div>
-              ))}
             </CardContent>
           </Card>
 
@@ -207,73 +383,89 @@ export function TechnicianAgendaTab() {
           {selectedEvent && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">
-                  {selectedEvent.resource.type === 'mission' ? 'Mission' : 'Disponibilité'}
+                <CardTitle className="text-base flex items-center justify-between">
+                  Détails
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedEvent(null)}
+                  >
+                    <XCircle className="h-4 w-4" />
+                  </Button>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                {selectedEvent.resource.type === 'mission' ? (
+              <CardContent className="space-y-4">
+                {selectedEvent.type === 'mission' ? (
                   <>
                     <div>
-                      <h4 className="font-medium">{selectedEvent.title}</h4>
-                      <Badge className={getMissionTypeColor(selectedEvent.resource.data.missions.type)}>
-                        {selectedEvent.resource.data.missions.type}
+                      <h4 className="font-medium text-lg">{selectedEvent.title}</h4>
+                      <Badge className={getMissionTypeColor(selectedEvent.resource.missions.type)}>
+                        {selectedEvent.resource.missions.type}
                       </Badge>
                     </div>
                     
-                    <div className="text-sm space-y-1">
-                      <p><strong>Lieu:</strong> {selectedEvent.resource.data.missions.location}</p>
-                      <p><strong>Début:</strong> {formatDateTime(selectedEvent.resource.data.missions.date_start)}</p>
-                      <p><strong>Fin:</strong> {formatDateTime(selectedEvent.resource.data.missions.date_end)}</p>
-                      <p><strong>Rémunération:</strong> {formatCurrency(selectedEvent.resource.data.missions.forfeit)}</p>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2 text-sm">
+                        <MapPin className="h-4 w-4 text-gray-500" />
+                        <span>{selectedEvent.resource.missions.location}</span>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2 text-sm">
+                        <Clock className="h-4 w-4 text-gray-500" />
+                        <span>
+                          {format(selectedEvent.start, 'dd/MM/yyyy HH:mm', { locale: fr })} - {format(selectedEvent.end, 'HH:mm', { locale: fr })}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2 text-sm">
+                        <Euro className="h-4 w-4 text-gray-500" />
+                        <span className="font-medium">{selectedEvent.resource.missions.forfeit}€</span>
+                      </div>
                     </div>
 
-                    {selectedEvent.resource.data.missions.description && (
+                    {selectedEvent.resource.missions.description && (
                       <div className="text-sm">
                         <strong>Description:</strong>
-                        <p className="mt-1 text-gray-600">{selectedEvent.resource.data.missions.description}</p>
+                        <p className="mt-1 text-gray-600">{selectedEvent.resource.missions.description}</p>
                       </div>
                     )}
+
+                    <div className="flex gap-2 pt-2 border-t">
+                      <Button size="sm" className="flex-1">
+                        <Edit className="h-3 w-3 mr-1" />
+                        Modifier
+                      </Button>
+                    </div>
                   </>
                 ) : (
-                  <div className="text-sm space-y-1">
-                    <p><strong>Période de disponibilité</strong></p>
-                    <p>Début: {formatDateTime(selectedEvent.resource.data.start_time)}</p>
-                    <p>Fin: {formatDateTime(selectedEvent.resource.data.end_time)}</p>
-                  </div>
+                  <>
+                    <div>
+                      <h4 className="font-medium text-lg">Disponibilité</h4>
+                      <Badge className="bg-green-100 text-green-800">
+                        Disponible
+                      </Badge>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2 text-sm">
+                        <Clock className="h-4 w-4 text-gray-500" />
+                        <span>
+                          {format(selectedEvent.start, 'dd/MM/yyyy HH:mm', { locale: fr })} - {format(selectedEvent.end, 'HH:mm', { locale: fr })}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 pt-2 border-t">
+                      <Button size="sm" className="flex-1">
+                        <Edit className="h-3 w-3 mr-1" />
+                        Modifier
+                      </Button>
+                    </div>
+                  </>
                 )}
               </CardContent>
             </Card>
           )}
-
-          {/* Prochaines missions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Prochaines missions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {acceptedMissions
-                .filter(assignment => new Date(assignment.missions.date_start) > new Date())
-                .slice(0, 3)
-                .map((assignment) => (
-                  <div key={assignment.id} className="p-3 bg-blue-50 rounded-lg">
-                    <h5 className="font-medium text-sm">{assignment.missions.title}</h5>
-                    <p className="text-xs text-gray-600 mt-1">
-                      {moment(assignment.missions.date_start).format('DD/MM/YYYY HH:mm')}
-                    </p>
-                    <p className="text-xs font-medium text-green-600 mt-1">
-                      {formatCurrency(assignment.missions.forfeit)}
-                    </p>
-                  </div>
-                ))}
-              
-              {acceptedMissions.filter(assignment => new Date(assignment.missions.date_start) > new Date()).length === 0 && (
-                <p className="text-sm text-gray-500 text-center py-4">
-                  Aucune mission à venir
-                </p>
-              )}
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

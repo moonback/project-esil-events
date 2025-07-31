@@ -1,8 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react'
-import { Calendar, momentLocalizer } from 'react-big-calendar'
-import moment from 'moment'
-import 'moment/locale/fr'
-import 'react-big-calendar/lib/css/react-big-calendar.css'
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import FullCalendar from '@fullcalendar/react'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import timeGridPlugin from '@fullcalendar/timegrid'
+import interactionPlugin from '@fullcalendar/interaction'
+import listPlugin from '@fullcalendar/list'
+import { format, parseISO, isValid, startOfDay, endOfDay, addHours } from 'date-fns'
+import { fr } from 'date-fns/locale'
 import { useMissionsStore } from '@/store/missionsStore'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -26,30 +29,12 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
-  FilterX
+  FilterX,
+  Grid3X3,
+  List,
+  CalendarDays
 } from 'lucide-react'
 import type { MissionType, Mission, MissionWithAssignments, MissionAssignment } from '@/types/database'
-
-// Configuration moment en français
-moment.locale('fr')
-const localizer = momentLocalizer(moment)
-
-// Messages en français pour le calendrier
-const messages = {
-  allDay: 'Toute la journée',
-  previous: 'Précédent',
-  next: 'Suivant',
-  today: 'Aujourd\'hui',
-  month: 'Mois',
-  week: 'Semaine',
-  day: 'Jour',
-  agenda: 'Agenda',
-  date: 'Date',
-  time: 'Heure',
-  event: 'Événement',
-  noEventsInRange: 'Aucune mission dans cette période.',
-  showMore: (total: number) => `+ ${total} mission(s) supplémentaire(s)`
-}
 
 // Mapping des couleurs typé
 const missionTypeColors: Record<MissionType, string> = {
@@ -60,31 +45,17 @@ const missionTypeColors: Record<MissionType, string> = {
   'Déplacement': '#6B7280'
 }
 
-export function AdminAgendaTab() {
-  const { missions } = useMissionsStore()
-  // Cast missions to include assignments
-  const missionsWithAssignments = missions as MissionWithAssignments[]
-  const [selectedEvent, setSelectedEvent] = useState<any>(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedTypes, setSelectedTypes] = useState<MissionType[]>([])
-  const [selectedStatus, setSelectedStatus] = useState<string[]>([])
-  const [dateRange, setDateRange] = useState<{ start: Date | null; end: Date | null }>({
-    start: null,
-    end: null
-  })
-  const [showFilters, setShowFilters] = useState(false)
-  const [showDetailedView, setShowDetailedView] = useState(false)
-
-  // Statistiques calculées
-  const stats = useMemo(() => {
-    const totalMissions = missionsWithAssignments.length
-    const completedMissions = missionsWithAssignments.filter(m => 
+// Hook personnalisé pour les statistiques
+const useMissionStats = (missions: MissionWithAssignments[]) => {
+  return useMemo(() => {
+    const totalMissions = missions.length
+    const completedMissions = missions.filter(m => 
       m.mission_assignments.every((a: any) => a.status === 'accepté')
     ).length
-    const pendingMissions = missionsWithAssignments.filter(m => 
+    const pendingMissions = missions.filter(m => 
       m.mission_assignments.some((a: any) => a.status === 'proposé')
     ).length
-    const totalRevenue = missionsWithAssignments.reduce((sum, m) => sum + m.forfeit, 0)
+    const totalRevenue = missions.reduce((sum, m) => sum + m.forfeit, 0)
     const avgRevenue = totalMissions > 0 ? totalRevenue / totalMissions : 0
 
     return {
@@ -94,9 +65,19 @@ export function AdminAgendaTab() {
       revenue: totalRevenue,
       avgRevenue: avgRevenue
     }
-  }, [missionsWithAssignments])
+  }, [missions])
+}
 
-  // Filtrage des missions
+// Hook personnalisé pour le filtrage
+const useMissionFilters = (missions: MissionWithAssignments[]) => {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedTypes, setSelectedTypes] = useState<MissionType[]>([])
+  const [selectedStatus, setSelectedStatus] = useState<string[]>([])
+  const [dateRange, setDateRange] = useState<{ start: Date | null; end: Date | null }>({
+    start: null,
+    end: null
+  })
+
   const filteredMissions = useMemo(() => {
     return missions.filter(mission => {
       // Filtre par recherche
@@ -124,10 +105,12 @@ export function AdminAgendaTab() {
       }
 
       // Filtre par date
-      if (dateRange.start && moment(mission.date_start).isBefore(dateRange.start)) {
+      if (dateRange.start && isValid(parseISO(mission.date_start)) && 
+          parseISO(mission.date_start) < dateRange.start) {
         return false
       }
-      if (dateRange.end && moment(mission.date_end).isAfter(dateRange.end)) {
+      if (dateRange.end && isValid(parseISO(mission.date_end)) && 
+          parseISO(mission.date_end) > dateRange.end) {
         return false
       }
 
@@ -135,160 +118,137 @@ export function AdminAgendaTab() {
     })
   }, [missions, searchTerm, selectedTypes, selectedStatus, dateRange])
 
-  // Créer des événements de test si aucune mission n'est trouvée
-  const testEvents = filteredMissions.length === 0 ? [
-    {
-      id: 'test-1',
-      title: 'Mission Test 1',
-      start: moment().add(1, 'day').hours(9).minutes(0).toDate(),
-      end: moment().add(1, 'day').hours(11).minutes(0).toDate(),
-      resource: {
-        id: 'test-1',
-        type: 'Livraison jeux' as MissionType,
-        title: 'Mission Test 1',
-        description: 'Mission de test pour vérifier l\'affichage',
-        date_start: moment().add(1, 'day').hours(9).minutes(0).format(),
-        date_end: moment().add(1, 'day').hours(11).minutes(0).format(),
-        location: 'Paris',
-        forfeit: 150,
-        mission_assignments: []
-      }
-    },
-    {
-      id: 'test-2',
-      title: 'Mission Test 2',
-      start: moment().add(2, 'day').hours(14).minutes(30).toDate(),
-      end: moment().add(2, 'day').hours(17).minutes(30).toDate(),
-      resource: {
-        id: 'test-2',
-        type: 'Presta sono' as MissionType,
-        title: 'Mission Test 2',
-        description: 'Autre mission de test',
-        date_start: moment().add(2, 'day').hours(14).minutes(30).format(),
-        date_end: moment().add(2, 'day').hours(17).minutes(30).format(),
-        location: 'Lyon',
-        forfeit: 200,
-        mission_assignments: []
-      }
-    }
-  ] : []
-
-  // Transformer les missions filtrées en événements pour le calendrier
-  const missionEvents = filteredMissions.map((mission) => {
-    // S'assurer que les dates sont correctement parsées avec horaires
-    let startDate: Date
-    let endDate: Date
-    
-    try {
-      // Essayer différents formats de date avec heure
-      let startMoment = moment(mission.date_start)
-      let endMoment = moment(mission.date_end)
-      
-      // Si les dates ne contiennent pas d'heure, ajouter des heures par défaut
-      if (startMoment.format('HH:mm') === '00:00') {
-        startMoment = startMoment.hours(9).minutes(0) // 9h00 par défaut
-      }
-      if (endMoment.format('HH:mm') === '00:00') {
-        endMoment = endMoment.hours(17).minutes(0) // 17h00 par défaut
-      }
-      
-      // Si la date de fin est avant la date de début, ajuster
-      if (endMoment.isBefore(startMoment)) {
-        endMoment = startMoment.clone().add(2, 'hours') // +2h par défaut
-      }
-      
-      if (!startMoment.isValid() || !endMoment.isValid()) {
-        console.error(`Dates invalides pour la mission ${mission.title}:`, {
-          date_start: mission.date_start,
-          date_end: mission.date_end
-        })
-        // Utiliser des dates par défaut si invalides
-        startDate = moment().hours(9).minutes(0).toDate()
-        endDate = moment().hours(17).minutes(0).toDate()
-      } else {
-        startDate = startMoment.toDate()
-        endDate = endMoment.toDate()
-      }
-    } catch (error) {
-      console.error(`Erreur parsing dates pour ${mission.title}:`, error)
-      startDate = moment().hours(9).minutes(0).toDate()
-      endDate = moment().hours(17).minutes(0).toDate()
-    }
-    
-    // Debug: afficher les dates pour vérification
-    console.log(`Mission ${mission.title}:`, {
-      originalStart: mission.date_start,
-      parsedStart: startDate,
-      originalEnd: mission.date_end,
-      parsedEnd: endDate,
-      startTime: moment(startDate).format('YYYY-MM-DD HH:mm'),
-      endTime: moment(endDate).format('YYYY-MM-DD HH:mm'),
-      isValid: moment(startDate).isValid() && moment(endDate).isValid()
-    })
-    
-    return {
-      id: mission.id,
-      title: mission.title,
-      start: startDate,
-      end: endDate,
-      resource: mission
-    }
-  }).filter(event => {
-    // Filtrer les événements avec des dates valides
-    return moment(event.start).isValid() && moment(event.end).isValid()
-  })
-
-  // Combiner les événements de test et les événements réels
-  const events = [...testEvents, ...missionEvents]
-
-  // Style personnalisé pour les événements
-  const eventStyleGetter = (event: any) => {
-    const mission = event.resource as Mission
-    const baseColor = missionTypeColors[mission.type] || '#6B7280'
-    const hasAssignments = mission.mission_assignments.length > 0
-    const allAccepted = hasAssignments && mission.mission_assignments.every((a: any) => a.status === 'accepté')
-    const hasPending = hasAssignments && mission.mission_assignments.some((a: any) => a.status === 'proposé')
-
-    let opacity = 1
-    if (!hasAssignments) opacity = 0.6
-    else if (allAccepted) opacity = 1
-    else if (hasPending) opacity = 0.8
-
-    return {
-      style: {
-        backgroundColor: baseColor,
-        borderColor: baseColor,
-        color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        opacity: opacity,
-        fontWeight: allAccepted ? 'bold' : 'normal'
-      }
-    }
-  }
-
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setSearchTerm('')
     setSelectedTypes([])
     setSelectedStatus([])
     setDateRange({ start: null, end: null })
-  }
+  }, [])
 
-  const toggleTypeFilter = (type: MissionType) => {
+  return {
+    searchTerm,
+    setSearchTerm,
+    selectedTypes,
+    setSelectedTypes,
+    selectedStatus,
+    setSelectedStatus,
+    dateRange,
+    setDateRange,
+    filteredMissions,
+    clearFilters
+  }
+}
+
+export function AdminAgendaTab() {
+  const { missions } = useMissionsStore()
+  const missionsWithAssignments = missions as MissionWithAssignments[]
+  const [selectedEvent, setSelectedEvent] = useState<any>(null)
+  const [showFilters, setShowFilters] = useState(false)
+  const [showDetailedView, setShowDetailedView] = useState(false)
+  const [calendarView, setCalendarView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek'>('dayGridMonth')
+  const calendarRef = useRef<any>(null)
+
+  const stats = useMissionStats(missionsWithAssignments)
+  const {
+    searchTerm,
+    setSearchTerm,
+    selectedTypes,
+    setSelectedTypes,
+    selectedStatus,
+    setSelectedStatus,
+    dateRange,
+    setDateRange,
+    filteredMissions,
+    clearFilters
+  } = useMissionFilters(missionsWithAssignments)
+
+  // Transformer les missions en événements FullCalendar
+  const events = useMemo(() => {
+    return filteredMissions.map((mission) => {
+      let startDate: Date
+      let endDate: Date
+      
+      try {
+        const startMoment = parseISO(mission.date_start)
+        const endMoment = parseISO(mission.date_end)
+        
+        if (!isValid(startMoment) || !isValid(endMoment)) {
+          console.error(`Dates invalides pour la mission ${mission.title}`)
+          startDate = addHours(startOfDay(new Date()), 9)
+          endDate = addHours(startOfDay(new Date()), 17)
+        } else {
+          startDate = startMoment
+          endDate = endMoment
+          
+          // Si la date de fin est avant la date de début, ajuster
+          if (endDate < startDate) {
+            endDate = addHours(startDate, 2)
+          }
+        }
+      } catch (error) {
+        console.error(`Erreur parsing dates pour ${mission.title}:`, error)
+        startDate = addHours(startOfDay(new Date()), 9)
+        endDate = addHours(startOfDay(new Date()), 17)
+      }
+      
+      const hasAssignments = mission.mission_assignments.length > 0
+      const allAccepted = hasAssignments && mission.mission_assignments.every((a: any) => a.status === 'accepté')
+      const hasPending = hasAssignments && mission.mission_assignments.some((a: any) => a.status === 'proposé')
+      
+      let backgroundColor = missionTypeColors[mission.type] || '#6B7280'
+      let opacity = 1
+      
+      if (!hasAssignments) opacity = 0.6
+      else if (allAccepted) opacity = 1
+      else if (hasPending) opacity = 0.8
+      
+      return {
+        id: mission.id,
+        title: mission.title,
+        start: startDate,
+        end: endDate,
+        backgroundColor: backgroundColor,
+        borderColor: backgroundColor,
+        textColor: '#ffffff',
+        extendedProps: {
+          mission: mission,
+          hasAssignments,
+          allAccepted,
+          hasPending
+        }
+      }
+    })
+  }, [filteredMissions])
+
+  const handleEventClick = useCallback((info: any) => {
+    setSelectedEvent({
+      resource: info.event.extendedProps.mission,
+      title: info.event.title,
+      start: info.event.start,
+      end: info.event.end
+    })
+  }, [])
+
+  const handleDateSelect = useCallback((selectInfo: any) => {
+    console.log('Nouvelle mission créée:', selectInfo)
+    // Ici vous pouvez ouvrir un modal pour créer une nouvelle mission
+  }, [])
+
+  const toggleTypeFilter = useCallback((type: MissionType) => {
     setSelectedTypes(prev => 
       prev.includes(type) 
         ? prev.filter(t => t !== type)
         : [...prev, type]
     )
-  }
+  }, [setSelectedTypes])
 
-  const toggleStatusFilter = (status: string) => {
+  const toggleStatusFilter = useCallback((status: string) => {
     setSelectedStatus(prev => 
       prev.includes(status) 
         ? prev.filter(s => s !== status)
         : [...prev, status]
     )
-  }
+  }, [setSelectedStatus])
 
   return (
     <div className="space-y-6">
@@ -400,8 +360,6 @@ export function AdminAgendaTab() {
                 </Button>
               </div>
             </div>
-
-
           </div>
 
           {/* Panneau de filtres */}
@@ -458,7 +416,7 @@ export function AdminAgendaTab() {
                       <Label className="text-xs">Début</Label>
                       <Input
                         type="date"
-                        value={dateRange.start ? moment(dateRange.start).format('YYYY-MM-DD') : ''}
+                        value={dateRange.start ? format(dateRange.start, 'yyyy-MM-dd') : ''}
                         onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value ? new Date(e.target.value) : null }))}
                         className="text-sm"
                       />
@@ -467,7 +425,7 @@ export function AdminAgendaTab() {
                       <Label className="text-xs">Fin</Label>
                       <Input
                         type="date"
-                        value={dateRange.end ? moment(dateRange.end).format('YYYY-MM-DD') : ''}
+                        value={dateRange.end ? format(dateRange.end, 'yyyy-MM-dd') : ''}
                         onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value ? new Date(e.target.value) : null }))}
                         className="text-sm"
                       />
@@ -539,7 +497,7 @@ export function AdminAgendaTab() {
                           <div 
                             key={mission.id} 
                             className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
-                            onClick={() => setSelectedEvent({ resource: mission, title: mission.title, start: new Date(mission.date_start), end: new Date(mission.date_end) })}
+                            onClick={() => setSelectedEvent({ resource: mission, title: mission.title, start: parseISO(mission.date_start), end: parseISO(mission.date_end) })}
                           >
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
@@ -562,7 +520,7 @@ export function AdminAgendaTab() {
                                   <div className="flex items-center space-x-2">
                                     <Clock className="h-4 w-4" />
                                     <span>
-                                      {moment(mission.date_start).format('DD/MM/YYYY HH:mm')} - {moment(mission.date_end).format('HH:mm')}
+                                      {format(parseISO(mission.date_start), 'dd/MM/yyyy HH:mm', { locale: fr })} - {format(parseISO(mission.date_end), 'HH:mm', { locale: fr })}
                                     </span>
                                   </div>
                                   
@@ -621,37 +579,120 @@ export function AdminAgendaTab() {
             </Card>
           ) : (
             <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Calendrier des missions</span>
+                                     <div className="flex items-center space-x-2">
+                     <Button
+                       variant={calendarView === 'dayGridMonth' ? 'default' : 'outline'}
+                       size="sm"
+                       onClick={() => {
+                         setCalendarView('dayGridMonth')
+                         if (calendarRef.current) {
+                           calendarRef.current.getApi().changeView('dayGridMonth')
+                         }
+                       }}
+                     >
+                       Mois
+                     </Button>
+                     <Button
+                       variant={calendarView === 'timeGridWeek' ? 'default' : 'outline'}
+                       size="sm"
+                       onClick={() => {
+                         setCalendarView('timeGridWeek')
+                         if (calendarRef.current) {
+                           calendarRef.current.getApi().changeView('timeGridWeek')
+                         }
+                       }}
+                     >
+                       Semaine
+                     </Button>
+                     <Button
+                       variant={calendarView === 'listWeek' ? 'default' : 'outline'}
+                       size="sm"
+                       onClick={() => {
+                         setCalendarView('listWeek')
+                         if (calendarRef.current) {
+                           calendarRef.current.getApi().changeView('listWeek')
+                         }
+                       }}
+                     >
+                       Liste
+                     </Button>
+                   </div>
+                </CardTitle>
+              </CardHeader>
               <CardContent className="p-6">
                 <div style={{ height: '600px' }}>
-                  <Calendar
-                    localizer={localizer}
-                    events={events}
-                    startAccessor="start"
-                    endAccessor="end"
-                    messages={messages}
-                    eventPropGetter={eventStyleGetter}
-                    onSelectEvent={(event: any) => setSelectedEvent(event)}
-                    views={['month', 'week', 'day', 'agenda']}
-                    defaultView="month"
-                    popup
-                    tooltipAccessor="title"
-                    selectable
-                    onSelectSlot={(slotInfo) => {
-                      console.log('Slot sélectionné:', slotInfo)
-                    }}
-                    step={30}
-                    timeslots={2}
-                    min={moment().startOf('day').add(6, 'hours').toDate()}
-                    max={moment().startOf('day').add(22, 'hours').toDate()}
-                    formats={{
-                      dayFormat: 'DD/MM/YYYY',
-                      dayHeaderFormat: 'dddd DD MMMM',
-                      monthHeaderFormat: 'MMMM YYYY',
-                      timeGutterFormat: 'HH:mm',
-                      dayRangeHeaderFormat: ({ start, end }: any) => 
-                        `${moment(start).format('DD/MM/YYYY')} - ${moment(end).format('DD/MM/YYYY')}`
-                    }}
-                  />
+                                     <FullCalendar
+                     ref={calendarRef}
+                     plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
+                     headerToolbar={{
+                       left: 'prev,next today',
+                       center: 'title',
+                       right: ''
+                     }}
+                     initialView={calendarView}
+                     views={{
+                       dayGridMonth: {
+                         titleFormat: { year: 'numeric', month: 'long' },
+                         dayMaxEvents: 3
+                       },
+                       timeGridWeek: {
+                         titleFormat: { year: 'numeric', month: 'long', day: 'numeric' },
+                         slotMinTime: '06:00:00',
+                         slotMaxTime: '22:00:00',
+                         slotDuration: '00:30:00',
+                         allDaySlot: false
+                       },
+                       listWeek: {
+                         titleFormat: { year: 'numeric', month: 'long' },
+                         listDayFormat: { weekday: 'long', day: 'numeric', month: 'long' },
+                         listDaySideFormat: { year: 'numeric', month: 'long', day: 'numeric' }
+                       }
+                     }}
+                     locale="fr"
+                     events={events}
+                     eventClick={handleEventClick}
+                     selectable={true}
+                     select={handleDateSelect}
+                     height="100%"
+                     eventDisplay="block"
+                     eventTimeFormat={{
+                       hour: '2-digit',
+                       minute: '2-digit',
+                       meridiem: false,
+                       hour12: false
+                     }}
+                     buttonText={{
+                       today: 'Aujourd\'hui',
+                       month: 'Mois',
+                       week: 'Semaine',
+                       day: 'Jour',
+                       list: 'Liste'
+                     }}
+                     noEventsText="Aucune mission dans cette période"
+                     eventDidMount={(info) => {
+                       // Ajouter des tooltips personnalisés
+                       const event = info.event
+                       const mission = event.extendedProps.mission
+                       if (mission) {
+                         const tooltip = `
+                           <div class="p-2">
+                             <strong>${mission.title}</strong><br>
+                             <small>${mission.type}</small><br>
+                             <small>${mission.location}</small><br>
+                             <small>${mission.forfeit}€</small>
+                           </div>
+                         `
+                         info.el.title = tooltip
+                       }
+                     }}
+                     viewDidMount={(info) => {
+                       // Mettre à jour la vue actuelle quand elle change
+                       setCalendarView(info.view.type as any)
+                     }}
+                   />
                 </div>
               </CardContent>
             </Card>
@@ -716,7 +757,7 @@ export function AdminAgendaTab() {
                   <div className="flex items-center space-x-2 text-sm">
                     <Clock className="h-4 w-4 text-gray-500" />
                     <span>
-                      {moment(selectedEvent.start).format('DD/MM/YYYY HH:mm')} - {moment(selectedEvent.end).format('HH:mm')}
+                      {format(selectedEvent.start, 'dd/MM/yyyy HH:mm', { locale: fr })} - {format(selectedEvent.end, 'HH:mm', { locale: fr })}
                     </span>
                   </div>
                   

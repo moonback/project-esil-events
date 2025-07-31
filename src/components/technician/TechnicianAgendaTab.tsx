@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
-import { format, parseISO, isValid, addHours, startOfDay } from 'date-fns'
+import { format, parseISO, isValid } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { formatDateTime, formatCurrency, getMissionTypeColor } from '@/lib/utils'
+import { formatDateTime, formatCurrency, getMissionTypeColor, getVehicleTypeIcon, getVehicleTypeLabel, getPriorityLevelColor, getPriorityLevelLabel } from '@/lib/utils'
 import { 
   Calendar as CalendarIcon, 
   Clock, 
@@ -30,50 +30,59 @@ import {
   TrendingUp,
   Award
 } from 'lucide-react'
-import type { Mission, MissionAssignment, Availability } from '@/types/database'
+import type { Mission, MissionAssignment } from '@/types/database'
+import { VehicleDetailsDialog } from './VehicleDetailsDialog'
 
 interface AcceptedMission extends MissionAssignment {
   missions: Mission
 }
 
 export function TechnicianAgendaTab() {
-  const profile = useAuthStore(state => state.profile)
+  const { user } = useAuthStore()
   const [acceptedMissions, setAcceptedMissions] = useState<AcceptedMission[]>([])
-  const [availabilities, setAvailabilities] = useState<Availability[]>([])
+  const [availabilities, setAvailabilities] = useState<any[]>([])
   const [selectedEvent, setSelectedEvent] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [calendarView, setCalendarView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek'>('dayGridMonth')
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar')
-  const calendarRef = useRef<any>(null)
+  const [vehicleDetailsOpen, setVehicleDetailsOpen] = useState(false)
+  const [selectedMissionForVehicle, setSelectedMissionForVehicle] = useState<Mission | null>(null)
 
   useEffect(() => {
-    if (profile) {
+    if (user) {
       fetchData()
     }
-  }, [profile])
+  }, [user])
 
   const fetchData = async () => {
-    if (!profile) return
+    if (!user) return
 
+    setLoading(true)
     try {
       // Récupérer les missions acceptées
-      const { data: missionsData } = await supabase
+      const { data: assignments } = await supabase
         .from('mission_assignments')
         .select(`
           *,
           missions (*)
         `)
-        .eq('technician_id', profile.id)
+        .eq('technician_id', user.id)
         .eq('status', 'accepté')
 
+      if (assignments) {
+        setAcceptedMissions(assignments as AcceptedMission[])
+      }
+
       // Récupérer les disponibilités
-      const { data: availabilitiesData } = await supabase
+      const { data: availData } = await supabase
         .from('availability')
         .select('*')
-        .eq('technician_id', profile.id)
+        .eq('technician_id', user.id)
+        .order('start_time')
 
-      setAcceptedMissions(missionsData as AcceptedMission[] || [])
-      setAvailabilities(availabilitiesData || [])
+      if (availData) {
+        setAvailabilities(availData)
+      }
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error)
     } finally {
@@ -93,20 +102,20 @@ export function TechnicianAgendaTab() {
         
         if (!isValid(startMoment) || !isValid(endMoment)) {
           console.error(`Dates invalides pour la mission ${assignment.missions.title}`)
-          startDate = addHours(startOfDay(new Date()), 9)
-          endDate = addHours(startOfDay(new Date()), 17)
+          startDate = new Date(assignment.missions.date_start) // Fallback to original date if invalid
+          endDate = new Date(assignment.missions.date_end) // Fallback to original date if invalid
         } else {
           startDate = startMoment
           endDate = endMoment
           
           if (endDate < startDate) {
-            endDate = addHours(startDate, 2)
+            endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000) // Add 2 hours if end date is before start date
           }
         }
       } catch (error) {
         console.error(`Erreur parsing dates pour ${assignment.missions.title}:`, error)
-        startDate = addHours(startOfDay(new Date()), 9)
-        endDate = addHours(startOfDay(new Date()), 17)
+        startDate = new Date(assignment.missions.date_start) // Fallback to original date if error
+        endDate = new Date(assignment.missions.date_end) // Fallback to original date if error
       }
       
       return {
@@ -134,20 +143,20 @@ export function TechnicianAgendaTab() {
         
         if (!isValid(startMoment) || !isValid(endMoment)) {
           console.error(`Dates invalides pour la disponibilité ${availability.id}`)
-          startDate = addHours(startOfDay(new Date()), 9)
-          endDate = addHours(startOfDay(new Date()), 17)
+          startDate = new Date(availability.start_time) // Fallback to original date if invalid
+          endDate = new Date(availability.end_time) // Fallback to original date if invalid
         } else {
           startDate = startMoment
           endDate = endMoment
           
           if (endDate < startDate) {
-            endDate = addHours(startDate, 2)
+            endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000) // Add 2 hours if end date is before start date
           }
         }
       } catch (error) {
         console.error(`Erreur parsing dates pour la disponibilité ${availability.id}:`, error)
-        startDate = addHours(startOfDay(new Date()), 9)
-        endDate = addHours(startOfDay(new Date()), 17)
+        startDate = new Date(availability.start_time) // Fallback to original date if error
+        endDate = new Date(availability.end_time) // Fallback to original date if error
       }
       
       return {
@@ -169,13 +178,28 @@ export function TechnicianAgendaTab() {
   }, [acceptedMissions, availabilities])
 
   const handleEventClick = useCallback((info: any) => {
-    setSelectedEvent({
-      resource: info.event.extendedProps.data,
-      title: info.event.title,
-      start: info.event.start,
-      end: info.event.end,
-      type: info.event.extendedProps.type
-    })
+    const { type, assignment, availability } = info.event.extendedProps
+    
+    if (type === 'mission') {
+      const missionDate = parseISO(assignment.missions.date_start)
+      const endDate = parseISO(assignment.missions.date_end)
+      
+      setSelectedEvent({
+        resource: assignment,
+        title: assignment.missions.title,
+        start: missionDate,
+        end: endDate,
+        type: 'mission'
+      })
+    } else if (type === 'availability') {
+      setSelectedEvent({
+        resource: availability,
+        title: 'Disponibilité',
+        start: parseISO(availability.start_time),
+        end: parseISO(availability.end_time),
+        type: 'availability'
+      })
+    }
   }, [])
 
   const handleMissionClick = useCallback((assignment: AcceptedMission) => {
@@ -196,11 +220,22 @@ export function TechnicianAgendaTab() {
     // Ici vous pouvez ouvrir un modal pour créer une nouvelle disponibilité
   }, [])
 
-  const totalRevenue = acceptedMissions.reduce((sum, assignment) => sum + assignment.missions.forfeit, 0)
-  const upcomingMissions = acceptedMissions.filter(assignment => {
-    const missionDate = parseISO(assignment.missions.date_start)
-    return isValid(missionDate) && missionDate > new Date()
-  })
+  const handleVehicleDetails = useCallback((mission: Mission) => {
+    setSelectedMissionForVehicle(mission)
+    setVehicleDetailsOpen(true)
+  }, [])
+
+  // Statistiques
+  const stats = useMemo(() => {
+    const totalMissions = acceptedMissions.length
+    const totalRevenue = acceptedMissions.reduce((sum, assignment) => sum + assignment.missions.forfeit, 0)
+    const upcomingMissions = acceptedMissions.filter(assignment => {
+      const missionDate = parseISO(assignment.missions.date_start)
+      return isValid(missionDate) && missionDate > new Date()
+    }).length
+
+    return { totalMissions, totalRevenue, upcomingMissions }
+  }, [acceptedMissions])
 
   if (loading) {
     return (
@@ -250,7 +285,7 @@ export function TechnicianAgendaTab() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-blue-600 font-medium">Missions acceptées</p>
-                <p className="text-2xl font-bold text-blue-800">{acceptedMissions.length}</p>
+                <p className="text-2xl font-bold text-blue-800">{stats.totalMissions}</p>
               </div>
               <CheckCircle className="h-8 w-8 text-blue-600" />
             </div>
@@ -262,7 +297,7 @@ export function TechnicianAgendaTab() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-green-600 font-medium">Missions à venir</p>
-                <p className="text-2xl font-bold text-green-800">{upcomingMissions.length}</p>
+                <p className="text-2xl font-bold text-green-800">{stats.upcomingMissions}</p>
               </div>
               <CalendarIcon className="h-8 w-8 text-green-600" />
             </div>
@@ -275,7 +310,7 @@ export function TechnicianAgendaTab() {
               <div>
                 <p className="text-sm text-purple-600 font-medium">Revenus totaux</p>
                 <p className="text-2xl font-bold text-purple-800">
-                  {formatCurrency(totalRevenue)}
+                  {formatCurrency(stats.totalRevenue)}
                 </p>
               </div>
               <TrendingUp className="h-8 w-8 text-purple-600" />
@@ -335,7 +370,6 @@ export function TechnicianAgendaTab() {
                 <div style={{ height: '600px' }}>
                   <FullCalendar
                     key={calendarView}
-                    ref={calendarRef}
                     plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
                     headerToolbar={{
                       left: 'prev,next today',
@@ -486,10 +520,21 @@ export function TechnicianAgendaTab() {
                       )}
 
                       <div className="flex gap-2 pt-2 border-t">
-                        <Button size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700">
+                        <Button size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700" onClick={() => handleMissionClick(selectedEvent.resource)}>
                           <Eye className="h-3 w-3 mr-1" />
                           Voir détails
                         </Button>
+                        {selectedEvent.resource.missions.vehicle_required && selectedEvent.resource.missions.vehicle_type !== 'aucun' && (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="border-orange-200 text-orange-600 hover:bg-orange-50"
+                            onClick={() => handleVehicleDetails(selectedEvent.resource.missions)}
+                          >
+                            <span className="text-lg mr-1">🚛</span>
+                            Véhicule
+                          </Button>
+                        )}
                       </div>
                     </>
                   ) : (
@@ -581,6 +626,44 @@ export function TechnicianAgendaTab() {
                               <span className="font-medium">{assignment.missions.forfeit}€</span>
                             </div>
                           </div>
+
+                          {/* Nouveaux champs dans la vue liste */}
+                          {(assignment.missions.vehicle_required || assignment.missions.equipment_required || assignment.missions.contact_person) && (
+                            <div className="mt-2 pt-2 border-t border-gray-100">
+                              <div className="flex flex-wrap gap-2 text-xs">
+                                {assignment.missions.vehicle_required && (
+                                  <div className="flex items-center space-x-1">
+                                    <span>{getVehicleTypeIcon(assignment.missions.vehicle_type)}</span>
+                                    <span>{getVehicleTypeLabel(assignment.missions.vehicle_type)}</span>
+                                  </div>
+                                )}
+                                
+                                {assignment.missions.equipment_required && (
+                                  <div className="flex items-center space-x-1">
+                                    <span>🛠️</span>
+                                    <span>Équipement requis</span>
+                                  </div>
+                                )}
+                                
+                                {assignment.missions.contact_person && (
+                                  <div className="flex items-center space-x-1">
+                                    <span>👤</span>
+                                    <span>Contact sur site</span>
+                                  </div>
+                                )}
+                                
+                                <Badge className={getPriorityLevelColor(assignment.missions.priority_level)}>
+                                  {getPriorityLevelLabel(assignment.missions.priority_level)}
+                                </Badge>
+                                
+                                {assignment.missions.weather_dependent && (
+                                  <Badge className="bg-yellow-100 text-yellow-800">
+                                    🌤️ Météo
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                         
                         <div className="flex items-center space-x-2">
@@ -588,6 +671,16 @@ export function TechnicianAgendaTab() {
                             <Eye className="h-4 w-4 mr-1" />
                             Voir
                           </Button>
+                          {assignment.missions.vehicle_required && assignment.missions.vehicle_type !== 'aucun' && (
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="border-orange-200 text-orange-600 hover:bg-orange-50"
+                              onClick={() => handleVehicleDetails(assignment.missions)}
+                            >
+                              <span className="text-lg">🚛</span>
+                            </Button>
+                          )}
                         </div>
                       </div>
                     )
@@ -637,25 +730,91 @@ export function TechnicianAgendaTab() {
                     <Euro className="h-4 w-4 text-gray-500" />
                     <span className="font-medium">{selectedEvent.resource.missions.forfeit}€</span>
                   </div>
-                </div>
 
-                {selectedEvent.resource.missions.description && (
-                  <div className="text-sm">
-                    <strong>Description:</strong>
-                    <p className="mt-1 text-gray-600">{selectedEvent.resource.missions.description}</p>
+                  {/* Nouveaux champs */}
+                  {selectedEvent.resource.missions.vehicle_required && (
+                    <div className="flex items-center space-x-2 text-sm">
+                      <span className="text-lg">{getVehicleTypeIcon(selectedEvent.resource.missions.vehicle_type)}</span>
+                      <span>{getVehicleTypeLabel(selectedEvent.resource.missions.vehicle_type)}</span>
+                      {selectedEvent.resource.missions.vehicle_details && (
+                        <span className="text-gray-500">- {selectedEvent.resource.missions.vehicle_details}</span>
+                      )}
+                    </div>
+                  )}
+
+                  {selectedEvent.resource.missions.equipment_required && (
+                    <div className="flex items-start space-x-2 text-sm">
+                      <span className="text-lg">🛠️</span>
+                      <div>
+                        <span className="font-medium">Équipement:</span>
+                        <p className="text-gray-600 mt-1">{selectedEvent.resource.missions.equipment_required}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedEvent.resource.missions.contact_person && (
+                    <div className="flex items-center space-x-2 text-sm">
+                      <span className="text-lg">👤</span>
+                      <span>Contact: {selectedEvent.resource.missions.contact_person}</span>
+                      {selectedEvent.resource.missions.contact_phone && (
+                        <span className="text-gray-500">({selectedEvent.resource.missions.contact_phone})</span>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex items-center space-x-2 text-sm">
+                    <Badge className={getPriorityLevelColor(selectedEvent.resource.missions.priority_level)}>
+                      {getPriorityLevelLabel(selectedEvent.resource.missions.priority_level)}
+                    </Badge>
+                    {selectedEvent.resource.missions.weather_dependent && (
+                      <Badge className="bg-yellow-100 text-yellow-800">
+                        🌤️ Dépendant météo
+                      </Badge>
+                    )}
                   </div>
-                )}
+
+                  {(selectedEvent.resource.missions.setup_time_minutes > 0 || selectedEvent.resource.missions.teardown_time_minutes > 0) && (
+                    <div className="flex items-center space-x-4 text-sm">
+                      {selectedEvent.resource.missions.setup_time_minutes > 0 && (
+                        <span>⏱️ Montage: {selectedEvent.resource.missions.setup_time_minutes}min</span>
+                      )}
+                      {selectedEvent.resource.missions.teardown_time_minutes > 0 && (
+                        <span>⏱️ Démontage: {selectedEvent.resource.missions.teardown_time_minutes}min</span>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 <div className="flex gap-2 pt-2 border-t">
                   <Button size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700">
                     <Eye className="h-3 w-3 mr-1" />
                     Voir détails complets
                   </Button>
+                  {selectedEvent.resource.missions.vehicle_required && selectedEvent.resource.missions.vehicle_type !== 'aucun' && (
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      className="border-orange-200 text-orange-600 hover:bg-orange-50"
+                      onClick={() => handleVehicleDetails(selectedEvent.resource.missions)}
+                    >
+                      <span className="text-lg mr-1">🚛</span>
+                      Véhicule
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
           )}
         </div>
+      )}
+
+      {/* Dialogue des détails du véhicule */}
+      {selectedMissionForVehicle && (
+        <VehicleDetailsDialog
+          mission={selectedMissionForVehicle}
+          open={vehicleDetailsOpen}
+          onOpenChange={setVehicleDetailsOpen}
+        />
       )}
     </div>
   )

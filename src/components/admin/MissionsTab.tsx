@@ -6,11 +6,12 @@ import { Badge } from '@/components/ui/badge'
 import { 
   Plus, Edit, Trash2, Users, UserPlus, Calendar, MapPin, 
   Clock, Filter, Search, CheckCircle, XCircle, AlertCircle,
-  TrendingUp, Activity, AlertTriangle, X
+  TrendingUp, Activity, AlertTriangle, X, Car
   } from 'lucide-react'
 import { formatDateTime, formatCurrency, getMissionTypeColor, getStatusColor } from '@/lib/utils'
 import { MissionDialog } from './MissionDialog'
 import { AssignTechniciansDialog } from './AssignTechniciansDialog'
+import { VehicleAssignmentDialog } from './VehicleAssignmentDialog'
 import type { Mission, MissionWithAssignments } from '@/types/database'
 
 export function MissionsTab() {
@@ -18,7 +19,9 @@ export function MissionsTab() {
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
+  const [vehicleAssignDialogOpen, setVehicleAssignDialogOpen] = useState(false)
   const [missionToAssign, setMissionToAssign] = useState<Mission | null>(null)
+  const [missionToAssignVehicle, setMissionToAssignVehicle] = useState<Mission | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState<string>('all')
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
@@ -51,6 +54,11 @@ export function MissionsTab() {
   const handleAssignTechnicians = (mission: Mission) => {
     setMissionToAssign(mission)
     setAssignDialogOpen(true)
+  }
+
+  const handleAssignVehicle = (mission: Mission) => {
+    setMissionToAssignVehicle(mission)
+    setVehicleAssignDialogOpen(true)
   }
 
   const handleDelete = async (id: string) => {
@@ -98,163 +106,145 @@ export function MissionsTab() {
     const pendingCount = assignments.filter(a => a.status === 'proposé').length
     
     if (acceptedCount > 0) return { status: 'accepté', color: 'bg-green-100 text-green-800', icon: CheckCircle }
-    if (refusedCount === assignments.length) return { status: 'refusé', color: 'bg-red-100 text-red-800', icon: XCircle }
-    if (pendingCount > 0) return { status: 'en_attente', color: 'bg-yellow-100 text-yellow-800', icon: Clock }
+    if (refusedCount > 0 && acceptedCount === 0) return { status: 'refusé', color: 'bg-red-100 text-red-800', icon: XCircle }
+    if (pendingCount > 0) return { status: 'en_attente', color: 'bg-yellow-100 text-yellow-800', icon: AlertCircle }
     
-    return { status: 'mixte', color: 'bg-blue-100 text-blue-800', icon: Activity }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-center space-y-2">
-          <div className="w-6 h-6 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto"></div>
-          <p className="text-sm text-gray-600">Chargement...</p>
-        </div>
-      </div>
-    )
+    return { status: 'non_assigné', color: 'bg-gray-100 text-gray-800', icon: AlertCircle }
   }
 
   return (
-    <div className="space-y-4">
-      {/* En-tête compact */}
-      <div className="flex items-center justify-between bg-white border-b border-gray-200 px-6 py-3">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Missions</h2>
-          <p className="text-sm text-gray-500">{missionStats.total} missions au total</p>
+          <h2 className="text-2xl font-bold">Gestion des Missions</h2>
+          <p className="text-gray-600">Créez et gérez les missions événementielles</p>
         </div>
-        <Button 
-          onClick={handleCreate} 
-          size="sm"
-          className="bg-indigo-600 hover:bg-indigo-700 text-white"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Nouvelle mission
+        <Button onClick={handleCreate}>
+          <Plus className="w-4 h-4 mr-2" />
+          Nouvelle Mission
         </Button>
       </div>
 
-      {/* Affichage des erreurs */}
+      {/* Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Missions</p>
+                <p className="text-2xl font-bold">{missionStats.total}</p>
+              </div>
+              <Activity className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Chiffre d'Affaires</p>
+                <p className="text-2xl font-bold text-green-600">{formatCurrency(missionStats.totalRevenue)}</p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Missions Assignées</p>
+                <p className="text-2xl font-bold text-purple-600">{missionStats.assignedCount}</p>
+              </div>
+              <Users className="h-8 w-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Types de Missions</p>
+                <p className="text-2xl font-bold text-orange-600">{Object.keys(missionStats.byType).length}</p>
+              </div>
+              <Filter className="h-8 w-8 text-orange-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search and Filter */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <input
+            type="text"
+            placeholder="Rechercher une mission..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        
+        <select
+          value={filterType}
+          onChange={(e) => setFilterType(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="all">Tous les types</option>
+          <option value="Livraison jeux">Livraison jeux</option>
+          <option value="Presta sono">Presta sono</option>
+          <option value="DJ">DJ</option>
+          <option value="Manutention">Manutention</option>
+          <option value="Déplacement">Déplacement</option>
+        </select>
+      </div>
+
+      {/* Error Display */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center justify-between mx-6">
-          <div className="flex items-center space-x-2">
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-            <p className="text-sm text-red-800">{error}</p>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={clearError}
-            className="text-red-600 hover:text-red-800 h-6 w-6 p-0"
-          >
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2">
+          <AlertTriangle className="h-5 w-5 text-red-600" />
+          <span className="text-red-800">{error}</span>
+          <Button variant="ghost" size="sm" onClick={clearError} className="ml-auto">
             <X className="h-4 w-4" />
           </Button>
         </div>
       )}
 
-      {/* Statistiques compactes */}
-      <div className="grid grid-cols-4 gap-4 px-6">
-        <div className="bg-white rounded-lg p-3 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-600">Total</p>
-              <p className="text-lg font-bold text-gray-900">{missionStats.total}</p>
-            </div>
-            <Activity className="h-5 w-5 text-blue-600" />
-          </div>
+      {/* Missions List */}
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Chargement des missions...</p>
         </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {filteredMissions.map((mission) => {
+            const missionStatus = getMissionStatus(mission)
+            const StatusIcon = missionStatus.icon
 
-        <div className="bg-white rounded-lg p-3 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-600">Assignées</p>
-              <p className="text-lg font-bold text-green-600">{missionStats.assignedCount}</p>
-            </div>
-            <CheckCircle className="h-5 w-5 text-green-600" />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg p-3 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-600">Revenus</p>
-              <p className="text-lg font-bold text-purple-600">{formatCurrency(missionStats.totalRevenue)}</p>
-            </div>
-            <TrendingUp className="h-5 w-5 text-purple-600" />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg p-3 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-600">En attente</p>
-              <p className="text-lg font-bold text-orange-600">{missionStats.total - missionStats.assignedCount}</p>
-            </div>
-            <Clock className="h-5 w-5 text-orange-600" />
-          </div>
-        </div>
-      </div>
-
-      {/* Contrôles de filtrage */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3">
-        <div className="flex items-center space-x-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Rechercher..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            />
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Filter className="h-4 w-4 text-gray-400" />
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            >
-              <option value="all">Tous les types</option>
-              <option value="Livraison jeux">Livraison jeux</option>
-              <option value="Presta sono">Presta sono</option>
-              <option value="DJ">DJ</option>
-              <option value="Manutention">Manutention</option>
-              <option value="Déplacement">Déplacement</option>
-            </select>
-          </div>
-
-          <span className="text-sm text-gray-500">
-            {filteredMissions.length} résultat{filteredMissions.length !== 1 ? 's' : ''}
-          </span>
-        </div>
-      </div>
-
-      {/* Liste des missions */}
-      <div className="px-6">
-        {filteredMissions.length === 0 ? (
-          <div className="text-center py-12">
-            <Activity className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-sm">
-              {searchTerm || filterType !== 'all' ? 'Aucune mission trouvée' : 'Aucune mission créée'}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filteredMissions.map((mission) => {
-              const missionStatus = getMissionStatus(mission as MissionWithAssignments)
-              const StatusIcon = missionStatus.icon
-              
-              return (
-                <Card key={mission.id} className="border border-gray-200 hover:border-indigo-200 transition-colors">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="text-base font-semibold text-gray-900 truncate">{mission.title}</h3>
-                          <Badge className={`${getMissionTypeColor(mission.type)} text-xs`}>
-                            {mission.type}
-                          </Badge>
+            return (
+              <Card key={mission.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-lg truncate">{mission.title}</h3>
+                        <Badge className={`${getMissionTypeColor(mission.type)} text-xs`}>
+                          {mission.type}
+                        </Badge>
+                      </div>
+                      
+                      {mission.description && (
+                        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{mission.description}</p>
+                      )}
+                      
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-2">
                           <Badge className={`${missionStatus.color} text-xs flex items-center space-x-1`}>
                             <StatusIcon className="h-3 w-3" />
                             <span>{missionStatus.status.replace('_', ' ')}</span>
@@ -318,6 +308,16 @@ export function MissionsTab() {
                         >
                           <UserPlus className="h-3 w-3" />
                         </Button>
+                        {mission.vehicle_required && mission.vehicle_type !== 'aucun' && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleAssignVehicle(mission)}
+                            className="h-7 w-7 p-0 hover:bg-orange-50 hover:text-orange-600"
+                          >
+                            <Car className="h-3 w-3" />
+                          </Button>
+                        )}
                         <Button 
                           variant="ghost" 
                           size="sm" 
@@ -333,13 +333,13 @@ export function MissionsTab() {
                         </Button>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-        )}
-      </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+      )}
 
       <MissionDialog
         mission={selectedMission}
@@ -351,6 +351,12 @@ export function MissionsTab() {
         mission={missionToAssign}
         open={assignDialogOpen}
         onOpenChange={setAssignDialogOpen}
+      />
+
+      <VehicleAssignmentDialog
+        mission={missionToAssignVehicle}
+        open={vehicleAssignDialogOpen}
+        onOpenChange={setVehicleAssignDialogOpen}
       />
     </div>
   )

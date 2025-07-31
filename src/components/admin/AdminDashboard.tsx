@@ -3,9 +3,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useMissionsStore } from '@/store/missionsStore'
 import { MissionsTab } from './MissionsTab'
 import { TechniciansTab } from './TechniciansTab'
+import { VehiclesTab } from './VehiclesTab'
 import { AdminAgendaTab } from './AdminAgendaTab'
 import { AdminBillingTab } from './AdminBillingTab'
-import { Crown, Users, Calendar, CreditCard } from 'lucide-react'
+import { Crown, Users, Calendar, CreditCard, Car } from 'lucide-react'
 
 export function AdminDashboard() {
   const fetchMissions = useMissionsStore(state => state.fetchMissions)
@@ -30,7 +31,7 @@ export function AdminDashboard() {
       </div> */}
 
       <Tabs defaultValue="missions" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 bg-white border border-gray-200 shadow-sm rounded-lg p-1 h-12">
+        <TabsList className="grid w-full grid-cols-5 bg-white border border-gray-200 shadow-sm rounded-lg p-1 h-12">
           <TabsTrigger 
             value="missions" 
             className="flex items-center space-x-2 data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-md transition-all duration-200 text-sm font-medium"
@@ -44,6 +45,13 @@ export function AdminDashboard() {
           >
             <Users className="h-4 w-4" />
             <span>Techniciens</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="vehicles" 
+            className="flex items-center space-x-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white rounded-md transition-all duration-200 text-sm font-medium"
+          >
+            <Car className="h-4 w-4" />
+            <span>Véhicules</span>
           </TabsTrigger>
           <TabsTrigger 
             value="agenda" 
@@ -67,6 +75,10 @@ export function AdminDashboard() {
 
         <TabsContent value="technicians" className="space-y-0">
           <TechniciansTab />
+        </TabsContent>
+
+        <TabsContent value="vehicles" className="space-y-0">
+          <VehiclesTab />
         </TabsContent>
 
         <TabsContent value="agenda" className="space-y-0">

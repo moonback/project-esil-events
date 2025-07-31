@@ -207,7 +207,7 @@ export function MissionsTab() {
       </div>
 
       {/* Liste des missions */}
-      <div className="grid gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {filteredMissions.length === 0 ? (
           <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
             <CardContent className="py-12 text-center">

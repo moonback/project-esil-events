@@ -86,7 +86,9 @@ export function CreatePaymentDialog({ open, onOpenChange, technician: initialTec
 
     try {
       setLoading(true)
+      console.log('Chargement des missions pour le technicien:', selectedTechnician.id)
       
+      // Charger toutes les missions assignées au technicien (tous statuts)
       const { data, error } = await supabase
         .from('mission_assignments')
         .select(`
@@ -94,22 +96,34 @@ export function CreatePaymentDialog({ open, onOpenChange, technician: initialTec
           missions (*)
         `)
         .eq('technician_id', selectedTechnician.id)
-        .eq('status', 'accepté')
         .order('assigned_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Erreur lors du chargement des assignments:', error)
+        throw error
+      }
+
+      console.log('Assignments trouvés:', data)
 
       // Filtrer les missions qui n'ont pas encore de facturation
-      const { data: existingBillings } = await supabase
+      const { data: existingBillings, error: billingError } = await supabase
         .from('billing')
         .select('mission_id')
         .eq('technician_id', selectedTechnician.id)
+
+      if (billingError) {
+        console.error('Erreur lors du chargement des facturations:', billingError)
+      }
+
+      console.log('Facturations existantes:', existingBillings)
 
       const billedMissionIds = new Set(existingBillings?.map(b => b.mission_id) || [])
       
       const missionsWithoutBilling = (data || []).filter(
         (assignment: any) => !billedMissionIds.has(assignment.mission_id)
       )
+
+      console.log('Missions disponibles pour facturation:', missionsWithoutBilling)
 
       setAcceptedMissions(missionsWithoutBilling.map((item: any) => ({
         ...item.missions,
@@ -275,10 +289,10 @@ export function CreatePaymentDialog({ open, onOpenChange, technician: initialTec
             <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Missions acceptées ({acceptedMissions.length})
-                </CardTitle>
+                                 <CardTitle className="text-lg flex items-center gap-2">
+                   <Calendar className="h-5 w-5" />
+                   Missions disponibles ({acceptedMissions.length})
+                 </CardTitle>
                 <Button
                   variant="outline"
                   size="sm"
@@ -297,14 +311,14 @@ export function CreatePaymentDialog({ open, onOpenChange, technician: initialTec
                     <p className="text-sm text-gray-600">Chargement des missions...</p>
                   </div>
                 </div>
-              ) : acceptedMissions.length === 0 ? (
-                <div className="text-center py-8">
-                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">Aucune mission acceptée disponible</p>
-                  <p className="text-sm text-gray-400 mt-2">
-                    Toutes les missions acceptées ont déjà été facturées
-                  </p>
-                </div>
+                             ) : acceptedMissions.length === 0 ? (
+                 <div className="text-center py-8">
+                   <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                   <p className="text-gray-500">Aucune mission disponible</p>
+                   <p className="text-sm text-gray-400 mt-2">
+                     Toutes les missions ont déjà été facturées ou aucune mission n'est assignée
+                   </p>
+                 </div>
               ) : (
                 <div className="space-y-3">
                   {acceptedMissions.map((mission) => (
@@ -326,17 +340,20 @@ export function CreatePaymentDialog({ open, onOpenChange, technician: initialTec
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <h4 className="font-medium text-lg">{mission.title}</h4>
-                              <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-                                <div className="flex items-center gap-1">
-                                  <MapPin className="h-4 w-4" />
-                                  {mission.location}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <Clock className="h-4 w-4" />
-                                  {formatDate(mission.date_start)}
-                                </div>
-                                <Badge variant="secondary">{mission.type}</Badge>
-                              </div>
+                                                             <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                                 <div className="flex items-center gap-1">
+                                   <MapPin className="h-4 w-4" />
+                                   {mission.location}
+                                 </div>
+                                 <div className="flex items-center gap-1">
+                                   <Clock className="h-4 w-4" />
+                                   {formatDate(mission.date_start)}
+                                 </div>
+                                 <Badge variant="secondary">{mission.type}</Badge>
+                                 <Badge variant={mission.assignment?.status === 'accepté' ? 'default' : 'outline'}>
+                                   {mission.assignment?.status === 'accepté' ? 'Acceptée' : 'Proposée'}
+                                 </Badge>
+                               </div>
                             </div>
                             
                             <div className="text-right">

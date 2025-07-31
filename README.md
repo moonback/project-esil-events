@@ -1,4 +1,4 @@
-# EventPro - Plateforme de Gestion Événementielle Moderne
+# Esil-events - Plateforme de Gestion Événementielle Moderne
 
 Une plateforme complète et moderne pour la gestion d'agences événementielles avec interface admin et technicien, dotée d'un design contemporain et d'animations fluides.
 
@@ -71,7 +71,7 @@ Une plateforme complète et moderne pour la gestion d'agences événementielles 
 1. **Cloner le projet**
 ```bash
 git clone <repository-url>
-cd eventpro
+cd Esil-events
 ```
 
 2. **Installer les dépendances**
@@ -233,7 +233,7 @@ Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour plus de
 
 - **Documentation** : [GitHub Wiki](lien-vers-wiki)
 - **Issues** : [GitHub Issues](lien-vers-issues)
-- **Email** : support@eventpro.com
+- **Email** : support@Esil-events.com
 
 ## 🔄 Roadmap
 
@@ -249,4 +249,4 @@ Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour plus de
 
 ---
 
-**EventPro** - Plateforme de gestion événementielle moderne et intuitive avec design contemporain.
+**Esil-events** - Plateforme de gestion événementielle moderne et intuitive avec design contemporain.

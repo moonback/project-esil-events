@@ -82,7 +82,7 @@ export function AdminAgendaTab() {
                   startAccessor="start"
                   endAccessor="end"
                   messages={messages}
-                  eventPropGetter={eventStyleGetter}
+                  Esil-eventspGetter={eventStyleGetter}
                   onSelectEvent={(event) => setSelectedEvent(event)}
                   views={['month', 'week', 'day', 'agenda']}
                   defaultView="month"

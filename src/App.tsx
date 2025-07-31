@@ -28,7 +28,7 @@ function App() {
               <div className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full animate-bounce-slow"></div>
             </div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              EventPro
+              Esil-events
             </h1>
           </div>
           

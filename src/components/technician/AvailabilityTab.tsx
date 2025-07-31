@@ -148,7 +148,7 @@ export function AvailabilityTab() {
                   startAccessor="start"
                   endAccessor="end"
                   messages={messages}
-                  eventPropGetter={eventStyleGetter}
+                  Esil-eventspGetter={eventStyleGetter}
                   onSelectEvent={(event) => {
                     if (confirm('Supprimer cette disponibilité ?')) {
                       deleteAvailability(event.id)

@@ -25,7 +25,7 @@ import type { User } from '@/types/database'
 import { useToast } from '@/lib/useToast'
 
 export function TechnicianProfileTab() {
-  const { user } = useAuthStore()
+  const { profile } = useAuthStore()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -38,19 +38,20 @@ export function TechnicianProfileTab() {
   })
 
   useEffect(() => {
-    if (user) {
+    if (profile) {
+      console.log('Profile data:', profile) // Debug log
       setFormData({
-        name: user.name || '',
-        phone: user.phone || '',
-        email: user.email || '',
-        address: user.address || '',
-        notes: user.notes || ''
+        name: profile.name || '',
+        phone: profile.phone || '',
+        email: profile.email || '',
+        address: profile.address || '',
+        notes: profile.notes || ''
       })
     }
-  }, [user])
+  }, [profile])
 
   const handleSave = async () => {
-    if (!user) return
+    if (!profile) return
 
     setLoading(true)
     try {
@@ -63,7 +64,7 @@ export function TechnicianProfileTab() {
             address: formData.address || null,
             notes: formData.notes || null
           })
-          .eq('id', user.id)
+          .eq('id', profile.id)
 
       if (error) throw error
 
@@ -87,19 +88,19 @@ export function TechnicianProfileTab() {
   }
 
   const handleCancel = () => {
-    if (user) {
+    if (profile) {
       setFormData({
-        name: user.name || '',
-        phone: user.phone || '',
-        email: user.email || '',
-        address: user.address || '',
-        notes: user.notes || ''
+        name: profile.name || '',
+        phone: profile.phone || '',
+        email: profile.email || '',
+        address: profile.address || '',
+        notes: profile.notes || ''
       })
     }
     setIsEditing(false)
   }
 
-  if (!user) {
+  if (!profile) {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="text-center space-y-2">

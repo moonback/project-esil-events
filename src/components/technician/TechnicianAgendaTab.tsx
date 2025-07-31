@@ -22,7 +22,13 @@ import {
   AlertTriangle,
   Plus,
   Edit,
-  XCircle
+  XCircle,
+  Eye,
+  List,
+  Grid3X3,
+  CalendarDays,
+  TrendingUp,
+  Award
 } from 'lucide-react'
 import type { Mission, MissionAssignment, Availability } from '@/types/database'
 
@@ -37,6 +43,7 @@ export function TechnicianAgendaTab() {
   const [selectedEvent, setSelectedEvent] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [calendarView, setCalendarView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek'>('dayGridMonth')
+  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar')
   const calendarRef = useRef<any>(null)
 
   useEffect(() => {
@@ -176,12 +183,18 @@ export function TechnicianAgendaTab() {
     // Ici vous pouvez ouvrir un modal pour créer une nouvelle disponibilité
   }, [])
 
+  const totalRevenue = acceptedMissions.reduce((sum, assignment) => sum + assignment.missions.forfeit, 0)
+  const upcomingMissions = acceptedMissions.filter(assignment => {
+    const missionDate = parseISO(assignment.missions.date_start)
+    return isValid(missionDate) && missionDate > new Date()
+  })
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement de votre agenda...</p>
+          <p className="text-gray-600">Chargement de vos missions...</p>
         </div>
       </div>
     )
@@ -189,8 +202,34 @@ export function TechnicianAgendaTab() {
 
   return (
     <div className="space-y-6">
+      {/* En-tête avec statistiques */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Mes Missions</h2>
+          <p className="text-gray-600">Gérez vos missions acceptées et votre planning</p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant={viewMode === 'calendar' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('calendar')}
+          >
+            <CalendarDays className="h-4 w-4 mr-2" />
+            Calendrier
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('list')}
+          >
+            <List className="h-4 w-4 mr-2" />
+            Liste
+          </Button>
+        </div>
+      </div>
+
       {/* Statistiques rapides */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -207,10 +246,10 @@ export function TechnicianAgendaTab() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-600 font-medium">Disponibilités</p>
-                <p className="text-2xl font-bold text-green-800">{availabilities.length}</p>
+                <p className="text-sm text-green-600 font-medium">Missions à venir</p>
+                <p className="text-2xl font-bold text-green-800">{upcomingMissions.length}</p>
               </div>
-              <Clock className="h-8 w-8 text-green-600" />
+              <CalendarIcon className="h-8 w-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
@@ -221,239 +260,326 @@ export function TechnicianAgendaTab() {
               <div>
                 <p className="text-sm text-purple-600 font-medium">Revenus totaux</p>
                 <p className="text-2xl font-bold text-purple-800">
-                  {formatCurrency(acceptedMissions.reduce((sum, assignment) => sum + assignment.missions.forfeit, 0))}
+                  {formatCurrency(totalRevenue)}
                 </p>
               </div>
-              <Euro className="h-8 w-8 text-purple-600" />
+              <TrendingUp className="h-8 w-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-orange-600 font-medium">Disponibilités</p>
+                <p className="text-2xl font-bold text-orange-800">{availabilities.length}</p>
+              </div>
+              <Clock className="h-8 w-8 text-orange-600" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-3">
+      {viewMode === 'calendar' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Mon planning</span>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant={calendarView === 'dayGridMonth' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setCalendarView('dayGridMonth')}
+                    >
+                      Mois
+                    </Button>
+                    <Button
+                      variant={calendarView === 'timeGridWeek' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setCalendarView('timeGridWeek')}
+                    >
+                      Semaine
+                    </Button>
+                    <Button
+                      variant={calendarView === 'listWeek' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setCalendarView('listWeek')}
+                    >
+                      Liste
+                    </Button>
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div style={{ height: '600px' }}>
+                  <FullCalendar
+                    key={calendarView}
+                    ref={calendarRef}
+                    plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
+                    headerToolbar={{
+                      left: 'prev,next today',
+                      center: 'title',
+                      right: ''
+                    }}
+                    initialView={calendarView}
+                    views={{
+                      dayGridMonth: {
+                        titleFormat: { year: 'numeric', month: 'long' },
+                        dayMaxEvents: 3
+                      },
+                      timeGridWeek: {
+                        titleFormat: { year: 'numeric', month: 'long', day: 'numeric' },
+                        slotMinTime: '06:00:00',
+                        slotMaxTime: '22:00:00',
+                        slotDuration: '00:30:00',
+                        allDaySlot: false
+                      },
+                      listWeek: {
+                        titleFormat: { year: 'numeric', month: 'long' },
+                        listDayFormat: { weekday: 'long', day: 'numeric', month: 'long' },
+                        listDaySideFormat: { year: 'numeric', month: 'long', day: 'numeric' }
+                      }
+                    }}
+                    locale="fr"
+                    events={events}
+                    eventClick={handleEventClick}
+                    selectable={true}
+                    select={handleDateSelect}
+                    height="100%"
+                    eventDisplay="block"
+                    eventTimeFormat={{
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      meridiem: false,
+                      hour12: false
+                    }}
+                    buttonText={{
+                      today: 'Aujourd\'hui',
+                      month: 'Mois',
+                      week: 'Semaine',
+                      day: 'Jour',
+                      list: 'Liste'
+                    }}
+                    noEventsText="Aucun événement dans cette période"
+                    eventDidMount={(info) => {
+                      const event = info.event
+                      const data = event.extendedProps.data
+                      if (data) {
+                        let tooltip = ''
+                        if (event.extendedProps.type === 'mission') {
+                          tooltip = `
+                            <div class="p-2">
+                              <strong>${data.missions.title}</strong><br>
+                              <small>${data.missions.type}</small><br>
+                              <small>${data.missions.location}</small><br>
+                              <small>${data.missions.forfeit}€</small>
+                            </div>
+                          `
+                        } else {
+                          tooltip = `
+                            <div class="p-2">
+                              <strong>Disponible</strong><br>
+                              <small>${format(parseISO(data.start_time), 'dd/MM/yyyy HH:mm', { locale: fr })} - ${format(parseISO(data.end_time), 'HH:mm', { locale: fr })}</small>
+                            </div>
+                          `
+                        }
+                        info.el.title = tooltip
+                      }
+                    }}
+                    viewDidMount={(info) => {
+                      setCalendarView(info.view.type as any)
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="space-y-4">
+            {/* Légende */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Légende</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded bg-blue-500"></div>
+                  <span className="text-sm">Missions acceptées</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded bg-green-500"></div>
+                  <span className="text-sm">Disponibilités</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Détails de l'événement sélectionné */}
+            {selectedEvent && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center justify-between">
+                    Détails
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedEvent(null)}
+                    >
+                      <XCircle className="h-4 w-4" />
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {selectedEvent.type === 'mission' ? (
+                    <>
+                      <div>
+                        <h4 className="font-medium text-lg">{selectedEvent.title}</h4>
+                        <Badge className={getMissionTypeColor(selectedEvent.resource.missions.type)}>
+                          {selectedEvent.resource.missions.type}
+                        </Badge>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2 text-sm">
+                          <MapPin className="h-4 w-4 text-gray-500" />
+                          <span>{selectedEvent.resource.missions.location}</span>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2 text-sm">
+                          <Clock className="h-4 w-4 text-gray-500" />
+                          <span>
+                            {format(selectedEvent.start, 'dd/MM/yyyy HH:mm', { locale: fr })} - {format(selectedEvent.end, 'HH:mm', { locale: fr })}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2 text-sm">
+                          <Euro className="h-4 w-4 text-gray-500" />
+                          <span className="font-medium">{selectedEvent.resource.missions.forfeit}€</span>
+                        </div>
+                      </div>
+
+                      {selectedEvent.resource.missions.description && (
+                        <div className="text-sm">
+                          <strong>Description:</strong>
+                          <p className="mt-1 text-gray-600">{selectedEvent.resource.missions.description}</p>
+                        </div>
+                      )}
+
+                      <div className="flex gap-2 pt-2 border-t">
+                        <Button size="sm" className="flex-1">
+                          <Eye className="h-3 w-3 mr-1" />
+                          Voir détails
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <h4 className="font-medium text-lg">Disponibilité</h4>
+                        <Badge className="bg-green-100 text-green-800">
+                          Disponible
+                        </Badge>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2 text-sm">
+                          <Clock className="h-4 w-4 text-gray-500" />
+                          <span>
+                            {format(selectedEvent.start, 'dd/MM/yyyy HH:mm', { locale: fr })} - {format(selectedEvent.end, 'HH:mm', { locale: fr })}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 pt-2 border-t">
+                        <Button size="sm" className="flex-1">
+                          <Edit className="h-3 w-3 mr-1" />
+                          Modifier
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* Vue liste des missions */
+        <div className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>Mon agenda</span>
-                <div className="flex items-center space-x-2">
-                                     <Button
-                     variant={calendarView === 'dayGridMonth' ? 'default' : 'outline'}
-                     size="sm"
-                     onClick={() => setCalendarView('dayGridMonth')}
-                   >
-                     Mois
-                   </Button>
-                   <Button
-                     variant={calendarView === 'timeGridWeek' ? 'default' : 'outline'}
-                     size="sm"
-                     onClick={() => setCalendarView('timeGridWeek')}
-                   >
-                     Semaine
-                   </Button>
-                   <Button
-                     variant={calendarView === 'listWeek' ? 'default' : 'outline'}
-                     size="sm"
-                     onClick={() => setCalendarView('listWeek')}
-                   >
-                     Liste
-                   </Button>
-                </div>
+                <span>Mes missions acceptées</span>
+                <Badge className="bg-blue-100 text-blue-700">
+                  {acceptedMissions.length} mission{acceptedMissions.length > 1 ? 's' : ''}
+                </Badge>
               </CardTitle>
             </CardHeader>
-                           <CardContent className="p-6">
-                 <div style={{ height: '600px' }}>
-                   <FullCalendar
-                     key={calendarView}
-                     ref={calendarRef}
-                     plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
-                     headerToolbar={{
-                       left: 'prev,next today',
-                       center: 'title',
-                       right: ''
-                     }}
-                     initialView={calendarView}
-                     views={{
-                       dayGridMonth: {
-                         titleFormat: { year: 'numeric', month: 'long' },
-                         dayMaxEvents: 3
-                       },
-                       timeGridWeek: {
-                         titleFormat: { year: 'numeric', month: 'long', day: 'numeric' },
-                         slotMinTime: '06:00:00',
-                         slotMaxTime: '22:00:00',
-                         slotDuration: '00:30:00',
-                         allDaySlot: false
-                       },
-                       listWeek: {
-                         titleFormat: { year: 'numeric', month: 'long' },
-                         listDayFormat: { weekday: 'long', day: 'numeric', month: 'long' },
-                         listDaySideFormat: { year: 'numeric', month: 'long', day: 'numeric' }
-                       }
-                     }}
-                     locale="fr"
-                     events={events}
-                     eventClick={handleEventClick}
-                     selectable={true}
-                     select={handleDateSelect}
-                     height="100%"
-                     eventDisplay="block"
-                     eventTimeFormat={{
-                       hour: '2-digit',
-                       minute: '2-digit',
-                       meridiem: false,
-                       hour12: false
-                     }}
-                     buttonText={{
-                       today: 'Aujourd\'hui',
-                       month: 'Mois',
-                       week: 'Semaine',
-                       day: 'Jour',
-                       list: 'Liste'
-                     }}
-                     noEventsText="Aucun événement dans cette période"
-                     eventDidMount={(info) => {
-                       const event = info.event
-                       const data = event.extendedProps.data
-                       if (data) {
-                         let tooltip = ''
-                         if (event.extendedProps.type === 'mission') {
-                           tooltip = `
-                             <div class="p-2">
-                               <strong>${data.missions.title}</strong><br>
-                               <small>${data.missions.type}</small><br>
-                               <small>${data.missions.location}</small><br>
-                               <small>${data.missions.forfeit}€</small>
-                             </div>
-                           `
-                         } else {
-                           tooltip = `
-                             <div class="p-2">
-                               <strong>Disponible</strong><br>
-                               <small>${format(parseISO(data.start_time), 'dd/MM/yyyy HH:mm', { locale: fr })} - ${format(parseISO(data.end_time), 'HH:mm', { locale: fr })}</small>
-                             </div>
-                           `
-                         }
-                         info.el.title = tooltip
-                       }
-                     }}
-                     viewDidMount={(info) => {
-                       // Mettre à jour la vue actuelle quand elle change
-                       setCalendarView(info.view.type as any)
-                     }}
-                   />
-              </div>
+            <CardContent>
+              {acceptedMissions.length === 0 ? (
+                <div className="text-center py-8">
+                  <Award className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500">Aucune mission acceptée pour le moment</p>
+                  <p className="text-sm text-gray-400 mt-2">Consultez l'onglet "Missions Proposées" pour voir les nouvelles opportunités</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {acceptedMissions.map((assignment) => {
+                    const missionDate = parseISO(assignment.missions.date_start)
+                    const isUpcoming = isValid(missionDate) && missionDate > new Date()
+                    
+                    return (
+                      <div key={assignment.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <h4 className="font-medium text-gray-900">{assignment.missions.title}</h4>
+                            <Badge className={getMissionTypeColor(assignment.missions.type)}>
+                              {assignment.missions.type}
+                            </Badge>
+                            {isUpcoming && (
+                              <Badge className="bg-green-100 text-green-700">
+                                À venir
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                            <div className="flex items-center space-x-2">
+                              <MapPin className="h-4 w-4" />
+                              <span>{assignment.missions.location}</span>
+                            </div>
+                            
+                            <div className="flex items-center space-x-2">
+                              <Clock className="h-4 w-4" />
+                              <span>
+                                {format(missionDate, 'dd/MM/yyyy HH:mm', { locale: fr })}
+                              </span>
+                            </div>
+                            
+                            <div className="flex items-center space-x-2">
+                              <Euro className="h-4 w-4" />
+                              <span className="font-medium">{assignment.missions.forfeit}€</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-4 w-4 mr-1" />
+                            Voir
+                          </Button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
-
-        <div className="space-y-4">
-          {/* Légende */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Légende</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 rounded bg-blue-500"></div>
-                <span className="text-sm">Missions acceptées</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 rounded bg-green-500"></div>
-                <span className="text-sm">Disponibilités</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Détails de l'événement sélectionné */}
-          {selectedEvent && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center justify-between">
-                  Détails
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedEvent(null)}
-                  >
-                    <XCircle className="h-4 w-4" />
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {selectedEvent.type === 'mission' ? (
-                  <>
-                    <div>
-                      <h4 className="font-medium text-lg">{selectedEvent.title}</h4>
-                      <Badge className={getMissionTypeColor(selectedEvent.resource.missions.type)}>
-                        {selectedEvent.resource.missions.type}
-                      </Badge>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-2 text-sm">
-                        <MapPin className="h-4 w-4 text-gray-500" />
-                        <span>{selectedEvent.resource.missions.location}</span>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2 text-sm">
-                        <Clock className="h-4 w-4 text-gray-500" />
-                        <span>
-                          {format(selectedEvent.start, 'dd/MM/yyyy HH:mm', { locale: fr })} - {format(selectedEvent.end, 'HH:mm', { locale: fr })}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2 text-sm">
-                        <Euro className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">{selectedEvent.resource.missions.forfeit}€</span>
-                      </div>
-                    </div>
-
-                    {selectedEvent.resource.missions.description && (
-                      <div className="text-sm">
-                        <strong>Description:</strong>
-                        <p className="mt-1 text-gray-600">{selectedEvent.resource.missions.description}</p>
-                      </div>
-                    )}
-
-                    <div className="flex gap-2 pt-2 border-t">
-                      <Button size="sm" className="flex-1">
-                        <Edit className="h-3 w-3 mr-1" />
-                        Modifier
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div>
-                      <h4 className="font-medium text-lg">Disponibilité</h4>
-                      <Badge className="bg-green-100 text-green-800">
-                        Disponible
-                      </Badge>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-2 text-sm">
-                        <Clock className="h-4 w-4 text-gray-500" />
-                        <span>
-                          {format(selectedEvent.start, 'dd/MM/yyyy HH:mm', { locale: fr })} - {format(selectedEvent.end, 'HH:mm', { locale: fr })}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2 pt-2 border-t">
-                      <Button size="sm" className="flex-1">
-                        <Edit className="h-3 w-3 mr-1" />
-                        Modifier
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
+      )}
     </div>
   )
 }

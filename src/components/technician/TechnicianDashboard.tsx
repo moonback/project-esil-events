@@ -4,7 +4,7 @@ import { AvailabilityTab } from './AvailabilityTab'
 import { ProposedMissionsTab } from './ProposedMissionsTab'
 import { TechnicianBillingTab } from './TechnicianBillingTab'
 import { TechnicianAgendaTab } from './TechnicianAgendaTab'
-import { Calendar, CreditCard, Clock } from 'lucide-react'
+import { Calendar, CreditCard, Clock, CheckCircle } from 'lucide-react'
 
 export function TechnicianDashboard() {
   return (
@@ -51,8 +51,8 @@ export function TechnicianDashboard() {
             value="agenda" 
             className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white rounded-lg transition-all duration-300 hover:scale-105"
           >
-            <Calendar className="h-4 w-4" />
-            <span>Mon Agenda</span>
+            <CheckCircle className="h-4 w-4" />
+            <span>Mes Missions</span>
           </TabsTrigger>
         </TabsList>
 

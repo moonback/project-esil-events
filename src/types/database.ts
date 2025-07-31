@@ -60,6 +60,7 @@ export interface Database {
       }
       missions: {
         Row: {
+          mission_assignments: any
           id: string
           type: 'Livraison jeux' | 'Presta sono' | 'DJ' | 'Manutention' | 'Déplacement'
           title: string

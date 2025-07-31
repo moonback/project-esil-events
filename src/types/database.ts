@@ -69,6 +69,7 @@ export interface Database {
           date_end: string
           location: string
           forfeit: number
+          required_people: number
           created_by: string | null
           created_at: string
           updated_at: string
@@ -82,6 +83,7 @@ export interface Database {
           date_end: string
           location: string
           forfeit: number
+          required_people?: number
           created_by?: string | null
           created_at?: string
           updated_at?: string
@@ -95,6 +97,7 @@ export interface Database {
           date_end?: string
           location?: string
           forfeit?: number
+          required_people?: number
           created_by?: string | null
           created_at?: string
           updated_at?: string

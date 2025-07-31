@@ -27,7 +27,8 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
     date_start: '',
     date_end: '',
     location: '',
-    forfeit: 0
+    forfeit: 0,
+    required_people: 1
   })
 
   useEffect(() => {
@@ -41,7 +42,8 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
           date_start: mission.date_start.slice(0, 16),
           date_end: mission.date_end.slice(0, 16),
           location: mission.location,
-          forfeit: mission.forfeit
+          forfeit: mission.forfeit,
+          required_people: mission.required_people || 1
         })
       } else {
         setFormData({
@@ -51,7 +53,8 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
           date_start: '',
           date_end: '',
           location: '',
-          forfeit: 0
+          forfeit: 0,
+          required_people: 1
         })
       }
       setSelectedTechnicians([])
@@ -86,6 +89,10 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
     
     if (formData.forfeit <= 0) {
       newErrors.forfeit = 'Le forfait doit être supérieur à 0'
+    }
+    
+    if (formData.required_people <= 0) {
+      newErrors.required_people = 'Le nombre de personnes doit être supérieur à 0'
     }
     
     if (!formData.date_start) {
@@ -162,7 +169,8 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
         date_start: '',
         date_end: '',
         location: '',
-        forfeit: 0
+        forfeit: 0,
+        required_people: 1
       })
       setSelectedTechnicians([])
       setErrors({})
@@ -188,7 +196,7 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
         
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="type">Type de mission</Label>
                 <select
@@ -220,6 +228,23 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
                 />
                 {errors.forfeit && (
                   <p className="text-sm text-red-500">{errors.forfeit}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="required_people">Nombre de personnes</Label>
+                <Input
+                  id="required_people"
+                  type="number"
+                  min="1"
+                  max="20"
+                  value={formData.required_people}
+                  onChange={(e) => setFormData({ ...formData, required_people: parseInt(e.target.value) || 1 })}
+                  className={errors.required_people ? 'border-red-500' : ''}
+                  required
+                />
+                {errors.required_people && (
+                  <p className="text-sm text-red-500">{errors.required_people}</p>
                 )}
               </div>
             </div>

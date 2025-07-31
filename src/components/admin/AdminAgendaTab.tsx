@@ -551,6 +551,16 @@ export function AdminAgendaTab() {
                                     <Euro className="h-4 w-4" />
                                     <span className="font-medium">{mission.forfeit}€</span>
                                   </div>
+                                  
+                                  <div className="flex items-center space-x-2">
+                                    <Users className="h-4 w-4" />
+                                    <span className="font-medium">{mission.required_people || 1} pers.</span>
+                                  </div>
+                                  
+                                  <div className="flex items-center space-x-2">
+                                    <Users className="h-4 w-4" />
+                                    <span className="font-medium">{mission.required_people || 1} pers.</span>
+                                  </div>
                                 </div>
 
                                 {mission.description && (
@@ -773,6 +783,11 @@ export function AdminAgendaTab() {
                   <div className="flex items-center space-x-2 text-sm">
                     <Euro className="h-4 w-4 text-gray-500" />
                     <span className="font-medium">{selectedEvent.resource.forfeit}€</span>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 text-sm">
+                    <Users className="h-4 w-4 text-gray-500" />
+                    <span className="font-medium">{selectedEvent.resource.required_people || 1} personne(s) requise(s)</span>
                   </div>
                 </div>
 

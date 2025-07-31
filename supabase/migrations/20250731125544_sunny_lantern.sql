@@ -55,3 +55,12 @@ DROP POLICY IF EXISTS "Technicians can update own assignment status" ON mission_
 -- Policies de la table billing
 DROP POLICY IF EXISTS "Admins can manage all billing" ON billing;
 DROP POLICY IF EXISTS "Technicians can read own billing" ON billing;
+
+-- Migration pour ajouter le champ required_people à la table missions
+-- Ajout du champ pour spécifier le nombre de personnes requises par mission
+
+ALTER TABLE missions 
+ADD COLUMN required_people integer DEFAULT 1 CHECK (required_people > 0);
+
+-- Mise à jour des types TypeScript générés automatiquement
+-- Le champ sera ajouté aux types Row, Insert et Update de la table missions

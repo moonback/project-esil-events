@@ -67,6 +67,32 @@ export interface Database {
           created_at?: string
         }
       }
+      unavailability: {
+        Row: {
+          id: string
+          technician_id: string
+          start_time: string
+          end_time: string
+          reason: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          technician_id: string
+          start_time: string
+          end_time: string
+          reason?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          technician_id?: string
+          start_time?: string
+          end_time?: string
+          reason?: string | null
+          created_at?: string
+        }
+      }
       missions: {
         Row: {
           mission_assignments: any
@@ -184,6 +210,7 @@ export type BillingStatus = Database['public']['Tables']['billing']['Row']['stat
 
 export type User = Database['public']['Tables']['users']['Row']
 export type Availability = Database['public']['Tables']['availability']['Row']
+export type Unavailability = Database['public']['Tables']['unavailability']['Row']
 export type Mission = Database['public']['Tables']['missions']['Row']
 export type MissionAssignment = Database['public']['Tables']['mission_assignments']['Row']
 export type Billing = Database['public']['Tables']['billing']['Row']

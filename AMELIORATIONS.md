@@ -13,6 +13,7 @@
 2. **Validation centralisée** : Système de validation avec Zod
 3. **Gestion d'état améliorée** : Meilleure gestion des états de chargement et d'erreur
 4. **Interface utilisateur** : Amélioration de l'UX avec des indicateurs visuels
+5. **Gestion des indisponibilités** : Les techniciens peuvent maintenant indiquer leurs périodes d'indisponibilité
 
 ## 🔧 Détails techniques
 
@@ -35,6 +36,12 @@
 - **Fichier validation.ts** : Règles de validation réutilisables
 - **Schémas Zod** : Validation type-safe
 - **Fonctions utilitaires** : Validation des dates, montants, emails, etc.
+
+### 5. Gestion des indisponibilités
+- **Table unavailability** : Nouvelle table pour stocker les indisponibilités
+- **Interface à onglets** : Séparation claire entre disponibilités et indisponibilités
+- **Validation des conflits** : Détection automatique des conflits temporels
+- **Statistiques enrichies** : Métriques de disponibilité et d'indisponibilité
 
 ## 🎨 Améliorations UX/UI
 
@@ -68,6 +75,11 @@
 - **Memoization** : Calculs optimisés avec useMemo
 - **Gestion d'état** : État local pour éviter les re-renders inutiles
 - **Lazy loading** : Chargement à la demande des composants
+
+### 4. Planification améliorée
+- **Gestion des indisponibilités** : Les techniciens peuvent indiquer leurs contraintes
+- **Prévention des conflits** : Le système empêche les assignations sur des périodes d'indisponibilité
+- **Transparence** : Les administrateurs peuvent voir les indisponibilités lors de l'assignation
 
 ## 📊 Métriques d'amélioration
 

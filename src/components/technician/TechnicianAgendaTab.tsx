@@ -30,7 +30,7 @@ import {
   TrendingUp,
   Award
 } from 'lucide-react'
-import type { Mission, MissionAssignment, Availability } from '@/types/database'
+import type { Mission, MissionAssignment, Availability, Unavailability } from '@/types/database'
 
 interface AcceptedMission extends MissionAssignment {
   missions: Mission
@@ -40,6 +40,7 @@ export function TechnicianAgendaTab() {
   const profile = useAuthStore(state => state.profile)
   const [acceptedMissions, setAcceptedMissions] = useState<AcceptedMission[]>([])
   const [availabilities, setAvailabilities] = useState<Availability[]>([])
+  const [unavailabilities, setUnavailabilities] = useState<Unavailability[]>([])
   const [selectedEvent, setSelectedEvent] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [calendarView, setCalendarView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek'>('dayGridMonth')
@@ -72,8 +73,15 @@ export function TechnicianAgendaTab() {
         .select('*')
         .eq('technician_id', profile.id)
 
+      // Récupérer les indisponibilités
+      const { data: unavailabilitiesData } = await supabase
+        .from('unavailability')
+        .select('*')
+        .eq('technician_id', profile.id)
+
       setAcceptedMissions(missionsData as AcceptedMission[] || [])
       setAvailabilities(availabilitiesData || [])
+      setUnavailabilities(unavailabilitiesData || [])
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error)
     } finally {
@@ -165,8 +173,49 @@ export function TechnicianAgendaTab() {
       }
     })
 
-    return [...missionEvents, ...availabilityEvents]
-  }, [acceptedMissions, availabilities])
+    const unavailabilityEvents = unavailabilities.map((unavailability) => {
+      let startDate: Date
+      let endDate: Date
+      
+      try {
+        const startMoment = parseISO(unavailability.start_time)
+        const endMoment = parseISO(unavailability.end_time)
+        
+        if (!isValid(startMoment) || !isValid(endMoment)) {
+          console.error(`Dates invalides pour l'indisponibilité ${unavailability.id}`)
+          startDate = addHours(startOfDay(new Date()), 9)
+          endDate = addHours(startOfDay(new Date()), 17)
+        } else {
+          startDate = startMoment
+          endDate = endMoment
+          
+          if (endDate < startDate) {
+            endDate = addHours(startDate, 2)
+          }
+        }
+      } catch (error) {
+        console.error(`Erreur parsing dates pour l'indisponibilité ${unavailability.id}:`, error)
+        startDate = addHours(startOfDay(new Date()), 9)
+        endDate = addHours(startOfDay(new Date()), 17)
+      }
+      
+      return {
+        id: `unavailability-${unavailability.id}`,
+        title: unavailability.reason || 'Indisponible',
+        start: startDate,
+        end: endDate,
+        backgroundColor: '#EF4444',
+        borderColor: '#EF4444',
+        textColor: '#ffffff',
+        extendedProps: {
+          type: 'unavailability',
+          data: unavailability
+        }
+      }
+    })
+
+    return [...missionEvents, ...availabilityEvents, ...unavailabilityEvents]
+  }, [acceptedMissions, availabilities, unavailabilities])
 
   const handleEventClick = useCallback((info: any) => {
     setSelectedEvent({

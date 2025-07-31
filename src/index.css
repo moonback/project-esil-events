@@ -2,7 +2,7 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
-/* Variables CSS pour la cohérence des couleurs */
+/* Variables CSS pour la cohérence des couleurs avec un design moderne */
 :root {
   --primary: 222.2 84% 4.9%;
   --primary-foreground: 210 40% 98%;
@@ -23,66 +23,106 @@
   --popover-foreground: 222.2 84% 4.9%;
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
+  
+  /* Nouvelles variables pour les gradients */
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --gradient-warning: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  --gradient-danger: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
 }
 
-/* Styles pour React Big Calendar */
+/* Amélioration de la typographie */
+body {
+  font-feature-settings: "rlig" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Styles pour React Big Calendar avec design moderne */
 .rbc-calendar {
   font-family: inherit;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
 }
 
 .rbc-event {
-  border-radius: 4px;
-  padding: 2px 5px;
+  border-radius: 8px;
+  padding: 4px 8px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rbc-event:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .rbc-toolbar {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 12px;
 }
 
 .rbc-toolbar button {
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  padding: 8px 12px;
+  border-radius: 8px;
+  padding: 10px 16px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: #374151;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .rbc-toolbar button:hover {
   background: #f8fafc;
   border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .rbc-toolbar button.rbc-active {
-  background: #3b82f6;
+  background: var(--gradient-primary);
   color: white;
-  border-color: #3b82f6;
+  border-color: transparent;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
 }
 
 .rbc-month-view,
 .rbc-time-view {
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .rbc-header {
-  background: #f8fafc;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   border-bottom: 1px solid #e2e8f0;
-  padding: 12px 6px;
-  font-weight: 600;
+  padding: 16px 8px;
+  font-weight: 700;
   color: #374151;
+  font-size: 14px;
 }
 
 .rbc-date-cell {
-  padding: 8px;
-  min-height: 40px;
+  padding: 12px;
+  min-height: 48px;
+  transition: background-color 0.2s ease;
+}
+
+.rbc-date-cell:hover {
+  background-color: #f8fafc;
 }
 
 .rbc-off-range-bg {
@@ -90,46 +130,119 @@
 }
 
 .rbc-today {
-  background: #eff6ff;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  font-weight: 700;
 }
 
 .rbc-current-time-indicator {
-  background-color: #ef4444;
-  height: 2px;
+  background: linear-gradient(90deg, #ef4444 0%, #f97316 100%);
+  height: 3px;
+  border-radius: 2px;
 }
 
-/* Animation pour les interactions */
+/* Animations améliorées */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%, 43% {
+    transform: translate3d(0, -8px, 0);
+  }
+  70% {
+    transform: translate3d(0, -4px, 0);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+/* Classes d'animation */
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.5s ease-out;
+}
+
+.animate-pulse-slow {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-bounce-slow {
+  animation: bounce 2s infinite;
+}
+
+/* Hover effects améliorés */
 .hover\:shadow-md:hover {
-  transition: box-shadow 0.2s ease-in-out;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(-2px);
 }
 
-/* Scroll personnalisé pour les formulaires */
+.hover\:scale-105:hover {
+  transform: scale(1.05);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Scroll personnalisé moderne */
 .max-h-32::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .max-h-32::-webkit-scrollbar-track {
   background: #f1f5f9;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .max-h-32::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
+  background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+  border-radius: 4px;
+  transition: background 0.3s ease;
 }
 
 .max-h-32::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
 }
 
 /* Amélioration de l'accessibilité */
 .focus-visible\:ring-1:focus-visible {
   outline: 2px solid transparent;
   outline-offset: 2px;
-  box-shadow: 0 0 0 1px hsl(var(--ring));
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
 }
 
-/* Animation de chargement */
+/* Animation de chargement améliorée */
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -140,39 +253,148 @@
   animation: spin 1s linear infinite;
 }
 
+/* Loading spinner personnalisé */
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
 /* Responsivité améliorée */
 @media (max-width: 768px) {
   .rbc-toolbar {
     flex-direction: column;
     align-items: stretch;
+    padding: 12px;
   }
   
   .rbc-toolbar-label {
     text-align: center;
-    margin: 10px 0;
+    margin: 12px 0;
+    font-size: 18px;
+    font-weight: 700;
   }
   
   .rbc-btn-group {
     display: flex;
     justify-content: center;
-    gap: 5px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  
+  .rbc-btn-group button {
+    flex: 1;
+    min-width: 80px;
   }
 }
 
-/* Styles pour les badges de statut */
+/* Styles pour les badges de statut avec gradients */
 .status-badge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: 12px;
+  padding: 4px 12px;
+  border-radius: 20px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: capitalize;
+  transition: all 0.3s ease;
 }
 
-/* Transitions fluides */
+.status-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Gradients pour les badges de statut */
+.status-badge.proposé {
+  background: var(--gradient-warning);
+  color: white;
+}
+
+.status-badge.accepté {
+  background: var(--gradient-success);
+  color: white;
+}
+
+.status-badge.refusé {
+  background: var(--gradient-danger);
+  color: white;
+}
+
+.status-badge.en_attente {
+  background: var(--gradient-warning);
+  color: white;
+}
+
+.status-badge.validé {
+  background: var(--gradient-primary);
+  color: white;
+}
+
+.status-badge.payé {
+  background: var(--gradient-success);
+  color: white;
+}
+
+/* Transitions fluides globales */
 * {
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+  transition-duration: 200ms;
+}
+
+/* Effets de glassmorphism */
+.glass {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* Effets de néon */
+.neon-glow {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+}
+
+.neon-glow:hover {
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.7);
+}
+
+/* Animations d'entrée pour les cartes */
+.card-enter {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Effet de parallaxe subtil */
+.parallax {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Styles pour les boutons avec gradients */
+.btn-gradient {
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-gradient:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+/* Styles pour les cartes avec ombres douces */
+.card-soft {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.card-soft:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }

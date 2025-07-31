@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { 
   Plus, Edit, Trash2, Users, UserPlus, Calendar, MapPin, 
   Clock, Filter, Search, CheckCircle, XCircle, AlertCircle,
-  TrendingUp, Activity
+  TrendingUp, Activity, AlertTriangle, X
   } from 'lucide-react'
 import { formatDateTime, formatCurrency, getMissionTypeColor, getStatusColor } from '@/lib/utils'
 import { MissionDialog } from './MissionDialog'
@@ -14,7 +14,7 @@ import { AssignTechniciansDialog } from './AssignTechniciansDialog'
 import type { Mission, MissionWithAssignments } from '@/types/database'
 
 export function MissionsTab() {
-  const { missions, loading, deleteMission, fetchMissions } = useMissionsStore()
+  const { missions, loading, error, deleteMission, fetchMissions, clearError } = useMissionsStore()
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
@@ -22,6 +22,7 @@ export function MissionsTab() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState<string>('all')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
 
   // Charger les missions au montage du composant et quand le composant devient visible
   useEffect(() => {
@@ -57,7 +58,14 @@ export function MissionsTab() {
 
   const handleDelete = async (id: string) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette mission ?')) {
-      await deleteMission(id)
+      setDeleteLoading(id)
+      try {
+        await deleteMission(id)
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error)
+      } finally {
+        setDeleteLoading(null)
+      }
     }
   }
 
@@ -114,6 +122,24 @@ export function MissionsTab() {
 
   return (
     <div className="space-y-6">
+      {/* Affichage des erreurs */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <AlertTriangle className="h-5 w-5 text-red-600" />
+            <p className="text-red-800">{error}</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clearError}
+            className="text-red-600 hover:text-red-800"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
       {/* En-tête avec statistiques */}
       <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-100">
         <div className="flex items-center justify-between mb-6">
@@ -304,10 +330,15 @@ export function MissionsTab() {
                         variant="ghost" 
                         size="sm" 
                         onClick={() => handleDelete(mission.id)}
-                        className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                        disabled={deleteLoading === mission.id}
+                        className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
                         title="Supprimer"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        {deleteLoading === mission.id ? (
+                          <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>

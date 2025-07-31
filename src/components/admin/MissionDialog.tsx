@@ -18,6 +18,7 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
   const [loading, setLoading] = useState(false)
   const [technicians, setTechnicians] = useState<User[]>([])
   const [selectedTechnicians, setSelectedTechnicians] = useState<string[]>([])
+  const [errors, setErrors] = useState<Record<string, string>>({})
   
   const [formData, setFormData] = useState({
     type: 'Livraison jeux' as MissionType,
@@ -54,6 +55,7 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
         })
       }
       setSelectedTechnicians([])
+      setErrors({})
     }
   }, [open, mission])
 
@@ -71,8 +73,53 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
     }
   }
 
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+    
+    if (!formData.title.trim()) {
+      newErrors.title = 'Le titre est requis'
+    }
+    
+    if (!formData.location.trim()) {
+      newErrors.location = 'Le lieu est requis'
+    }
+    
+    if (formData.forfeit <= 0) {
+      newErrors.forfeit = 'Le forfait doit être supérieur à 0'
+    }
+    
+    if (!formData.date_start) {
+      newErrors.date_start = 'La date de début est requise'
+    }
+    
+    if (!formData.date_end) {
+      newErrors.date_end = 'La date de fin est requise'
+    }
+    
+    if (formData.date_start && formData.date_end) {
+      const startDate = new Date(formData.date_start)
+      const endDate = new Date(formData.date_end)
+      
+      if (startDate >= endDate) {
+        newErrors.date_end = 'La date de fin doit être postérieure à la date de début'
+      }
+      
+      if (startDate < new Date()) {
+        newErrors.date_start = 'La date de début ne peut pas être dans le passé'
+      }
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!validateForm()) {
+      return
+    }
+    
     setLoading(true)
 
     try {
@@ -118,6 +165,7 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
         forfeit: 0
       })
       setSelectedTechnicians([])
+      setErrors({})
       
     } catch (error) {
       console.error('Erreur lors de la création/modification de la mission:', error)
@@ -164,10 +212,15 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
                   id="forfeit"
                   type="number"
                   step="0.01"
+                  min="0"
                   value={formData.forfeit}
                   onChange={(e) => setFormData({ ...formData, forfeit: parseFloat(e.target.value) || 0 })}
+                  className={errors.forfeit ? 'border-red-500' : ''}
                   required
                 />
+                {errors.forfeit && (
+                  <p className="text-sm text-red-500">{errors.forfeit}</p>
+                )}
               </div>
             </div>
 
@@ -178,8 +231,12 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="Titre de la mission"
+                className={errors.title ? 'border-red-500' : ''}
                 required
               />
+              {errors.title && (
+                <p className="text-sm text-red-500">{errors.title}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -202,8 +259,12 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
                   type="datetime-local"
                   value={formData.date_start}
                   onChange={(e) => setFormData({ ...formData, date_start: e.target.value })}
+                  className={errors.date_start ? 'border-red-500' : ''}
                   required
                 />
+                {errors.date_start && (
+                  <p className="text-sm text-red-500">{errors.date_start}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -213,8 +274,12 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
                   type="datetime-local"
                   value={formData.date_end}
                   onChange={(e) => setFormData({ ...formData, date_end: e.target.value })}
+                  className={errors.date_end ? 'border-red-500' : ''}
                   required
                 />
+                {errors.date_end && (
+                  <p className="text-sm text-red-500">{errors.date_end}</p>
+                )}
               </div>
             </div>
 
@@ -225,8 +290,12 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 placeholder="Adresse ou lieu de la mission"
+                className={errors.location ? 'border-red-500' : ''}
                 required
               />
+              {errors.location && (
+                <p className="text-sm text-red-500">{errors.location}</p>
+              )}
             </div>
 
             {!mission && technicians.length > 0 && (

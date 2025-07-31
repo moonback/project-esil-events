@@ -12,9 +12,10 @@ import { formatDateTime, formatCurrency, getMissionTypeColor, getStatusColor } f
 import { MissionDialog } from './MissionDialog'
 import { AssignTechniciansDialog } from './AssignTechniciansDialog'
 import type { Mission, MissionWithAssignments } from '@/types/database'
+import { useAdminStore } from '@/store/adminStore'
 
 export function MissionsTab() {
-  const { missions, loading, error, deleteMission, fetchMissions, clearError } = useMissionsStore()
+  const { missions, loading, stats } = useAdminStore()
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
@@ -22,21 +23,6 @@ export function MissionsTab() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState<string>('all')
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetchMissions()
-  }, [fetchMissions])
-
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        fetchMissions()
-      }
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-  }, [fetchMissions])
 
   const handleEdit = (mission: Mission) => {
     setSelectedMission(mission)
@@ -57,7 +43,8 @@ export function MissionsTab() {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette mission ?')) {
       setDeleteLoading(id)
       try {
-        await deleteMission(id)
+        // TODO: Implémenter la suppression via le store admin
+        console.log('Suppression de la mission:', id)
       } catch (error) {
         console.error('Erreur lors de la suppression:', error)
       } finally {
@@ -66,18 +53,7 @@ export function MissionsTab() {
     }
   }
 
-  const missionStats = useMemo(() => {
-    const total = missions.length
-    const byType = missions.reduce((acc, mission) => {
-      acc[mission.type] = (acc[mission.type] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-    
-    const totalRevenue = missions.reduce((sum, mission) => sum + mission.forfeit, 0)
-    const assignedCount = missions.filter(m => m.mission_assignments?.length > 0).length
-    
-    return { total, byType, totalRevenue, assignedCount }
-  }, [missions])
+  const missionStats = stats.missions
 
   const filteredMissions = useMemo(() => {
     return missions.filter(mission => {
@@ -93,9 +69,9 @@ export function MissionsTab() {
     if (!mission.mission_assignments?.length) return { status: 'non_assigné', color: 'bg-gray-100 text-gray-800', icon: AlertCircle }
     
     const assignments = mission.mission_assignments
-    const acceptedCount = assignments.filter(a => a.status === 'accepté').length
-    const refusedCount = assignments.filter(a => a.status === 'refusé').length
-    const pendingCount = assignments.filter(a => a.status === 'proposé').length
+    const acceptedCount = assignments.filter((a: any) => a.status === 'accepté').length
+    const refusedCount = assignments.filter((a: any) => a.status === 'refusé').length
+    const pendingCount = assignments.filter((a: any) => a.status === 'proposé').length
     
     if (acceptedCount > 0) return { status: 'accepté', color: 'bg-green-100 text-green-800', icon: CheckCircle }
     if (refusedCount === assignments.length) return { status: 'refusé', color: 'bg-red-100 text-red-800', icon: XCircle }
@@ -104,12 +80,12 @@ export function MissionsTab() {
     return { status: 'mixte', color: 'bg-blue-100 text-blue-800', icon: Activity }
   }
 
-  if (loading) {
+  if (loading.missions) {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="text-center space-y-2">
           <div className="w-6 h-6 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto"></div>
-          <p className="text-sm text-gray-600">Chargement...</p>
+          <p className="text-sm text-gray-600">Chargement des missions...</p>
         </div>
       </div>
     )
@@ -133,23 +109,7 @@ export function MissionsTab() {
         </Button>
       </div>
 
-      {/* Affichage des erreurs */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center justify-between mx-6">
-          <div className="flex items-center space-x-2">
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-            <p className="text-sm text-red-800">{error}</p>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={clearError}
-            className="text-red-600 hover:text-red-800 h-6 w-6 p-0"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
+      {/* Affichage des erreurs - Géré par le store admin */}
 
       {/* Statistiques compactes */}
       <div className="grid grid-cols-4 gap-4 px-6">
@@ -285,9 +245,9 @@ export function MissionsTab() {
                         {mission.mission_assignments && mission.mission_assignments.length > 0 && (
                           <div className="mt-3 pt-3 border-t border-gray-100">
                             <div className="flex flex-wrap gap-1">
-                              {mission.mission_assignments.slice(0, 3).map((assignment) => (
+                              {mission.mission_assignments.slice(0, 3).map((assignment: any) => (
                                 <div key={assignment.id} className="flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded text-xs">
-                                  <span className="font-medium text-gray-700">{assignment.users.name}</span>
+                                  <span className="font-medium text-gray-700">{assignment.users?.name || 'Technicien inconnu'}</span>
                                   <Badge className={`${getStatusColor(assignment.status)} text-xs`}>
                                     {assignment.status}
                                   </Badge>

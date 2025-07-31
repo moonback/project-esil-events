@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useAdminStore } from '@/store/adminStore'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -9,106 +10,11 @@ import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils'
 import type { BillingWithDetails, User } from '@/types/database'
 
 export function AdminBillingTab() {
-  const [billings, setBillings] = useState<BillingWithDetails[]>([])
-  const [technicians, setTechnicians] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
+  const { billings, technicians, loading, stats } = useAdminStore()
   const [filter, setFilter] = useState<'all' | 'en_attente' | 'validé' | 'payé'>('all')
   const [technicianFilter, setTechnicianFilter] = useState<string>('all')
-  const [stats, setStats] = useState({
-    totalAmount: 0,
-    pendingAmount: 0,
-    validatedAmount: 0,
-    paidAmount: 0
-  })
 
-  useEffect(() => {
-    fetchBillings()
-    fetchTechnicians()
-  }, [])
-
-  // Recharger les données quand le composant devient visible
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        fetchBillings()
-      }
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-  }, [])
-
-  const fetchTechnicians = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('role', 'technicien')
-        .order('name')
-
-      if (error) throw error
-
-      setTechnicians(data || [])
-    } catch (error) {
-      console.error('Erreur lors du chargement des techniciens:', error)
-    }
-  }
-
-  const fetchBillings = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('billing')
-        .select(`
-          *,
-          missions (
-            title,
-            type,
-            date_start,
-            date_end
-          ),
-          users (
-            name,
-            phone
-          )
-        `)
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-
-      const billingData = data as BillingWithDetails[]
-      setBillings(billingData)
-
-      // Calculer les statistiques
-      const stats = billingData.reduce((acc, billing) => {
-        acc.totalAmount += billing.amount
-        
-        switch (billing.status) {
-          case 'en_attente':
-            acc.pendingAmount += billing.amount
-            break
-          case 'validé':
-            acc.validatedAmount += billing.amount
-            break
-          case 'payé':
-            acc.paidAmount += billing.amount
-            break
-        }
-        
-        return acc
-      }, {
-        totalAmount: 0,
-        pendingAmount: 0,
-        validatedAmount: 0,
-        paidAmount: 0
-      })
-
-      setStats(stats)
-    } catch (error) {
-      console.error('Erreur lors du chargement de la facturation:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Les données sont maintenant gérées par le store admin
 
   const updateBillingStatus = async (id: string, status: 'en_attente' | 'validé' | 'payé') => {
     try {
@@ -124,7 +30,8 @@ export function AdminBillingTab() {
 
       if (error) throw error
 
-      fetchBillings()
+      // Les données seront actualisées automatiquement via le store
+      console.log('Statut de facturation mis à jour')
     } catch (error) {
       console.error('Erreur lors de la mise à jour du statut:', error)
     }
@@ -141,7 +48,8 @@ export function AdminBillingTab() {
 
       if (error) throw error
 
-      fetchBillings()
+      // Les données seront actualisées automatiquement via le store
+      console.log('Facturation supprimée')
     } catch (error) {
       console.error('Erreur lors de la suppression:', error)
     }
@@ -157,10 +65,13 @@ export function AdminBillingTab() {
     return statusMatch && technicianMatch
   })
 
-  if (loading) {
+  if (loading.billings) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-gray-500">Chargement de la facturation...</div>
+        <div className="text-center space-y-2">
+          <div className="w-6 h-6 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto"></div>
+          <p className="text-sm text-gray-600">Chargement de la facturation...</p>
+        </div>
       </div>
     )
   }
@@ -375,10 +286,10 @@ export function AdminBillingTab() {
                 <CardContent className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center">
                     <div className="md:col-span-2">
-                      <h4 className="font-medium">{billing.missions.title}</h4>
-                      <p className="text-sm text-gray-600">{billing.users.name}</p>
+                      <h4 className="font-medium">{billing.missions?.title || 'Mission inconnue'}</h4>
+                      <p className="text-sm text-gray-600">{billing.users?.name || 'Technicien inconnu'}</p>
                       <p className="text-xs text-gray-500">
-                        {formatDate(billing.missions.date_start)}
+                        {billing.missions?.date_start ? formatDate(billing.missions.date_start) : 'Date inconnue'}
                       </p>
                     </div>
 

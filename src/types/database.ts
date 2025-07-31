@@ -199,3 +199,22 @@ export type BillingWithDetails = Billing & {
   missions: Mission
   users: User
 }
+
+// Types pour les statistiques des techniciens
+export type TechnicianStats = {
+  totalAssignments: number
+  acceptedAssignments: number
+  pendingAssignments: number
+  rejectedAssignments: number
+  totalRevenue: number
+  averageRating: number
+  totalHours: number
+  availabilityCount: number
+}
+
+export type TechnicianWithStats = User & {
+  stats: TechnicianStats
+  recentMissions: (Mission & { assignment: MissionAssignment })[]
+  availabilities: Availability[]
+  billings: Billing[]
+}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useMissionsStore } from '@/store/missionsStore'
+import { useAdminStore } from '@/store/adminStore'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,7 +14,7 @@ interface MissionDialogProps {
 }
 
 export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProps) {
-  const { createMission, updateMission, assignTechnicians, fetchMissions } = useMissionsStore()
+  const { fetchMissions } = useAdminStore()
   const [loading, setLoading] = useState(false)
   const [technicians, setTechnicians] = useState<User[]>([])
   const [selectedTechnicians, setSelectedTechnicians] = useState<string[]>([])
@@ -33,7 +33,7 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
 
   useEffect(() => {
     if (open) {
-      fetchTechnicians()
+      loadTechnicians()
       if (mission) {
         setFormData({
           type: mission.type,
@@ -62,7 +62,7 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
     }
   }, [open, mission])
 
-  const fetchTechnicians = async () => {
+  const loadTechnicians = async () => {
     try {
       const { data } = await supabase
         .from('users')
@@ -120,6 +120,25 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
     return Object.keys(newErrors).length === 0
   }
 
+  const assignTechnicians = async (missionId: string, technicianIds: string[]) => {
+    try {
+      const assignments = technicianIds.map(technicianId => ({
+        mission_id: missionId,
+        technician_id: technicianId,
+        status: 'proposé'
+      }))
+
+      const { error } = await supabase
+        .from('mission_assignments')
+        .insert(assignments)
+
+      if (error) throw error
+    } catch (error) {
+      console.error('Erreur lors de l\'assignation des techniciens:', error)
+      throw error
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -133,10 +152,16 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
       let missionId = mission?.id
       
       if (mission) {
-        await updateMission(mission.id, formData)
+        // Mettre à jour la mission
+        const { error } = await supabase
+          .from('missions')
+          .update(formData)
+          .eq('id', mission.id)
+
+        if (error) throw error
         missionId = mission.id
       } else {
-        // Créer la mission en utilisant le store
+        // Créer la mission
         const { data: { user } } = await supabase.auth.getUser()
         
         const { data: newMission, error } = await supabase
@@ -157,7 +182,7 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
         await assignTechnicians(missionId, selectedTechnicians)
       }
 
-      // Rafraîchir la liste des missions
+      // Rafraîchir les données dans le store admin
       await fetchMissions()
 
       // Fermer le dialog et réinitialiser le formulaire

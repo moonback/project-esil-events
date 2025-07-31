@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useAdminStore } from '@/store/adminStore'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -37,27 +38,10 @@ import {
 } from 'lucide-react'
 import { format, parseISO, isValid } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import type { User, MissionAssignment, Mission, Availability, Billing } from '@/types/database'
-
-interface TechnicianWithStats extends User {
-  stats: {
-    totalAssignments: number
-    acceptedAssignments: number
-    pendingAssignments: number
-    rejectedAssignments: number
-    totalRevenue: number
-    averageRating: number
-    totalHours: number
-    availabilityCount: number
-  }
-  recentMissions: (Mission & { assignment: MissionAssignment })[]
-  availabilities: Availability[]
-  billings: Billing[]
-}
+import type { User, MissionAssignment, Mission, Availability, Billing, TechnicianWithStats } from '@/types/database'
 
 export function TechniciansTab() {
-  const [technicians, setTechnicians] = useState<TechnicianWithStats[]>([])
-  const [loading, setLoading] = useState(true)
+  const { technicians, loading, stats } = useAdminStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [showDetailedView, setShowDetailedView] = useState(false)
   const [selectedTechnician, setSelectedTechnician] = useState<TechnicianWithStats | null>(null)
@@ -67,92 +51,7 @@ export function TechniciansTab() {
   const [contactDialogOpen, setContactDialogOpen] = useState(false)
   const [selectedTechnicianForContact, setSelectedTechnicianForContact] = useState<User | null>(null)
 
-  useEffect(() => {
-    fetchTechnicians()
-  }, [])
-
-  const fetchTechnicians = async () => {
-    try {
-      setLoading(true)
-      
-      // Récupérer tous les techniciens
-      const { data: technicianData } = await supabase
-        .from('users')
-        .select('*')
-        .eq('role', 'technicien')
-        .order('name')
-
-      if (!technicianData) return
-
-      const techniciansWithStats = await Promise.all(
-        technicianData.map(async (tech) => {
-          // Récupérer les assignations
-          const { data: assignments } = await supabase
-            .from('mission_assignments')
-            .select(`
-              *,
-              missions (*)
-            `)
-            .eq('technician_id', tech.id)
-
-          // Récupérer les disponibilités
-          const { data: availabilities } = await supabase
-            .from('availability')
-            .select('*')
-            .eq('technician_id', tech.id)
-            .gte('start_time', new Date().toISOString())
-
-          // Récupérer les facturations
-          const { data: billings } = await supabase
-            .from('billing')
-            .select('*')
-            .eq('technician_id', tech.id)
-
-          // Calculer les statistiques
-          const acceptedAssignments = assignments?.filter(a => a.status === 'accepté') || []
-          const totalRevenue = billings?.reduce((sum, b) => sum + b.amount, 0) || 0
-          const totalHours = acceptedAssignments.reduce((sum, a) => {
-            if (a.missions && isValid(parseISO(a.missions.date_start)) && isValid(parseISO(a.missions.date_end))) {
-              const start = parseISO(a.missions.date_start)
-              const end = parseISO(a.missions.date_end)
-              return sum + (end.getTime() - start.getTime()) / (1000 * 60 * 60)
-            }
-            return sum
-          }, 0)
-
-          const stats = {
-            totalAssignments: assignments?.length || 0,
-            acceptedAssignments: acceptedAssignments.length,
-            pendingAssignments: assignments?.filter(a => a.status === 'proposé').length || 0,
-            rejectedAssignments: assignments?.filter(a => a.status === 'refusé').length || 0,
-            totalRevenue: totalRevenue,
-            averageRating: acceptedAssignments.length > 0 ? 4.2 + Math.random() * 0.8 : 0, // Simulation
-            totalHours: Math.round(totalHours),
-            availabilityCount: availabilities?.length || 0
-          }
-
-          const recentMissions = assignments
-            ?.filter(a => a.status === 'accepté')
-            .slice(0, 5)
-            .map(a => ({ ...a.missions, assignment: a })) || []
-
-          return { 
-            ...tech, 
-            stats,
-            recentMissions,
-            availabilities: availabilities || [],
-            billings: billings || []
-          }
-        })
-      )
-
-      setTechnicians(techniciansWithStats)
-    } catch (error) {
-      console.error('Erreur lors du chargement des techniciens:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Les données sont maintenant gérées par le store admin avec les statistiques calculées
 
   const filteredTechnicians = technicians.filter(tech =>
     tech.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -168,16 +67,16 @@ export function TechniciansTab() {
         bValue = b.name
         break
       case 'missions':
-        aValue = a.stats.totalAssignments
-        bValue = b.stats.totalAssignments
+        aValue = a.stats?.totalAssignments || 0
+        bValue = b.stats?.totalAssignments || 0
         break
       case 'revenue':
-        aValue = a.stats.totalRevenue
-        bValue = b.stats.totalRevenue
+        aValue = a.stats?.totalRevenue || 0
+        bValue = b.stats?.totalRevenue || 0
         break
       case 'rating':
-        aValue = a.stats.averageRating
-        bValue = b.stats.averageRating
+        aValue = a.stats?.averageRating || 0
+        bValue = b.stats?.averageRating || 0
         break
       default:
         aValue = a.name
@@ -211,10 +110,11 @@ export function TechniciansTab() {
   }
 
   const handleContactUpdated = () => {
-    fetchTechnicians() // Recharger les données
+    // Les données seront actualisées automatiquement via le store
+    console.log('Contact mis à jour')
   }
 
-  if (loading) {
+  if (loading.technicians) {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="text-center space-y-2">
@@ -309,7 +209,7 @@ export function TechniciansTab() {
             <div>
               <p className="text-xs font-medium text-gray-600">Total missions</p>
               <p className="text-lg font-bold text-gray-900">
-                {technicians.reduce((sum, tech) => sum + tech.stats.totalAssignments, 0)}
+                {technicians.reduce((sum, tech) => sum + (tech.stats?.totalAssignments || 0), 0)}
               </p>
             </div>
             <Calendar className="h-5 w-5 text-blue-600" />
@@ -321,7 +221,7 @@ export function TechniciansTab() {
             <div>
               <p className="text-xs font-medium text-gray-600">Revenus totaux</p>
               <p className="text-lg font-bold text-green-600">
-                {technicians.reduce((sum, tech) => sum + tech.stats.totalRevenue, 0)}€
+                {technicians.reduce((sum, tech) => sum + (tech.stats?.totalRevenue || 0), 0)}€
               </p>
             </div>
             <Euro className="h-5 w-5 text-green-600" />
@@ -333,7 +233,10 @@ export function TechniciansTab() {
             <div>
               <p className="text-xs font-medium text-gray-600">Note moyenne</p>
               <p className="text-lg font-bold text-purple-600">
-                {(technicians.reduce((sum, tech) => sum + tech.stats.averageRating, 0) / technicians.length).toFixed(1)}
+                {technicians.length > 0 
+                  ? (technicians.reduce((sum, tech) => sum + (tech.stats?.averageRating || 0), 0) / technicians.length).toFixed(1)
+                  : '0.0'
+                }
               </p>
             </div>
             <Star className="h-5 w-5 text-purple-600" />
@@ -345,7 +248,7 @@ export function TechniciansTab() {
             <div>
               <p className="text-xs font-medium text-gray-600">Heures totales</p>
               <p className="text-lg font-bold text-orange-600">
-                {technicians.reduce((sum, tech) => sum + tech.stats.totalHours, 0)}h
+                {technicians.reduce((sum, tech) => sum + (tech.stats?.totalHours || 0), 0)}h
               </p>
             </div>
             <Clock3 className="h-5 w-5 text-orange-600" />
@@ -388,8 +291,8 @@ export function TechniciansTab() {
                         </div>
                         
                         <div className="flex items-center space-x-2">
-                          <Badge className={getPerformanceBadge(technician.stats.averageRating).color}>
-                            {getPerformanceBadge(technician.stats.averageRating).text}
+                          <Badge className={getPerformanceBadge(technician.stats?.averageRating || 0).color}>
+                            {getPerformanceBadge(technician.stats?.averageRating || 0).text}
                           </Badge>
                           <Button
                             variant="ghost"
@@ -413,39 +316,39 @@ export function TechniciansTab() {
                       <div className="grid grid-cols-2 gap-3 text-xs text-gray-600 mb-3">
                         <div className="flex items-center space-x-1">
                           <Calendar className="h-3 w-3 text-blue-500" />
-                          <span>{technician.stats.totalAssignments} missions</span>
+                          <span>{technician.stats?.totalAssignments || 0} missions</span>
                         </div>
                         
                         <div className="flex items-center space-x-1">
                           <Euro className="h-3 w-3 text-green-500" />
-                          <span>{technician.stats.totalRevenue}€</span>
+                          <span>{technician.stats?.totalRevenue || 0}€</span>
                         </div>
                         
                         <div className="flex items-center space-x-1">
-                          <Star className={`h-3 w-3 ${getPerformanceColor(technician.stats.averageRating)}`} />
-                          <span>{technician.stats.averageRating.toFixed(1)}/5</span>
+                          <Star className={`h-3 w-3 ${getPerformanceColor(technician.stats?.averageRating || 0)}`} />
+                          <span>{(technician.stats?.averageRating || 0).toFixed(1)}/5</span>
                         </div>
                         
                         <div className="flex items-center space-x-1">
                           <Clock3 className="h-3 w-3 text-orange-500" />
-                          <span>{technician.stats.totalHours}h</span>
+                          <span>{technician.stats?.totalHours || 0}h</span>
                         </div>
                       </div>
 
                       {/* Barre de progression */}
-                      {technician.stats.totalAssignments > 0 && (
+                      {(technician.stats?.totalAssignments || 0) > 0 && (
                         <div className="mb-3">
                           <div className="flex items-center justify-between text-xs mb-1">
                             <span className="text-gray-500">Taux d'acceptation</span>
                             <span className="font-medium">
-                              {Math.round((technician.stats.acceptedAssignments / technician.stats.totalAssignments) * 100)}%
+                              {Math.round(((technician.stats?.acceptedAssignments || 0) / (technician.stats?.totalAssignments || 1)) * 100)}%
                             </span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2">
                             <div
                               className="bg-green-500 h-2 rounded-full transition-all duration-300"
                               style={{
-                                width: `${(technician.stats.acceptedAssignments / technician.stats.totalAssignments) * 100}%`
+                                width: `${((technician.stats?.acceptedAssignments || 0) / (technician.stats?.totalAssignments || 1)) * 100}%`
                               }}
                             />
                           </div>
@@ -462,7 +365,7 @@ export function TechniciansTab() {
                               Missions récentes
                             </h4>
                             <div className="space-y-2">
-                              {technician.recentMissions.length > 0 ? (
+                              {technician.recentMissions && technician.recentMissions.length > 0 ? (
                                 technician.recentMissions.map((mission) => (
                                   <div key={mission.id} className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
                                     <div className="flex-1">
@@ -527,10 +430,10 @@ export function TechniciansTab() {
                           <div>
                             <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
                               <CalendarCheck className="h-4 w-4 mr-2" />
-                              Disponibilités ({technician.availabilities.length})
+                              Disponibilités ({technician.availabilities?.length || 0})
                             </h4>
                             <div className="space-y-1">
-                              {technician.availabilities.length > 0 ? (
+                              {technician.availabilities && technician.availabilities.length > 0 ? (
                                 technician.availabilities.slice(0, 3).map((availability) => (
                                   <div key={availability.id} className="flex items-center justify-between p-2 bg-blue-50 rounded text-xs">
                                     <div>
@@ -550,30 +453,30 @@ export function TechniciansTab() {
                             <div className="space-y-2">
                               <div className="flex items-center justify-between text-xs">
                                 <span className="text-gray-500">Acceptées</span>
-                                <span className="font-medium text-green-600">{technician.stats.acceptedAssignments}</span>
+                                <span className="font-medium text-green-600">{technician.stats?.acceptedAssignments || 0}</span>
                               </div>
                               <div className="flex items-center justify-between text-xs">
                                 <span className="text-gray-500">En attente</span>
-                                <span className="font-medium text-orange-600">{technician.stats.pendingAssignments}</span>
+                                <span className="font-medium text-orange-600">{technician.stats?.pendingAssignments || 0}</span>
                               </div>
                               <div className="flex items-center justify-between text-xs">
                                 <span className="text-gray-500">Refusées</span>
-                                <span className="font-medium text-red-600">{technician.stats.rejectedAssignments}</span>
+                                <span className="font-medium text-red-600">{technician.stats?.rejectedAssignments || 0}</span>
                               </div>
                             </div>
                             <div className="space-y-2">
                               <div className="flex items-center justify-between text-xs">
                                 <span className="text-gray-500">Revenus</span>
-                                <span className="font-medium text-green-600">{technician.stats.totalRevenue}€</span>
+                                <span className="font-medium text-green-600">{technician.stats?.totalRevenue || 0}€</span>
                               </div>
                               <div className="flex items-center justify-between text-xs">
                                 <span className="text-gray-500">Heures</span>
-                                <span className="font-medium text-blue-600">{technician.stats.totalHours}h</span>
+                                <span className="font-medium text-blue-600">{technician.stats?.totalHours || 0}h</span>
                               </div>
                               <div className="flex items-center justify-between text-xs">
                                 <span className="text-gray-500">Note</span>
-                                <span className={`font-medium ${getPerformanceColor(technician.stats.averageRating)}`}>
-                                  {technician.stats.averageRating.toFixed(1)}/5
+                                <span className={`font-medium ${getPerformanceColor(technician.stats?.averageRating || 0)}`}>
+                                  {(technician.stats?.averageRating || 0).toFixed(1)}/5
                                 </span>
                               </div>
                             </div>

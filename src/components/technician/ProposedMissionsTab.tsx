@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Check, X, Clock, MapPin, Calendar, DollarSign } from 'lucide-react'
+import { Check, X, Clock, MapPin, Calendar, DollarSign, AlertTriangle } from 'lucide-react'
 import { formatDateTime, formatCurrency, getMissionTypeColor } from '@/lib/utils'
 import type { MissionAssignment, Mission } from '@/types/database'
 
@@ -19,6 +19,7 @@ export function ProposedMissionsTab() {
   const [proposedMissions, setProposedMissions] = useState<ProposedMission[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (profile) {
@@ -30,6 +31,9 @@ export function ProposedMissionsTab() {
     if (!profile) return
 
     try {
+      setLoading(true)
+      setError(null)
+      
       console.log('Fetching proposed missions for technician:', profile.id)
       
       const { data, error } = await supabase
@@ -54,14 +58,66 @@ export function ProposedMissionsTab() {
       setProposedMissions(proposedOnly)
     } catch (error) {
       console.error('Erreur lors du chargement des missions proposées:', error)
+      setError('Erreur lors du chargement des missions. Veuillez réessayer.')
     } finally {
       setLoading(false)
     }
   }
 
+  // Vérifier les conflits de planning
+  const checkPlanningConflict = async (missionToAccept: ProposedMission): Promise<boolean> => {
+    try {
+      // Récupérer toutes les missions acceptées du technicien
+      const { data: acceptedMissions } = await supabase
+        .from('mission_assignments')
+        .select(`
+          *,
+          missions (*)
+        `)
+        .eq('technician_id', profile!.id)
+        .eq('status', 'accepté')
+
+      if (!acceptedMissions) return false
+
+      const missionStart = new Date(missionToAccept.missions.date_start)
+      const missionEnd = new Date(missionToAccept.missions.date_end)
+
+      // Vérifier les conflits avec les missions acceptées
+      for (const assignment of acceptedMissions) {
+        const assignmentMission = assignment.missions as Mission
+        const assignmentStart = new Date(assignmentMission.date_start)
+        const assignmentEnd = new Date(assignmentMission.date_end)
+
+        // Vérifier si les périodes se chevauchent
+        if (missionStart < assignmentEnd && missionEnd > assignmentStart) {
+          return true // Conflit détecté
+        }
+      }
+
+      return false // Pas de conflit
+    } catch (error) {
+      console.error('Erreur lors de la vérification des conflits:', error)
+      return false
+    }
+  }
+
   const handleResponse = async (assignmentId: string, status: 'accepté' | 'refusé') => {
     setActionLoading(assignmentId)
+    setError(null)
+    
     try {
+      if (status === 'accepté') {
+        // Vérifier les conflits de planning avant d'accepter
+        const assignment = proposedMissions.find(m => m.id === assignmentId)
+        if (assignment) {
+          const hasConflict = await checkPlanningConflict(assignment)
+          if (hasConflict) {
+            setError('Cette mission entre en conflit avec votre planning existant. Impossible de l\'accepter.')
+            return
+          }
+        }
+      }
+
       await updateAssignmentStatus(assignmentId, status)
       
       // Créer une entrée de facturation si accepté
@@ -82,6 +138,7 @@ export function ProposedMissionsTab() {
       fetchProposedMissions()
     } catch (error) {
       console.error('Erreur lors de la réponse:', error)
+      setError('Erreur lors de la réponse. Veuillez réessayer.')
     } finally {
       setActionLoading(null)
     }
@@ -90,7 +147,10 @@ export function ProposedMissionsTab() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-gray-500">Chargement des missions proposées...</div>
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto"></div>
+          <p className="text-gray-600">Chargement des missions proposées...</p>
+        </div>
       </div>
     )
   }
@@ -103,6 +163,24 @@ export function ProposedMissionsTab() {
           Acceptez ou refusez les missions qui vous sont proposées
         </p>
       </div>
+
+      {/* Affichage des erreurs */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <AlertTriangle className="h-5 w-5 text-red-600" />
+            <p className="text-red-800">{error}</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setError(null)}
+            className="text-red-600 hover:text-red-800"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
       <div className="grid gap-4">
         {proposedMissions.length === 0 ? (

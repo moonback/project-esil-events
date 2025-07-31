@@ -1,142 +1,76 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/button'
-import { LogOut, User, Sparkles, Menu, X, Bell, Settings, ChevronDown } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { LogOut, User, Sparkles, Menu, X, Bell, Settings, ChevronDown, Crown, Wrench } from 'lucide-react'
 
 export function Header() {
   const { profile, signOut } = useAuthStore()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isScrolled, setIsScrolled] = useState(false)
-
-  // Effet de scroll pour changer l'apparence du header
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
 
   return (
-    <header className={`
-      relative overflow-hidden transition-all duration-500 ease-out
-      ${isScrolled 
-        ? 'bg-white/95 backdrop-blur-xl shadow-xl border-b border-gray-200/50' 
-        : 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 shadow-lg'
-      }
-    `}>
-      {/* Effet de particules animées - visible uniquement quand pas scrollé */}
-      <div className={`absolute inset-0 transition-opacity duration-500 ${isScrolled ? 'opacity-0' : 'opacity-10'}`}>
-        <div className="absolute top-4 left-4 w-2 h-2 bg-white rounded-full animate-pulse-slow"></div>
-        <div className="absolute top-8 right-8 w-1 h-1 bg-white rounded-full animate-bounce-slow"></div>
-        <div className="absolute bottom-4 left-1/4 w-1.5 h-1.5 bg-white rounded-full animate-pulse-slow"></div>
-        <div className="absolute bottom-8 right-1/4 w-1 h-1 bg-white rounded-full animate-bounce-slow"></div>
-        <div className="absolute top-1/2 left-1/3 w-1 h-1 bg-white rounded-full animate-pulse-slow" style={{ animationDelay: '0.5s' }}></div>
-        <div className="absolute top-6 right-1/3 w-1.5 h-1.5 bg-white rounded-full animate-bounce-slow" style={{ animationDelay: '1s' }}></div>
-      </div>
-
-      {/* Effet de vague animée en arrière-plan */}
-      <div className={`absolute inset-0 transition-opacity duration-500 ${isScrolled ? 'opacity-0' : 'opacity-20'}`}>
-        <svg className="absolute bottom-0 left-0 w-full h-16" viewBox="0 0 1200 120" preserveAspectRatio="none">
-          <path d="M0,60 C300,120 900,0 1200,60 L1200,120 L0,120 Z" fill="rgba(255,255,255,0.1)" className="animate-pulse-slow" />
-        </svg>
-      </div>
-      
-      <div className="container mx-auto px-4 py-4 relative z-10">
+    <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
+      <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Logo et titre */}
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-3 group">
-              <div className="relative">
-                <div className={`
-                  p-2 rounded-xl transition-all duration-300 group-hover:scale-110
-                  ${isScrolled 
-                    ? 'bg-gradient-to-r from-indigo-500 to-purple-500 shadow-lg' 
-                    : 'bg-white/20 backdrop-blur-sm'
-                  }
-                `}>
-                  <Sparkles className={`h-6 w-6 transition-colors duration-300 ${isScrolled ? 'text-white' : 'text-white'} animate-pulse-slow`} />
-                </div>
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-bounce-slow shadow-lg"></div>
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
+              <div className="p-2 rounded-lg bg-blue-600 text-white">
+                <Sparkles className="h-5 w-5" />
               </div>
               <div>
-                <h1 className={`
-                  text-2xl md:text-3xl font-bold tracking-tight transition-colors duration-300
-                  ${isScrolled ? 'text-gray-800' : 'text-white'}
-                `}>
+                <h1 className="text-xl font-bold text-gray-900">
                   Esil-events
                 </h1>
-                <p className={`
-                  text-xs font-medium transition-colors duration-300 hidden sm:block
-                  ${isScrolled ? 'text-gray-500' : 'text-white/80'}
-                `}>
-                  Gestion d'événements professionnelle
-                </p>
               </div>
             </div>
             
-            {/* Badge de rôle - masqué sur mobile */}
+            {/* Badge de rôle */}
             {profile && (
-              <div className="hidden lg:flex items-center space-x-2">
-                <span className={`
-                  text-sm px-4 py-2 rounded-full font-semibold border transition-all duration-300 hover:scale-105
-                  ${isScrolled 
-                    ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border-indigo-200 hover:from-indigo-100 hover:to-purple-100' 
-                    : 'bg-white/20 backdrop-blur-sm text-white border-white/30 hover:bg-white/30'
-                  }
-                `}>
-                  {profile.role === 'admin' ? '👑 Administrateur' : '🔧 Technicien'}
-                </span>
-              </div>
+              <Badge className="text-xs px-2 py-1 rounded-md font-medium bg-blue-100 text-blue-700">
+                {profile.role === 'admin' ? (
+                  <>
+                    <Crown className="h-3 w-3 mr-1" />
+                    Admin
+                  </>
+                ) : (
+                  <>
+                    <Wrench className="h-3 w-3 mr-1" />
+                    Tech
+                  </>
+                )}
+              </Badge>
             )}
           </div>
 
           {/* Navigation desktop */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-3">
             {profile && (
               <>
                 {/* Notifications */}
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={`
-                    relative p-2 rounded-lg transition-all duration-300 hover:scale-110
-                    ${isScrolled 
-                      ? 'text-gray-600 hover:bg-gray-100 hover:text-gray-800' 
-                      : 'text-white hover:bg-white/20'
-                    }
-                  `}
+                  className="relative p-2 rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-800"
                 >
-                  <Bell className="h-5 w-5" />
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+                  <Bell className="h-4 w-4 text-blue-600" />
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                 </Button>
 
                 {/* Profil utilisateur */}
-                <div className={`
-                  flex items-center space-x-3 px-4 py-2 rounded-xl border transition-all duration-300 hover:scale-105 cursor-pointer group
-                  ${isScrolled 
-                    ? 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm' 
-                    : 'bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20'
-                  }
-                `}>
-                  <div className={`
-                    p-1.5 rounded-lg transition-all duration-300
-                    ${isScrolled 
-                      ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white' 
-                      : 'bg-white/20 text-white'
-                    }
-                  `}>
-                    <User className="h-4 w-4" />
+                <div className="flex items-center space-x-2 px-3 py-2 rounded-md border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 cursor-pointer">
+                  <div className="p-1 rounded-md bg-blue-600 text-white">
+                    <User className="h-3 w-3" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-semibold text-sm leading-tight">{profile.name}</span>
-                    <span className={`text-xs leading-tight ${isScrolled ? 'text-gray-500' : 'text-white/70'}`}>
+                    <span className="font-medium text-sm">{profile.name}</span>
+                    <span className="text-xs text-gray-500">
                       {profile.role === 'admin' ? 'Administrateur' : 'Technicien'}
                     </span>
                   </div>
-                  <ChevronDown className="h-4 w-4 transition-transform duration-300 group-hover:rotate-180" />
+                  <ChevronDown className="h-3 w-3 text-gray-400" />
                 </div>
               </>
             )}
@@ -144,17 +78,12 @@ export function Header() {
             {/* Bouton de déconnexion */}
             <Button
               variant="outline"
+              size="sm"
               onClick={signOut}
-              className={`
-                flex items-center space-x-2 px-4 py-2 rounded-xl border font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg
-                ${isScrolled 
-                  ? 'bg-white border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300' 
-                  : 'bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 hover:border-white/30'
-                }
-              `}
+              className="flex items-center space-x-1 px-3 py-2 rounded-md font-medium border-red-200 text-red-600 hover:bg-red-50"
             >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden lg:inline">Déconnexion</span>
+              <LogOut className="h-3 w-3" />
+              <span className="hidden lg:inline text-xs">Déconnexion</span>
             </Button>
           </div>
 
@@ -162,99 +91,64 @@ export function Header() {
           <div className="md:hidden">
             <Button
               variant="ghost"
+              size="sm"
               onClick={toggleMenu}
-              className={`
-                p-2 rounded-lg transition-all duration-300
-                ${isScrolled 
-                  ? 'text-gray-600 hover:bg-gray-100' 
-                  : 'text-white hover:bg-white/20'
-                }
-              `}
+              className="p-2 rounded-md text-gray-600 hover:bg-gray-100"
             >
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
         </div>
 
         {/* Menu mobile déroulant */}
         <div className={`
-          md:hidden overflow-hidden transition-all duration-300 ease-out
-          ${isMenuOpen ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'}
+          md:hidden overflow-hidden transition-all duration-300
+          ${isMenuOpen ? 'max-h-64 opacity-100 mt-3' : 'max-h-0 opacity-0'}
         `}>
-          <div className={`
-            p-4 rounded-xl border backdrop-blur-sm
-            ${isScrolled 
-              ? 'bg-white/95 border-gray-200' 
-              : 'bg-white/10 border-white/20'
-            }
-          `}>
+          <div className="p-3 rounded-md border border-gray-200 bg-white">
             {profile && (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {/* Profil mobile */}
-                <div className={`
-                  flex items-center space-x-3 p-3 rounded-lg
-                  ${isScrolled ? 'bg-gray-50' : 'bg-white/10'}
-                `}>
-                  <div className={`
-                    p-2 rounded-lg
-                    ${isScrolled 
-                      ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white' 
-                      : 'bg-white/20 text-white'
-                    }
-                  `}>
-                    <User className="h-5 w-5" />
+                <div className="flex items-center space-x-2 p-2 rounded-md bg-gray-50">
+                  <div className="p-1.5 rounded-md bg-blue-600 text-white">
+                    <User className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className={`font-semibold ${isScrolled ? 'text-gray-800' : 'text-white'}`}>
+                    <p className="font-medium text-sm text-gray-800">
                       {profile.name}
                     </p>
-                    <p className={`text-sm ${isScrolled ? 'text-gray-500' : 'text-white/70'}`}>
-                      {profile.role === 'admin' ? '👑 Administrateur' : '🔧 Technicien'}
+                    <p className="text-xs text-gray-500">
+                      {profile.role === 'admin' ? 'Administrateur' : 'Technicien'}
                     </p>
                   </div>
                 </div>
 
                 {/* Actions mobiles */}
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Button
                     variant="ghost"
-                    className={`
-                      w-full justify-start space-x-2 p-3 rounded-lg
-                      ${isScrolled 
-                        ? 'text-gray-600 hover:bg-gray-100' 
-                        : 'text-white hover:bg-white/20'
-                      }
-                    `}
+                    size="sm"
+                    className="w-full justify-start space-x-2 p-2 rounded-md text-sm text-gray-600 hover:bg-gray-100"
                   >
-                    <Bell className="h-5 w-5" />
+                    <Bell className="h-4 w-4 text-blue-600" />
                     <span>Notifications</span>
                   </Button>
                   
                   <Button
                     variant="ghost"
-                    className={`
-                      w-full justify-start space-x-2 p-3 rounded-lg
-                      ${isScrolled 
-                        ? 'text-gray-600 hover:bg-gray-100' 
-                        : 'text-white hover:bg-white/20'
-                      }
-                    `}
+                    size="sm"
+                    className="w-full justify-start space-x-2 p-2 rounded-md text-sm text-gray-600 hover:bg-gray-100"
                   >
-                    <Settings className="h-5 w-5" />
+                    <Settings className="h-4 w-4 text-blue-600" />
                     <span>Paramètres</span>
                   </Button>
                   
                   <Button
+                    size="sm"
                     onClick={signOut}
-                    className={`
-                      w-full justify-start space-x-2 p-3 rounded-lg font-semibold
-                      ${isScrolled 
-                        ? 'bg-red-50 text-red-600 hover:bg-red-100' 
-                        : 'bg-white/10 text-white hover:bg-white/20'
-                      }
-                    `}
+                    className="w-full justify-start space-x-2 p-2 rounded-md text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100"
                   >
-                    <LogOut className="h-5 w-5" />
+                    <LogOut className="h-4 w-4" />
                     <span>Déconnexion</span>
                   </Button>
                 </div>

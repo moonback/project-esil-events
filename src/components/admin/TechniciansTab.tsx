@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { TechnicianContactDialog } from './TechnicianContactDialog'
 import { 
   Phone, 
   Users, 
@@ -30,7 +31,8 @@ import {
   UserX,
   Clock3,
   CalendarCheck,
-  CalendarX
+  CalendarX,
+  Contact
 } from 'lucide-react'
 import { format, parseISO, isValid } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -61,6 +63,8 @@ export function TechniciansTab() {
   const [showFilters, setShowFilters] = useState(false)
   const [sortBy, setSortBy] = useState<'name' | 'missions' | 'revenue' | 'rating'>('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  const [contactDialogOpen, setContactDialogOpen] = useState(false)
+  const [selectedTechnicianForContact, setSelectedTechnicianForContact] = useState<User | null>(null)
 
   useEffect(() => {
     fetchTechnicians()
@@ -198,6 +202,15 @@ export function TechniciansTab() {
     if (rating >= 4.0) return { text: 'Bon', color: 'bg-blue-100 text-blue-800' }
     if (rating >= 3.5) return { text: 'Moyen', color: 'bg-yellow-100 text-yellow-800' }
     return { text: 'À améliorer', color: 'bg-red-100 text-red-800' }
+  }
+
+  const handleOpenContact = (technician: User) => {
+    setSelectedTechnicianForContact(technician)
+    setContactDialogOpen(true)
+  }
+
+  const handleContactUpdated = () => {
+    fetchTechnicians() // Recharger les données
   }
 
   if (loading) {
@@ -380,6 +393,14 @@ export function TechniciansTab() {
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => handleOpenContact(technician)}
+                            title="Voir les informations de contact"
+                          >
+                            <Contact className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => setSelectedTechnician(selectedTechnician?.id === technician.id ? null : technician)}
                           >
                             <MoreHorizontal className="h-4 w-4" />
@@ -461,6 +482,46 @@ export function TechniciansTab() {
                             </div>
                           </div>
 
+                          {/* Informations de contact */}
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
+                              <Contact className="h-4 w-4 mr-2" />
+                              Informations de contact
+                            </h4>
+                            <div className="space-y-2">
+                              {technician.phone && (
+                                <div className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
+                                  <div className="flex items-center">
+                                    <Phone className="h-3 w-3 mr-2" />
+                                    <span className="text-gray-500">Téléphone</span>
+                                  </div>
+                                  <span className="font-medium">{technician.phone}</span>
+                                </div>
+                              )}
+                              {technician.email && (
+                                <div className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
+                                  <div className="flex items-center">
+                                    <Mail className="h-3 w-3 mr-2" />
+                                    <span className="text-gray-500">Email</span>
+                                  </div>
+                                  <span className="font-medium">{technician.email}</span>
+                                </div>
+                              )}
+                              {technician.address && (
+                                <div className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
+                                  <div className="flex items-center">
+                                    <MapPin className="h-3 w-3 mr-2" />
+                                    <span className="text-gray-500">Adresse</span>
+                                  </div>
+                                  <span className="font-medium">{technician.address}</span>
+                                </div>
+                              )}
+                              {(!technician.phone && !technician.email && !technician.address) && (
+                                <div className="text-gray-500 text-xs">Aucune information de contact</div>
+                              )}
+                            </div>
+                          </div>
+
                           {/* Disponibilités */}
                           <div>
                             <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
@@ -526,6 +587,14 @@ export function TechniciansTab() {
           </div>
         )}
       </div>
+
+      {/* Dialogue de contact */}
+      <TechnicianContactDialog
+        technician={selectedTechnicianForContact}
+        open={contactDialogOpen}
+        onOpenChange={setContactDialogOpen}
+        onContactUpdated={handleContactUpdated}
+      />
     </div>
   )
 }

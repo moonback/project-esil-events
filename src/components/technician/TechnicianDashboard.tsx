@@ -4,7 +4,8 @@ import { AvailabilityTab } from './AvailabilityTab'
 import { ProposedMissionsTab } from './ProposedMissionsTab'
 import { TechnicianBillingTab } from './TechnicianBillingTab'
 import { TechnicianAgendaTab } from './TechnicianAgendaTab'
-import { Calendar, CreditCard, Clock, CheckCircle } from 'lucide-react'
+import { TechnicianProfileTab } from './TechnicianProfileTab'
+import { Calendar, CreditCard, Clock, CheckCircle, User } from 'lucide-react'
 
 export function TechnicianDashboard() {
   return (
@@ -25,7 +26,7 @@ export function TechnicianDashboard() {
       </div> */}
 
       <Tabs defaultValue="availability" className="space-y-8">
-        <TabsList className="grid w-full grid-cols-4 bg-white border border-gray-200 shadow-sm rounded-lg p-1">
+        <TabsList className="grid w-full grid-cols-5 bg-white border border-gray-200 shadow-sm rounded-lg p-1">
           <TabsTrigger 
             value="availability" 
             className="flex items-center space-x-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-md transition-all duration-200 text-sm font-medium hover:bg-blue-50 data-[state=active]:hover:bg-blue-600"
@@ -54,6 +55,13 @@ export function TechnicianDashboard() {
             <CheckCircle className="h-4 w-4" />
             <span>Mes Missions</span>
           </TabsTrigger>
+          <TabsTrigger 
+            value="profile" 
+            className="flex items-center space-x-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white rounded-md transition-all duration-200 text-sm font-medium hover:bg-orange-50 data-[state=active]:hover:bg-orange-600"
+          >
+            <User className="h-4 w-4" />
+            <span>Mon Profil</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="availability" className="animate-slide-in-right">
@@ -70,6 +78,10 @@ export function TechnicianDashboard() {
 
         <TabsContent value="agenda" className="animate-slide-in-right">
           <TechnicianAgendaTab />
+        </TabsContent>
+
+        <TabsContent value="profile" className="animate-slide-in-right">
+          <TechnicianProfileTab />
         </TabsContent>
       </Tabs>
     </div>

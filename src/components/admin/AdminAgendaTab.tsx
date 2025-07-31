@@ -586,36 +586,21 @@ export function AdminAgendaTab() {
                      <Button
                        variant={calendarView === 'dayGridMonth' ? 'default' : 'outline'}
                        size="sm"
-                       onClick={() => {
-                         setCalendarView('dayGridMonth')
-                         if (calendarRef.current) {
-                           calendarRef.current.getApi().changeView('dayGridMonth')
-                         }
-                       }}
+                       onClick={() => setCalendarView('dayGridMonth')}
                      >
                        Mois
                      </Button>
                      <Button
                        variant={calendarView === 'timeGridWeek' ? 'default' : 'outline'}
                        size="sm"
-                       onClick={() => {
-                         setCalendarView('timeGridWeek')
-                         if (calendarRef.current) {
-                           calendarRef.current.getApi().changeView('timeGridWeek')
-                         }
-                       }}
+                       onClick={() => setCalendarView('timeGridWeek')}
                      >
                        Semaine
                      </Button>
                      <Button
                        variant={calendarView === 'listWeek' ? 'default' : 'outline'}
                        size="sm"
-                       onClick={() => {
-                         setCalendarView('listWeek')
-                         if (calendarRef.current) {
-                           calendarRef.current.getApi().changeView('listWeek')
-                         }
-                       }}
+                       onClick={() => setCalendarView('listWeek')}
                      >
                        Liste
                      </Button>
@@ -623,8 +608,9 @@ export function AdminAgendaTab() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                <div style={{ height: '600px' }}>
-                                     <FullCalendar
+                                 <div style={{ height: '600px' }}>
+                   <FullCalendar
+                     key={calendarView}
                      ref={calendarRef}
                      plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
                      headerToolbar={{

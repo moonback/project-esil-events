@@ -23,6 +23,18 @@ export function AdminBillingTab() {
     fetchBillings()
   }, [])
 
+  // Recharger les données quand le composant devient visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchBillings()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [])
+
   const fetchBillings = async () => {
     try {
       const { data, error } = await supabase

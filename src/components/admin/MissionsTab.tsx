@@ -23,10 +23,22 @@ export function MissionsTab() {
   const [filterType, setFilterType] = useState<string>('all')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
-  // Charger les missions au montage du composant
+  // Charger les missions au montage du composant et quand le composant devient visible
   useEffect(() => {
     fetchMissions()
-  }, [])
+  }, [fetchMissions])
+
+  // Recharger les données quand le composant devient visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchMissions()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [fetchMissions])
 
   const handleEdit = (mission: Mission) => {
     setSelectedMission(mission)

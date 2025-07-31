@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { useMissionsStore } from '@/store/missionsStore'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,7 +15,7 @@ import { AssignTechniciansDialog } from './AssignTechniciansDialog'
 import type { Mission, MissionWithAssignments } from '@/types/database'
 
 export function MissionsTab() {
-  const { missions, loading, deleteMission } = useMissionsStore()
+  const { missions, loading, deleteMission, fetchMissions } = useMissionsStore()
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
@@ -23,6 +23,11 @@ export function MissionsTab() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState<string>('all')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+
+  // Charger les missions au montage du composant
+  useEffect(() => {
+    fetchMissions()
+  }, [])
 
   const handleEdit = (mission: Mission) => {
     setSelectedMission(mission)

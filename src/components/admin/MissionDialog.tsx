@@ -14,7 +14,7 @@ interface MissionDialogProps {
 }
 
 export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProps) {
-  const { createMission, updateMission, assignTechnicians } = useMissionsStore()
+  const { createMission, updateMission, assignTechnicians, fetchMissions } = useMissionsStore()
   const [loading, setLoading] = useState(false)
   const [technicians, setTechnicians] = useState<User[]>([])
   const [selectedTechnicians, setSelectedTechnicians] = useState<string[]>([])
@@ -80,8 +80,9 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
       
       if (mission) {
         await updateMission(mission.id, formData)
+        missionId = mission.id
       } else {
-        // Créer la mission et récupérer son ID
+        // Créer la mission en utilisant le store
         const { data: { user } } = await supabase.auth.getUser()
         
         const { data: newMission, error } = await supabase
@@ -99,29 +100,28 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
 
       // Assigner les techniciens sélectionnés
       if (selectedTechnicians.length > 0 && missionId) {
-        console.log('Assigning technicians to mission:', missionId, selectedTechnicians)
-        
-        const assignments = selectedTechnicians.map(technicianId => ({
-          mission_id: missionId,
-          technician_id: technicianId,
-          status: 'proposé' as const
-        }))
-
-        const { error: assignError } = await supabase
-          .from('mission_assignments')
-          .insert(assignments)
-
-        if (assignError) {
-          console.error('Erreur lors de l\'assignation:', assignError)
-          throw assignError
-        }
-        
-        console.log('Technicians assigned successfully')
+        await assignTechnicians(missionId, selectedTechnicians)
       }
 
+      // Rafraîchir la liste des missions
+      await fetchMissions()
+
+      // Fermer le dialog et réinitialiser le formulaire
       onOpenChange(false)
+      setFormData({
+        type: 'Livraison jeux' as MissionType,
+        title: '',
+        description: '',
+        date_start: '',
+        date_end: '',
+        location: '',
+        forfeit: 0
+      })
+      setSelectedTechnicians([])
+      
     } catch (error) {
-      console.error('Erreur:', error)
+      console.error('Erreur lors de la création/modification de la mission:', error)
+      alert('Une erreur est survenue. Veuillez réessayer.')
     } finally {
       setLoading(false)
     }

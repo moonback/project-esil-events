@@ -35,6 +35,8 @@ import {
   CalendarDays
 } from 'lucide-react'
 import type { MissionType, Mission, MissionWithAssignments, MissionAssignment } from '@/types/database'
+import { MissionDialog } from './MissionDialog'
+import { AssignTechniciansDialog } from './AssignTechniciansDialog'
 
 // Mapping des couleurs typé
 const missionTypeColors: Record<MissionType, string> = {
@@ -147,6 +149,12 @@ export function AdminAgendaTab() {
   const [showDetailedView, setShowDetailedView] = useState(false)
   const [calendarView, setCalendarView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek'>('dayGridMonth')
   const calendarRef = useRef<any>(null)
+  
+  // États pour les dialogs
+  const [missionDialogOpen, setMissionDialogOpen] = useState(false)
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false)
+  const [selectedMission, setSelectedMission] = useState<Mission | null>(null)
+  const [missionToAssign, setMissionToAssign] = useState<Mission | null>(null)
 
   const stats = useMissionStats(missionsWithAssignments)
   const {
@@ -249,6 +257,21 @@ export function AdminAgendaTab() {
         : [...prev, status]
     )
   }, [setSelectedStatus])
+
+  // Gestionnaires pour les actions des détails de mission
+  const handleEditMission = useCallback(() => {
+    if (selectedEvent?.resource) {
+      setSelectedMission(selectedEvent.resource)
+      setMissionDialogOpen(true)
+    }
+  }, [selectedEvent])
+
+  const handleAssignTechnicians = useCallback(() => {
+    if (selectedEvent?.resource) {
+      setMissionToAssign(selectedEvent.resource)
+      setAssignDialogOpen(true)
+    }
+  }, [selectedEvent])
 
   return (
     <div className="space-y-6">
@@ -790,11 +813,11 @@ export function AdminAgendaTab() {
 
                 {/* Actions rapides */}
                 <div className="flex gap-2 pt-2 border-t">
-                  <Button size="sm" className="flex-1">
+                  <Button size="sm" className="flex-1" onClick={handleEditMission}>
                     <Edit className="h-3 w-3 mr-1" />
                     Modifier
                   </Button>
-                  <Button size="sm" variant="outline" className="flex-1">
+                  <Button size="sm" variant="outline" className="flex-1" onClick={handleAssignTechnicians}>
                     <Users className="h-3 w-3 mr-1" />
                     Assigner
                   </Button>
@@ -804,6 +827,19 @@ export function AdminAgendaTab() {
           )}
         </div>
       </div>
+
+      {/* Dialogs */}
+      <MissionDialog
+        mission={selectedMission}
+        open={missionDialogOpen}
+        onOpenChange={setMissionDialogOpen}
+      />
+
+      <AssignTechniciansDialog
+        mission={missionToAssign}
+        open={assignDialogOpen}
+        onOpenChange={setAssignDialogOpen}
+      />
     </div>
   )
 }

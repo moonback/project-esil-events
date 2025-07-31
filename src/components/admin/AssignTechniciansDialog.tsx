@@ -17,6 +17,7 @@ interface AssignTechniciansDialogProps {
 
 interface TechnicianWithAssignment extends User {
   assignment?: MissionAssignment
+  conflictingMissions?: Mission[]
 }
 
 export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignTechniciansDialogProps) {
@@ -48,12 +49,40 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
         .select('*')
         .eq('mission_id', mission.id)
 
+      // Récupérer toutes les missions acceptées qui se chevauchent avec la mission actuelle
+      const { data: conflictingAssignments } = await supabase
+        .from('mission_assignments')
+        .select(`
+          *,
+          missions (*)
+        `)
+        .eq('status', 'accepté')
+        .neq('mission_id', mission.id)
+
+      // Filtrer les missions qui se chevauchent temporellement
+      const conflictingMissionsByTechnician = new Map<string, Mission[]>()
+      
+      if (conflictingAssignments) {
+        conflictingAssignments.forEach(assignment => {
+          const assignmentMission = assignment.missions as Mission
+          if (assignmentMission && isTimeOverlapping(mission, assignmentMission)) {
+            const technicianId = assignment.technician_id
+            if (!conflictingMissionsByTechnician.has(technicianId)) {
+              conflictingMissionsByTechnician.set(technicianId, [])
+            }
+            conflictingMissionsByTechnician.get(technicianId)!.push(assignmentMission)
+          }
+        })
+      }
+
       // Combiner les données
       const techniciansWithAssignments = (technicianData || []).map(tech => {
         const assignment = assignmentData?.find(a => a.technician_id === tech.id)
+        const conflictingMissions = conflictingMissionsByTechnician.get(tech.id) || []
         return {
           ...tech,
-          assignment
+          assignment,
+          conflictingMissions
         }
       })
 
@@ -68,6 +97,16 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
     } catch (error) {
       console.error('Erreur lors du chargement des techniciens:', error)
     }
+  }
+
+  // Fonction pour vérifier si deux missions se chevauchent temporellement
+  const isTimeOverlapping = (mission1: Mission, mission2: Mission) => {
+    const start1 = new Date(mission1.date_start)
+    const end1 = new Date(mission1.date_end)
+    const start2 = new Date(mission2.date_start)
+    const end2 = new Date(mission2.date_end)
+
+    return start1 < end2 && start2 < end1
   }
 
   const handleAssign = async () => {
@@ -117,6 +156,29 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
     )
   }
 
+  const handleTechnicianToggle = (technicianId: string) => {
+    const technician = technicians.find(t => t.id === technicianId)
+    if (!technician) return
+
+    // Vérifier si le technicien peut être sélectionné
+    if (!canSelectTechnician(technician)) return
+
+    // Vérifier les conflits de planning (sauf si déjà sélectionné)
+    const hasConflict = technician.conflictingMissions && technician.conflictingMissions.length > 0
+    const isCurrentlySelected = selectedTechnicians.includes(technicianId)
+    
+    if (hasConflict && !isCurrentlySelected) {
+      // Empêcher la sélection si conflit et pas déjà sélectionné
+      return
+    }
+
+    if (isCurrentlySelected) {
+      setSelectedTechnicians(selectedTechnicians.filter(id => id !== technicianId))
+    } else {
+      setSelectedTechnicians([...selectedTechnicians, technicianId])
+    }
+  }
+
   const canSelectTechnician = (tech: TechnicianWithAssignment) => {
     // Peut sélectionner si pas d'assignation ou si statut "proposé" ou "refusé"
     return !tech.assignment || tech.assignment.status === 'proposé' || tech.assignment.status === 'refusé'
@@ -162,43 +224,58 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
                   Aucun technicien disponible
                 </p>
               ) : (
-                technicians.map((tech) => (
-                  <div key={tech.id} className="flex items-center justify-between p-2 border rounded hover:bg-gray-50">
-                    <div className="flex items-center space-x-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedTechnicians.includes(tech.id)}
-                        onChange={(e) => {
-                          if (!canSelectTechnician(tech)) return
-                          
-                          if (e.target.checked) {
-                            setSelectedTechnicians([...selectedTechnicians, tech.id])
-                          } else {
-                            setSelectedTechnicians(selectedTechnicians.filter(id => id !== tech.id))
-                          }
-                        }}
-                        disabled={!canSelectTechnician(tech)}
-                        className="rounded"
-                      />
-                      <div>
-                        <span className="font-medium">{tech.name}</span>
-                        {tech.phone && (
-                          <p className="text-xs text-gray-500">{tech.phone}</p>
+                technicians.map((tech) => {
+                  const isSelected = selectedTechnicians.includes(tech.id)
+                  const isAssigned = tech.assignment?.status === 'accepté'
+                  const hasConflict = tech.conflictingMissions && tech.conflictingMissions.length > 0
+                  const isDisabled = hasConflict && !isSelected
+                  
+                  return (
+                    <div key={tech.id} className={`flex items-center justify-between p-2 border rounded hover:bg-gray-50 ${
+                      hasConflict ? 'border-red-300 bg-red-50 opacity-60' : ''
+                    } ${isDisabled ? 'cursor-not-allowed' : ''}`}>
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handleTechnicianToggle(tech.id)}
+                          disabled={!canSelectTechnician(tech) || isDisabled}
+                          className="rounded"
+                        />
+                        <div>
+                          <span className="font-medium">{tech.name}</span>
+                          {tech.phone && (
+                            <p className="text-xs text-gray-500">{tech.phone}</p>
+                          )}
+                          {hasConflict && (
+                            <div className="mt-1">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                Conflit de planning
+                              </span>
+                              <div className="text-xs text-red-600 mt-1">
+                                {tech.conflictingMissions!.map((conflictMission) => (
+                                  <div key={conflictMission.id}>
+                                    Mission "{conflictMission.title}" du {new Date(conflictMission.date_start).toLocaleDateString()} au {new Date(conflictMission.date_end).toLocaleDateString()}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        {getAssignmentStatusBadge(tech.assignment)}
+                        {tech.assignment?.status === 'accepté' && (
+                          <Check className="h-4 w-4 text-green-600" />
+                        )}
+                        {tech.assignment?.status === 'refusé' && (
+                          <X className="h-4 w-4 text-red-600" />
                         )}
                       </div>
                     </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      {getAssignmentStatusBadge(tech.assignment)}
-                      {tech.assignment?.status === 'accepté' && (
-                        <Check className="h-4 w-4 text-green-600" />
-                      )}
-                      {tech.assignment?.status === 'refusé' && (
-                        <X className="h-4 w-4 text-red-600" />
-                      )}
-                    </div>
-                  </div>
-                ))
+                  )
+                })
               )}
             </div>
 

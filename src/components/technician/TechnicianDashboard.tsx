@@ -4,7 +4,7 @@ import { AvailabilityTab } from './AvailabilityTab'
 import { ProposedMissionsTab } from './ProposedMissionsTab'
 import { TechnicianBillingTab } from './TechnicianBillingTab'
 import { TechnicianAgendaTab } from './TechnicianAgendaTab'
-import { Wrench, Calendar, CreditCard, Clock, Sparkles } from 'lucide-react'
+import { Calendar, CreditCard, Clock } from 'lucide-react'
 
 export function TechnicianDashboard() {
   return (

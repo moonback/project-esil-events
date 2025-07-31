@@ -82,18 +82,15 @@ const useMissionFilters = (missions: MissionWithAssignments[]) => {
 
   const filteredMissions = useMemo(() => {
     return missions.filter(mission => {
-      // Filtre par recherche
       if (searchTerm && !mission.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
           !mission.location.toLowerCase().includes(searchTerm.toLowerCase())) {
         return false
       }
 
-      // Filtre par type
       if (selectedTypes.length > 0 && !selectedTypes.includes(mission.type)) {
         return false
       }
 
-      // Filtre par statut
       if (selectedStatus.length > 0) {
         const missionStatus = mission.mission_assignments.length > 0 
           ? mission.mission_assignments.every((a: any) => a.status === 'accepté') ? 'completed'
@@ -106,7 +103,6 @@ const useMissionFilters = (missions: MissionWithAssignments[]) => {
         }
       }
 
-      // Filtre par date
       if (dateRange.start && isValid(parseISO(mission.date_start)) && 
           parseISO(mission.date_start) < dateRange.start) {
         return false
@@ -150,7 +146,6 @@ export function AdminAgendaTab() {
   const [calendarView, setCalendarView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek'>('dayGridMonth')
   const calendarRef = useRef<any>(null)
   
-  // États pour les dialogs
   const [missionDialogOpen, setMissionDialogOpen] = useState(false)
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null)
@@ -170,7 +165,6 @@ export function AdminAgendaTab() {
     clearFilters
   } = useMissionFilters(missionsWithAssignments)
 
-  // Transformer les missions en événements FullCalendar
   const events = useMemo(() => {
     return filteredMissions.map((mission) => {
       let startDate: Date
@@ -188,7 +182,6 @@ export function AdminAgendaTab() {
           startDate = startMoment
           endDate = endMoment
           
-          // Si la date de fin est avant la date de début, ajuster
           if (endDate < startDate) {
             endDate = addHours(startDate, 2)
           }
@@ -239,7 +232,6 @@ export function AdminAgendaTab() {
 
   const handleDateSelect = useCallback((selectInfo: any) => {
     console.log('Nouvelle mission créée:', selectInfo)
-    // Ici vous pouvez ouvrir un modal pour créer une nouvelle mission
   }, [])
 
   const toggleTypeFilter = useCallback((type: MissionType) => {
@@ -258,7 +250,6 @@ export function AdminAgendaTab() {
     )
   }, [setSelectedStatus])
 
-  // Gestionnaires pour les actions des détails de mission
   const handleEditMission = useCallback(() => {
     if (selectedEvent?.resource) {
       setSelectedMission(selectedEvent.resource)
@@ -274,225 +265,234 @@ export function AdminAgendaTab() {
   }, [selectedEvent])
 
   return (
-    <div className="space-y-6">
-      {/* En-tête avec statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-blue-600 font-medium">Total Missions</p>
-                <p className="text-2xl font-bold text-blue-800">{stats.total}</p>
-              </div>
-              <CalendarIcon className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
+    <div className="space-y-4">
+      {/* En-tête compact */}
+      <div className="flex items-center justify-between bg-white border-b border-gray-200 px-6 py-3">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">Agenda</h2>
+          <p className="text-sm text-gray-500">{stats.total} missions au total</p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowDetailedView(!showDetailedView)}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            {showDetailedView ? 'Calendrier' : 'Liste'}
+          </Button>
+          <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white">
+            <Plus className="h-4 w-4 mr-2" />
+            Nouvelle mission
+          </Button>
+        </div>
+      </div>
 
-        <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-green-600 font-medium">Terminées</p>
-                <p className="text-2xl font-bold text-green-800">{stats.completed}</p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
+      {/* Statistiques compactes */}
+      <div className="grid grid-cols-5 gap-4 px-6">
+        <div className="bg-white rounded-lg p-3 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-gray-600">Total</p>
+              <p className="text-lg font-bold text-gray-900">{stats.total}</p>
             </div>
-          </CardContent>
-        </Card>
+            <CalendarIcon className="h-5 w-5 text-blue-600" />
+          </div>
+        </div>
 
-        <Card className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-yellow-600 font-medium">En attente</p>
-                <p className="text-2xl font-bold text-yellow-800">{stats.pending}</p>
-              </div>
-              <Clock className="h-8 w-8 text-yellow-600" />
+        <div className="bg-white rounded-lg p-3 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-gray-600">Terminées</p>
+              <p className="text-lg font-bold text-green-600">{stats.completed}</p>
             </div>
-          </CardContent>
-        </Card>
+            <CheckCircle className="h-5 w-5 text-green-600" />
+          </div>
+        </div>
 
-        <Card className="bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-purple-600 font-medium">Revenus</p>
-                <p className="text-2xl font-bold text-purple-800">{stats.revenue}€</p>
-              </div>
-              <Euro className="h-8 w-8 text-purple-600" />
+        <div className="bg-white rounded-lg p-3 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-gray-600">En attente</p>
+              <p className="text-lg font-bold text-orange-600">{stats.pending}</p>
             </div>
-          </CardContent>
-        </Card>
+            <Clock className="h-5 w-5 text-orange-600" />
+          </div>
+        </div>
 
-        <Card className="bg-gradient-to-r from-indigo-50 to-indigo-100 border-indigo-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-indigo-600 font-medium">Moyenne</p>
-                <p className="text-2xl font-bold text-indigo-800">{Math.round(stats.avgRevenue)}€</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-indigo-600" />
+        <div className="bg-white rounded-lg p-3 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-gray-600">Revenus</p>
+              <p className="text-lg font-bold text-purple-600">{stats.revenue}€</p>
             </div>
-          </CardContent>
-        </Card>
+            <Euro className="h-5 w-5 text-purple-600" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg p-3 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-gray-600">Moyenne</p>
+              <p className="text-lg font-bold text-indigo-600">{Math.round(stats.avgRevenue)}€</p>
+            </div>
+            <TrendingUp className="h-5 w-5 text-indigo-600" />
+          </div>
+        </div>
       </div>
 
       {/* Barre d'outils avec filtres */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center flex-1">
-              {/* Recherche */}
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Rechercher une mission..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+      <div className="bg-white border-b border-gray-200 px-6 py-3">
+        <div className="flex items-center space-x-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Rechercher..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 text-sm"
+            />
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2"
+          >
+            <Filter className="h-4 w-4" />
+            Filtres
+            {(selectedTypes.length > 0 || selectedStatus.length > 0 || dateRange.start || dateRange.end) && (
+              <Badge className="ml-1 text-xs">{selectedTypes.length + selectedStatus.length + (dateRange.start ? 1 : 0) + (dateRange.end ? 1 : 0)}</Badge>
+            )}
+          </Button>
+
+          {!showDetailedView && (
+            <div className="flex items-center space-x-1">
+              <Button
+                variant={calendarView === 'dayGridMonth' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setCalendarView('dayGridMonth')}
+              >
+                Mois
+              </Button>
+              <Button
+                variant={calendarView === 'timeGridWeek' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setCalendarView('timeGridWeek')}
+              >
+                Semaine
+              </Button>
+              <Button
+                variant={calendarView === 'listWeek' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setCalendarView('listWeek')}
+              >
+                Liste
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Panneau de filtres */}
+        {showFilters && (
+          <div className="mt-3 p-3 bg-gray-50 rounded-md border">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label className="text-xs font-medium mb-2 block">Types de missions</Label>
+                <div className="space-y-1">
+                  {(Object.keys(missionTypeColors) as MissionType[]).map((type) => (
+                    <label key={type} className="flex items-center space-x-2 cursor-pointer text-xs">
+                      <input
+                        type="checkbox"
+                        checked={selectedTypes.includes(type)}
+                        onChange={() => toggleTypeFilter(type)}
+                        className="rounded"
+                      />
+                      <span>{type}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
 
-              {/* Bouton filtres */}
-              <Button
-                variant="outline"
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2"
-              >
-                <Filter className="h-4 w-4" />
-                Filtres
-                {(selectedTypes.length > 0 || selectedStatus.length > 0 || dateRange.start || dateRange.end) && (
-                  <Badge className="ml-1">{selectedTypes.length + selectedStatus.length + (dateRange.start ? 1 : 0) + (dateRange.end ? 1 : 0)}</Badge>
-                )}
-              </Button>
+              <div>
+                <Label className="text-xs font-medium mb-2 block">Statut</Label>
+                <div className="space-y-1">
+                  {[
+                    { value: 'completed', label: 'Terminées', icon: CheckCircle },
+                    { value: 'pending', label: 'En attente', icon: Clock },
+                    { value: 'rejected', label: 'Refusées', icon: XCircle },
+                    { value: 'unassigned', label: 'Non assignées', icon: AlertTriangle }
+                  ].map(({ value, label, icon: Icon }) => (
+                    <label key={value} className="flex items-center space-x-2 cursor-pointer text-xs">
+                      <input
+                        type="checkbox"
+                        checked={selectedStatus.includes(value)}
+                        onChange={() => toggleStatusFilter(value)}
+                        className="rounded"
+                      />
+                      <Icon className="h-3 w-3" />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
 
-              {/* Actions rapides */}
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nouvelle mission
-                </Button>
-                <Button 
-                  variant="outline" 
+              <div>
+                <Label className="text-xs font-medium mb-2 block">Période</Label>
+                <div className="space-y-2">
+                  <div>
+                    <Label className="text-xs">Début</Label>
+                    <Input
+                      type="date"
+                      value={dateRange.start ? format(dateRange.start, 'yyyy-MM-dd') : ''}
+                      onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value ? new Date(e.target.value) : null }))}
+                      className="text-xs h-8"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Fin</Label>
+                    <Input
+                      type="date"
+                      value={dateRange.end ? format(dateRange.end, 'yyyy-MM-dd') : ''}
+                      onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value ? new Date(e.target.value) : null }))}
+                      className="text-xs h-8"
+                    />
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
                   size="sm"
-                  onClick={() => setShowDetailedView(!showDetailedView)}
+                  onClick={clearFilters}
+                  className="flex items-center gap-2 mt-2 w-full"
                 >
-                  <Eye className="h-4 w-4 mr-2" />
-                  {showDetailedView ? 'Vue calendrier' : 'Vue détaillée'}
+                  <FilterX className="h-3 w-3" />
+                  Effacer
                 </Button>
               </div>
             </div>
           </div>
+        )}
+      </div>
 
-          {/* Panneau de filtres */}
-          {showFilters && (
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Filtres par type */}
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">Types de missions</Label>
-                  <div className="space-y-2">
-                    {(Object.keys(missionTypeColors) as MissionType[]).map((type) => (
-                      <label key={type} className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={selectedTypes.includes(type)}
-                          onChange={() => toggleTypeFilter(type)}
-                          className="rounded"
-                        />
-                        <span className="text-sm">{type}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Filtres par statut */}
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">Statut</Label>
-                  <div className="space-y-2">
-                    {[
-                      { value: 'completed', label: 'Terminées', icon: CheckCircle },
-                      { value: 'pending', label: 'En attente', icon: Clock },
-                      { value: 'rejected', label: 'Refusées', icon: XCircle },
-                      { value: 'unassigned', label: 'Non assignées', icon: AlertTriangle }
-                    ].map(({ value, label, icon: Icon }) => (
-                      <label key={value} className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={selectedStatus.includes(value)}
-                          onChange={() => toggleStatusFilter(value)}
-                          className="rounded"
-                        />
-                        <Icon className="h-4 w-4" />
-                        <span className="text-sm">{label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Filtres par date */}
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">Période</Label>
-                  <div className="space-y-2">
-                    <div>
-                      <Label className="text-xs">Début</Label>
-                      <Input
-                        type="date"
-                        value={dateRange.start ? format(dateRange.start, 'yyyy-MM-dd') : ''}
-                        onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value ? new Date(e.target.value) : null }))}
-                        className="text-sm"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Fin</Label>
-                      <Input
-                        type="date"
-                        value={dateRange.end ? format(dateRange.end, 'yyyy-MM-dd') : ''}
-                        onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value ? new Date(e.target.value) : null }))}
-                        className="text-sm"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Actions des filtres */}
-                <div className="flex flex-col justify-end">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={clearFilters}
-                    className="flex items-center gap-2"
-                  >
-                    <FilterX className="h-4 w-4" />
-                    Effacer les filtres
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 px-6">
         <div className="lg:col-span-3">
           {showDetailedView ? (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Liste détaillée des missions</span>
-                  <Badge variant="secondary">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center justify-between">
+                  <span>Liste des missions</span>
+                  <Badge variant="secondary" className="text-xs">
                     {filteredMissions.length} mission(s)
                   </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="max-h-[600px] overflow-y-auto">
+                <div className="max-h-[500px] overflow-y-auto">
                   {filteredMissions.length === 0 ? (
                     <div className="p-8 text-center text-gray-500">
-                      <CalendarIcon className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                      <p>Aucune mission trouvée</p>
-                      <p className="text-sm">Essayez de modifier vos filtres</p>
+                      <CalendarIcon className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                      <p className="text-sm">Aucune mission trouvée</p>
                     </div>
                   ) : (
                     <div className="divide-y">
@@ -519,65 +519,45 @@ export function AdminAgendaTab() {
                         return (
                           <div 
                             key={mission.id} 
-                            className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                            className="p-3 hover:bg-gray-50 cursor-pointer transition-colors"
                             onClick={() => setSelectedEvent({ resource: mission, title: mission.title, start: parseISO(mission.date_start), end: parseISO(mission.date_end) })}
                           >
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
-                                <div className="flex items-center space-x-3 mb-2">
-                                  <h4 className="font-medium text-lg">{mission.title}</h4>
-                                  <Badge className={getMissionTypeColor(mission.type)}>
+                                <div className="flex items-center space-x-2 mb-1">
+                                  <h4 className="font-medium text-sm">{mission.title}</h4>
+                                  <Badge className={`${getMissionTypeColor(mission.type)} text-xs`}>
                                     {mission.type}
                                   </Badge>
-                                  <Badge className={statusColor}>
+                                  <Badge className={`${statusColor} text-xs`}>
                                     {statusText}
                                   </Badge>
                                 </div>
                                 
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
-                                  <div className="flex items-center space-x-2">
-                                    <MapPin className="h-4 w-4" />
-                                    <span>{mission.location}</span>
+                                <div className="grid grid-cols-3 gap-3 text-xs text-gray-600">
+                                  <div className="flex items-center space-x-1">
+                                    <MapPin className="h-3 w-3" />
+                                    <span className="truncate">{mission.location}</span>
                                   </div>
                                   
-                                  <div className="flex items-center space-x-2">
-                                    <Clock className="h-4 w-4" />
+                                  <div className="flex items-center space-x-1">
+                                    <Clock className="h-3 w-3" />
                                     <span>
-                                      {format(parseISO(mission.date_start), 'dd/MM/yyyy HH:mm', { locale: fr })} - {format(parseISO(mission.date_end), 'HH:mm', { locale: fr })}
+                                      {format(parseISO(mission.date_start), 'dd/MM HH:mm', { locale: fr })} - {format(parseISO(mission.date_end), 'HH:mm', { locale: fr })}
                                     </span>
                                   </div>
                                   
-                                  <div className="flex items-center space-x-2">
-                                    <Euro className="h-4 w-4" />
+                                  <div className="flex items-center space-x-1">
+                                    <Euro className="h-3 w-3" />
                                     <span className="font-medium">{mission.forfeit}€</span>
-                                  </div>
-                                  
-                                  <div className="flex items-center space-x-2">
-                                    <Users className="h-4 w-4" />
-                                    <span className="font-medium">{mission.required_people || 1} pers.</span>
-                                  </div>
-                                  
-                                  <div className="flex items-center space-x-2">
-                                    <Users className="h-4 w-4" />
-                                    <span className="font-medium">{mission.required_people || 1} pers.</span>
                                   </div>
                                 </div>
 
-                                {mission.description && (
-                                  <p className="text-sm text-gray-600 mt-2 line-clamp-2">
-                                    {mission.description}
-                                  </p>
-                                )}
-
                                 {hasAssignments && (
-                                  <div className="mt-3">
-                                    <div className="flex items-center space-x-2 mb-2">
-                                      <Users className="h-4 w-4 text-gray-500" />
-                                      <span className="text-sm font-medium">Techniciens assignés:</span>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                      {mission.mission_assignments.map((assignment: any) => (
-                                        <div key={assignment.id} className="flex items-center space-x-2 bg-gray-100 px-2 py-1 rounded text-xs">
+                                  <div className="mt-2">
+                                    <div className="flex flex-wrap gap-1">
+                                      {mission.mission_assignments.slice(0, 3).map((assignment: any) => (
+                                        <div key={assignment.id} className="flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded text-xs">
                                           <span>{assignment.users.name}</span>
                                           <Badge className={
                                             assignment.status === 'accepté' ? 'bg-green-100 text-green-800' :
@@ -588,18 +568,12 @@ export function AdminAgendaTab() {
                                           </Badge>
                                         </div>
                                       ))}
+                                      {mission.mission_assignments.length > 3 && (
+                                        <span className="text-xs text-gray-500">+{mission.mission_assignments.length - 3}</span>
+                                      )}
                                     </div>
                                   </div>
                                 )}
-                              </div>
-                              
-                              <div className="flex items-center space-x-2 ml-4">
-                                <Button size="sm" variant="outline">
-                                  <Edit className="h-3 w-3" />
-                                </Button>
-                                <Button size="sm" variant="outline">
-                                  <Users className="h-3 w-3" />
-                                </Button>
                               </div>
                             </div>
                           </div>
@@ -612,119 +586,89 @@ export function AdminAgendaTab() {
             </Card>
           ) : (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Calendrier des missions</span>
-                                     <div className="flex items-center space-x-2">
-                     <Button
-                       variant={calendarView === 'dayGridMonth' ? 'default' : 'outline'}
-                       size="sm"
-                       onClick={() => setCalendarView('dayGridMonth')}
-                     >
-                       Mois
-                     </Button>
-                     <Button
-                       variant={calendarView === 'timeGridWeek' ? 'default' : 'outline'}
-                       size="sm"
-                       onClick={() => setCalendarView('timeGridWeek')}
-                     >
-                       Semaine
-                     </Button>
-                     <Button
-                       variant={calendarView === 'listWeek' ? 'default' : 'outline'}
-                       size="sm"
-                       onClick={() => setCalendarView('listWeek')}
-                     >
-                       Liste
-                     </Button>
-                   </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                                 <div style={{ height: '600px' }}>
-                   <FullCalendar
-                     key={calendarView}
-                     ref={calendarRef}
-                     plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
-                     headerToolbar={{
-                       left: 'prev,next today',
-                       center: 'title',
-                       right: ''
-                     }}
-                     initialView={calendarView}
-                     views={{
-                       dayGridMonth: {
-                         titleFormat: { year: 'numeric', month: 'long' },
-                         dayMaxEvents: 3
-                       },
-                       timeGridWeek: {
-                         titleFormat: { year: 'numeric', month: 'long', day: 'numeric' },
-                         slotMinTime: '06:00:00',
-                         slotMaxTime: '22:00:00',
-                         slotDuration: '00:30:00',
-                         allDaySlot: false
-                       },
-                       listWeek: {
-                         titleFormat: { year: 'numeric', month: 'long' },
-                         listDayFormat: { weekday: 'long', day: 'numeric', month: 'long' },
-                         listDaySideFormat: { year: 'numeric', month: 'long', day: 'numeric' }
-                       }
-                     }}
-                     locale="fr"
-                     events={events}
-                     eventClick={handleEventClick}
-                     selectable={true}
-                     select={handleDateSelect}
-                     height="100%"
-                     eventDisplay="block"
-                     eventTimeFormat={{
-                       hour: '2-digit',
-                       minute: '2-digit',
-                       meridiem: false,
-                       hour12: false
-                     }}
-                     buttonText={{
-                       today: 'Aujourd\'hui',
-                       month: 'Mois',
-                       week: 'Semaine',
-                       day: 'Jour',
-                       list: 'Liste'
-                     }}
-                     noEventsText="Aucune mission dans cette période"
-                     eventDidMount={(info) => {
-                       // Ajouter des tooltips personnalisés
-                       const event = info.event
-                       const mission = event.extendedProps.mission
-                       if (mission) {
-                         const tooltip = `
-                           <div class="p-2">
-                             <strong>${mission.title}</strong><br>
-                             <small>${mission.type}</small><br>
-                             <small>${mission.location}</small><br>
-                             <small>${mission.forfeit}€</small>
-                           </div>
-                         `
-                         info.el.title = tooltip
-                       }
-                     }}
-                     viewDidMount={(info) => {
-                       // Mettre à jour la vue actuelle quand elle change
-                       setCalendarView(info.view.type as any)
-                     }}
-                   />
+              <CardContent className="p-4">
+                <div style={{ height: '500px' }}>
+                  <FullCalendar
+                    key={calendarView}
+                    ref={calendarRef}
+                    plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
+                    headerToolbar={{
+                      left: 'prev,next today',
+                      center: 'title',
+                      right: ''
+                    }}
+                    initialView={calendarView}
+                    views={{
+                      dayGridMonth: {
+                        titleFormat: { year: 'numeric', month: 'long' },
+                        dayMaxEvents: 3
+                      },
+                      timeGridWeek: {
+                        titleFormat: { year: 'numeric', month: 'long', day: 'numeric' },
+                        slotMinTime: '06:00:00',
+                        slotMaxTime: '22:00:00',
+                        slotDuration: '00:30:00',
+                        allDaySlot: false
+                      },
+                      listWeek: {
+                        titleFormat: { year: 'numeric', month: 'long' },
+                        listDayFormat: { weekday: 'long', day: 'numeric', month: 'long' },
+                        listDaySideFormat: { year: 'numeric', month: 'long', day: 'numeric' }
+                      }
+                    }}
+                    locale="fr"
+                    events={events}
+                    eventClick={handleEventClick}
+                    selectable={true}
+                    select={handleDateSelect}
+                    height="100%"
+                    eventDisplay="block"
+                    eventTimeFormat={{
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      meridiem: false,
+                      hour12: false
+                    }}
+                    buttonText={{
+                      today: 'Aujourd\'hui',
+                      month: 'Mois',
+                      week: 'Semaine',
+                      day: 'Jour',
+                      list: 'Liste'
+                    }}
+                    noEventsText="Aucune mission dans cette période"
+                    eventDidMount={(info) => {
+                      const event = info.event
+                      const mission = event.extendedProps.mission
+                      if (mission) {
+                        const tooltip = `
+                          <div class="p-2">
+                            <strong>${mission.title}</strong><br>
+                            <small>${mission.type}</small><br>
+                            <small>${mission.location}</small><br>
+                            <small>${mission.forfeit}€</small>
+                          </div>
+                        `
+                        info.el.title = tooltip
+                      }
+                    }}
+                    viewDidMount={(info) => {
+                      setCalendarView(info.view.type as any)
+                    }}
+                  />
                 </div>
               </CardContent>
             </Card>
           )}
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Légende des types de missions */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Types de missions</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Types de missions</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-1">
               {(Object.keys(missionTypeColors) as MissionType[]).map((type) => (
                 <div key={type} className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -734,7 +678,7 @@ export function AdminAgendaTab() {
                         backgroundColor: missionTypeColors[type]
                       }}
                     />
-                    <span className="text-sm">{type}</span>
+                    <span className="text-xs">{type}</span>
                   </div>
                   <Badge variant="secondary" className="text-xs">
                     {filteredMissions.filter(m => m.type === type).length}
@@ -747,52 +691,53 @@ export function AdminAgendaTab() {
           {/* Détails de la mission sélectionnée */}
           {selectedEvent && (
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center justify-between">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center justify-between">
                   Détails de la mission
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setSelectedEvent(null)}
+                    className="h-6 w-6 p-0"
                   >
-                    <XCircle className="h-4 w-4" />
+                    <XCircle className="h-3 w-3" />
                   </Button>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3">
                 <div>
-                  <h4 className="font-medium text-lg">{selectedEvent.title}</h4>
-                  <Badge className={getMissionTypeColor(selectedEvent.resource.type)}>
+                  <h4 className="font-medium text-sm">{selectedEvent.title}</h4>
+                  <Badge className={`${getMissionTypeColor(selectedEvent.resource.type)} text-xs`}>
                     {selectedEvent.resource.type}
                   </Badge>
                 </div>
                 
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2 text-sm">
-                    <MapPin className="h-4 w-4 text-gray-500" />
-                    <span>{selectedEvent.resource.location}</span>
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center space-x-2">
+                    <MapPin className="h-3 w-3 text-gray-500" />
+                    <span className="truncate">{selectedEvent.resource.location}</span>
                   </div>
                   
-                  <div className="flex items-center space-x-2 text-sm">
-                    <Clock className="h-4 w-4 text-gray-500" />
+                  <div className="flex items-center space-x-2">
+                    <Clock className="h-3 w-3 text-gray-500" />
                     <span>
                       {format(selectedEvent.start, 'dd/MM/yyyy HH:mm', { locale: fr })} - {format(selectedEvent.end, 'HH:mm', { locale: fr })}
                     </span>
                   </div>
                   
-                  <div className="flex items-center space-x-2 text-sm">
-                    <Euro className="h-4 w-4 text-gray-500" />
+                  <div className="flex items-center space-x-2">
+                    <Euro className="h-3 w-3 text-gray-500" />
                     <span className="font-medium">{selectedEvent.resource.forfeit}€</span>
                   </div>
                   
-                  <div className="flex items-center space-x-2 text-sm">
-                    <Users className="h-4 w-4 text-gray-500" />
+                  <div className="flex items-center space-x-2">
+                    <Users className="h-3 w-3 text-gray-500" />
                     <span className="font-medium">{selectedEvent.resource.required_people || 1} personne(s) requise(s)</span>
                   </div>
                 </div>
 
                 {selectedEvent.resource.description && (
-                  <div className="text-sm">
+                  <div className="text-xs">
                     <strong>Description:</strong>
                     <p className="mt-1 text-gray-600">{selectedEvent.resource.description}</p>
                   </div>
@@ -801,13 +746,13 @@ export function AdminAgendaTab() {
                 {selectedEvent.resource.mission_assignments.length > 0 ? (
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">
-                      <Users className="h-4 w-4 text-gray-500" />
-                      <strong className="text-sm">Techniciens assignés:</strong>
+                      <Users className="h-3 w-3 text-gray-500" />
+                      <strong className="text-xs">Techniciens assignés:</strong>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       {selectedEvent.resource.mission_assignments.map((assignment: any) => (
-                        <div key={assignment.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                          <span className="text-sm">{assignment.users.name}</span>
+                        <div key={assignment.id} className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
+                          <span>{assignment.users.name}</span>
                           <Badge className={
                             assignment.status === 'accepté' ? 'bg-green-100 text-green-800' :
                             assignment.status === 'refusé' ? 'bg-red-100 text-red-800' :
@@ -820,19 +765,19 @@ export function AdminAgendaTab() {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-sm text-yellow-600 bg-yellow-50 p-2 rounded">
-                    <AlertTriangle className="h-4 w-4 inline mr-1" />
+                  <div className="text-xs text-yellow-600 bg-yellow-50 p-2 rounded">
+                    <AlertTriangle className="h-3 w-3 inline mr-1" />
                     Aucun technicien assigné
                   </div>
                 )}
 
                 {/* Actions rapides */}
                 <div className="flex gap-2 pt-2 border-t">
-                  <Button size="sm" className="flex-1" onClick={handleEditMission}>
+                  <Button size="sm" className="flex-1 text-xs" onClick={handleEditMission}>
                     <Edit className="h-3 w-3 mr-1" />
                     Modifier
                   </Button>
-                  <Button size="sm" variant="outline" className="flex-1" onClick={handleAssignTechnicians}>
+                  <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={handleAssignTechnicians}>
                     <Users className="h-3 w-3 mr-1" />
                     Assigner
                   </Button>

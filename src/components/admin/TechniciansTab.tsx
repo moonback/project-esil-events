@@ -32,7 +32,8 @@ import {
   Clock3,
   CalendarCheck,
   CalendarX,
-  Contact
+  Contact,
+  Mail
 } from 'lucide-react'
 import { format, parseISO, isValid } from 'date-fns'
 import { fr } from 'date-fns/locale'

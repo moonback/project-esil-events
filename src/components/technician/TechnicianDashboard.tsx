@@ -5,6 +5,7 @@ import { ProposedMissionsTab } from './ProposedMissionsTab'
 import { TechnicianBillingTab } from './TechnicianBillingTab'
 import { TechnicianAgendaTab } from './TechnicianAgendaTab'
 import { TechnicianProfileTab } from './TechnicianProfileTab'
+import { PaymentSummaryCard } from './PaymentSummaryCard'
 import { Calendar, CreditCard, Clock, CheckCircle, User } from 'lucide-react'
 
 export function TechnicianDashboard() {
@@ -73,7 +74,16 @@ export function TechnicianDashboard() {
         </TabsContent>
 
         <TabsContent value="billing" className="animate-slide-in-right">
-          <TechnicianBillingTab />
+          <div className="space-y-6">
+            {/* Résumé des paiements */}
+            <PaymentSummaryCard 
+              billings={[]} // Sera rempli par le composant TechnicianBillingTab
+              onViewAll={() => {}} // Navigation vers la vue détaillée
+            />
+            
+            {/* Vue détaillée des paiements */}
+            <TechnicianBillingTab />
+          </div>
         </TabsContent>
 
         <TabsContent value="agenda" className="animate-slide-in-right">

@@ -5,6 +5,7 @@ import { MissionsTab } from './MissionsTab'
 import { TechniciansTab } from './TechniciansTab'
 import { AdminAgendaTab } from './AdminAgendaTab'
 import { AdminBillingTab } from './AdminBillingTab'
+import { PaymentSummaryCard } from './PaymentSummaryCard'
 import { Crown, Users, Calendar, CreditCard, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LoadingOverlay } from '@/components/ui/loading'
@@ -128,7 +129,16 @@ export function AdminDashboard() {
 
         <TabsContent value="billing" className="space-y-0">
           <LoadingOverlay loading={loading.billings} text="Chargement des facturations...">
-            <AdminBillingTab />
+            <div className="space-y-6">
+              {/* Résumé des paiements */}
+              <PaymentSummaryCard 
+                billings={useAdminStore.getState().billings}
+                onViewAll={() => setActiveTab('billing')}
+              />
+              
+              {/* Onglet de facturation complet */}
+              <AdminBillingTab />
+            </div>
           </LoadingOverlay>
         </TabsContent>
       </Tabs>

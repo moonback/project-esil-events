@@ -5,14 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Check, Edit, Trash2, DollarSign, TrendingUp, Users, Filter, X, Clock, CheckCircle, CreditCard } from 'lucide-react'
+import { Check, Edit, Trash2, DollarSign, TrendingUp, Users, Filter, X, Clock, CheckCircle, CreditCard, Plus } from 'lucide-react'
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils'
 import type { BillingWithDetails, User } from '@/types/database'
+import { CreatePaymentDialog } from './CreatePaymentDialog'
 
 export function AdminBillingTab() {
   const { billings, technicians, loading, stats } = useAdminStore()
   const [filter, setFilter] = useState<'all' | 'en_attente' | 'validé' | 'payé'>('all')
   const [technicianFilter, setTechnicianFilter] = useState<string>('all')
+  const [createPaymentDialogOpen, setCreatePaymentDialogOpen] = useState(false)
+  const [selectedTechnician, setSelectedTechnician] = useState<User | null>(null)
 
   // Les données sont maintenant gérées par le store admin
 
@@ -65,6 +68,11 @@ export function AdminBillingTab() {
     return statusMatch && technicianMatch
   })
 
+  const handleCreatePayment = (technician: User) => {
+    setSelectedTechnician(technician)
+    setCreatePaymentDialogOpen(true)
+  }
+
   if (loading.billings) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -78,9 +86,18 @@ export function AdminBillingTab() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-xl font-semibold">Gestion de la Facturation</h3>
-        <p className="text-gray-600">Gérez les paiements et rémunérations des techniciens</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-xl font-semibold">Gestion de la Facturation</h3>
+          <p className="text-gray-600">Gérez les paiements et rémunérations des techniciens</p>
+        </div>
+        <Button
+          onClick={() => setCreatePaymentDialogOpen(true)}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Créer un paiement
+        </Button>
       </div>
 
       {/* Statistiques */}
@@ -359,6 +376,13 @@ export function AdminBillingTab() {
           )}
         </div>
       </div>
+
+      {/* Dialog de création de paiement */}
+      <CreatePaymentDialog
+        open={createPaymentDialogOpen}
+        onOpenChange={setCreatePaymentDialogOpen}
+        technician={selectedTechnician || undefined}
+      />
     </div>
   )
 }

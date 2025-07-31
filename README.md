@@ -23,25 +23,30 @@ Une plateforme complète et moderne pour la gestion d'agences événementielles 
 
 ### Interface Administrateur
 - **Gestion des missions** : Création, modification, suppression et assignation de techniciens
-- **Suivi des techniciens** : Vue d'ensemble des performances et statistiques
+- **Suivi des techniciens** : Vue d'ensemble des performances et statistiques avec statut de disponibilité en temps réel
 - **Planning visuel** : Calendrier interactif avec vue d'ensemble des missions
 - **Facturation complète** : Gestion des paiements et validation des rémunérations
+- **Visualisation de la disponibilité** : Badges de statut et filtrage des techniciens par disponibilité
+- **Gestion des indisponibilités** : Vue des périodes d'indisponibilité des techniciens avec leurs raisons
 
 ### Interface Technicien
-- **Disponibilités** : Gestion interactive des créneaux de disponibilité
-- **Missions proposées** : Acceptation/refus des missions assignées
+- **Gestion des disponibilités** : Interface à onglets pour gérer les créneaux de disponibilité et d'indisponibilité
+- **Missions proposées** : Acceptation/refus des missions assignées avec détection automatique des conflits
 - **Facturation personnelle** : Consultation des rémunérations
-- **Agenda personnel** : Vue des missions acceptées et disponibilités
+- **Agenda personnel** : Vue des missions acceptées, disponibilités et indisponibilités
+- **Validation des conflits** : Détection automatique des conflits entre missions et indisponibilités
 
 ## 🛠 Stack Technique
 
 - **Frontend** : React 18, TypeScript, TailwindCSS
 - **État global** : Zustand
 - **UI Components** : Radix UI, Custom components avec gradients
-- **Calendrier** : React Big Calendar avec design personnalisé
+- **Calendrier** : FullCalendar avec design personnalisé
 - **Animations** : CSS animations et transitions fluides
 - **Backend** : Supabase (PostgreSQL + Auth + API REST)
 - **Sécurité** : Row Level Security (RLS)
+- **Validation** : Zod pour la validation des schémas
+- **Gestion des dates** : date-fns avec support français
 
 ## 🎨 Palette de Couleurs
 
@@ -102,6 +107,16 @@ INSERT INTO users (id, role, name, phone)
 VALUES 
   ('admin-uuid', 'admin', 'Admin Test', '0123456789'),
   ('tech-uuid', 'technicien', 'Technicien Test', '0987654321');
+
+-- Créer des disponibilités et indisponibilités de test
+INSERT INTO availability (id, technician_id, start_time, end_time)
+VALUES 
+  ('avail-1', 'tech-uuid', '2024-01-15 09:00:00', '2024-01-15 17:00:00'),
+  ('avail-2', 'tech-uuid', '2024-01-16 10:00:00', '2024-01-16 18:00:00');
+
+INSERT INTO unavailability (id, technician_id, start_time, end_time, reason)
+VALUES 
+  ('unavail-1', 'tech-uuid', '2024-01-17 12:00:00', '2024-01-17 14:00:00', 'Pause déjeuner');
 ```
 
 ## 🚀 Lancement
@@ -129,9 +144,12 @@ src/
 │   └── ui/              # Composants UI réutilisables avec animations
 ├── lib/
 │   ├── supabase.ts      # Configuration Supabase
-│   └── utils.ts         # Utilitaires et fonctions de formatage
+│   ├── utils.ts         # Utilitaires et fonctions de formatage
+│   ├── validation.ts    # Validation centralisée avec Zod
+│   └── useToast.ts      # Hook pour les notifications
 ├── store/
 │   ├── authStore.ts     # État d'authentification
+│   ├── adminStore.ts    # État de l'interface admin
 │   └── missionsStore.ts # État des missions
 ├── types/
 │   └── database.ts      # Types TypeScript
@@ -164,6 +182,8 @@ src/
 - **Policies SQL** pour isolation des données par rôle
 - **Authentification Supabase** avec gestion des sessions
 - **Validation côté client et serveur**
+- **Validation des conflits** : Détection automatique des conflits de planning
+- **Gestion des indisponibilités** : Validation des périodes avec prévention des conflits
 
 ## 📱 Responsive Design
 
@@ -179,6 +199,8 @@ src/
 - **Animations fluides** et micro-interactions
 - **Typography** hiérarchisée et lisible
 - **Espacement** cohérent avec système de design
+- **Badges de statut** : Indicateurs visuels pour la disponibilité des techniciens
+- **Interface à onglets** : Navigation claire entre disponibilités et indisponibilités
 
 ## 🚀 Déploiement
 
@@ -209,6 +231,8 @@ npm run test:e2e
 - **Optimisation des requêtes** Supabase
 - **Cache intelligent** des données
 - **Animations optimisées** avec GPU
+- **Calculs en temps réel** : Statut de disponibilité calculé dynamiquement
+- **Filtrage optimisé** : Recherche et filtrage des techniciens par disponibilité
 
 ## 🐛 Debugging
 
@@ -216,6 +240,8 @@ npm run test:e2e
 - **Gestion d'erreurs** centralisée
 - **Messages d'erreur** explicites
 - **Fallbacks** pour les états de chargement
+- **Validation des conflits** : Messages d'erreur clairs pour les conflits de planning
+- **Notifications toast** : Feedback immédiat pour toutes les actions utilisateur
 
 ## 📝 Contribution
 
@@ -237,6 +263,15 @@ Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour plus de
 
 ## 🔄 Roadmap
 
+### ✅ Fonctionnalités Récemment Ajoutées
+- [x] Gestion des indisponibilités pour les techniciens
+- [x] Visualisation de la disponibilité pour les administrateurs
+- [x] Détection automatique des conflits de planning
+- [x] Système de notifications toast
+- [x] Validation centralisée avec Zod
+- [x] Filtrage des techniciens par disponibilité
+
+### 🚧 Fonctionnalités en Développement
 - [ ] Mode sombre/clair
 - [ ] Notifications push avec animations
 - [ ] Export PDF des factures
@@ -247,6 +282,24 @@ Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour plus de
 - [ ] Animations 3D avec Three.js
 - [ ] PWA avec cache intelligent
 
+## 🆕 Nouvelles Fonctionnalités
+
+### Gestion des Indisponibilités
+- **Interface unifiée** : Les techniciens peuvent gérer leurs disponibilités et indisponibilités dans une interface à onglets
+- **Validation intelligente** : Détection automatique des conflits entre disponibilités et indisponibilités
+- **Raisons personnalisées** : Possibilité d'ajouter des raisons pour les périodes d'indisponibilité
+
+### Visualisation de la Disponibilité
+- **Statut en temps réel** : Calcul automatique du statut de disponibilité basé sur les périodes déclarées
+- **Badges visuels** : Indicateurs colorés avec icônes pour chaque statut (disponible, indisponible, disponible bientôt, statut inconnu)
+- **Filtrage intelligent** : Possibilité de filtrer les techniciens par leur statut de disponibilité
+- **Statistiques globales** : Compteur de techniciens disponibles dans le tableau de bord administrateur
+
+### Détection des Conflits
+- **Validation automatique** : Vérification des conflits lors de l'acceptation de missions
+- **Messages explicites** : Explication claire des conflits détectés
+- **Prévention des erreurs** : Empêche l'acceptation de missions conflictuelles
+
 ---
 
-**Esil-events** - Plateforme de gestion événementielle moderne et intuitive avec design contemporain.
+**Esil-events** - Plateforme de gestion événementielle moderne et intuitive avec design contemporain et gestion avancée des disponibilités.

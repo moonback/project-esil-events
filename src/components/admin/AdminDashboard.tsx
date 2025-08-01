@@ -105,18 +105,20 @@ export function AdminDashboard() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <MobileMenu />
-              <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Crown className="h-5 w-5 text-white" />
+              <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 via-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200">
+                <Crown className="h-6 w-6 text-white" />
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-xl font-bold text-gray-900">Administration</h1>
-                <p className="text-sm text-gray-600">Gestion complète des missions et techniciens</p>
+                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+                  Administration
+                </h1>
+                <p className="text-sm text-gray-600 font-medium">Gestion complète des missions et techniciens</p>
               </div>
             </div>
             
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-4">
               <SyncStatus 
-                isConnected={isConnected} 
+                isConnected={isConnected}
                 lastSync={lastSync || undefined}
                 onRefresh={handleRefresh}
               />
@@ -125,7 +127,7 @@ export function AdminDashboard() {
                 disabled={refreshing}
                 variant="outline"
                 size="sm"
-                className="hidden sm:flex"
+                className="hidden sm:inline-flex hover:bg-gray-50 transition-colors duration-200"
               >
                 <RefreshCw className={cn("h-4 w-4 mr-2", refreshing && "animate-spin")} />
                 {refreshing ? 'Actualisation...' : 'Actualiser'}

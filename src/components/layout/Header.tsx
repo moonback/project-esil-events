@@ -73,35 +73,11 @@ export function Header() {
             )}
           </div>
 
-          {/* Barre de recherche centrale */}
-          <div className="hidden md:flex flex-1 max-w-md mx-8">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Rechercher missions, techniciens..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
-              />
-            </div>
-          </div>
+          
 
           {/* Actions et statut */}
           <div className="flex items-center space-x-4">
-            {/* Sélecteur de période - seulement pour admin */}
-            {profile?.role === 'admin' && (
-              <select 
-                value={selectedTimeRange}
-                onChange={(e) => setSelectedTimeRange(e.target.value)}
-                className="hidden lg:block px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="7d">7 jours</option>
-                <option value="30d">30 jours</option>
-                <option value="90d">90 jours</option>
-                <option value="1y">1 an</option>
-              </select>
-            )}
+            
 
             {/* Notifications */}
             <Button

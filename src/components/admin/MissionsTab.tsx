@@ -184,18 +184,38 @@ const MissionCard = memo(({
 
 MissionCard.displayName = 'MissionCard'
 
-export function MissionsTab() {
+export function MissionsTab({
+  searchQuery = '',
+  selectedFilter = 'all',
+  sortBy = 'date',
+  viewMode = 'kanban',
+  onSearchChange,
+  onFilterChange,
+  onSortChange,
+  onViewModeChange
+}: {
+  searchQuery?: string
+  selectedFilter?: string
+  sortBy?: string
+  viewMode?: 'kanban' | 'list' | 'grid'
+  onSearchChange?: (query: string) => void
+  onFilterChange?: (filter: string) => void
+  onSortChange?: (sort: string) => void
+  onViewModeChange?: (mode: 'kanban' | 'list' | 'grid') => void
+} = {}) {
   const { missions, loading, stats, deleteAllMissions, createTestMissions } = useAdminStore()
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
   const [missionToAssign, setMissionToAssign] = useState<Mission | null>(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterType, setFilterType] = useState<string>('all')
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
   const [deleteAllLoading, setDeleteAllLoading] = useState(false)
   const [createTestLoading, setCreateTestLoading] = useState(false)
-  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban')
+
+  // Utiliser les props du dashboard ou les états locaux
+  const searchTerm = searchQuery || ''
+  const filterType = selectedFilter || 'all'
+  const currentViewMode = viewMode || 'kanban'
 
   const handleEdit = useCallback((mission: Mission) => {
     setSelectedMission(mission)
@@ -411,6 +431,78 @@ export function MissionsTab() {
         </div>
       </div>
 
+      {/* Barre d'outils pour la recherche et le filtrage */}
+      <div className="bg-gray-50 p-4 rounded-lg mx-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            {/* Recherche */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Rechercher missions..."
+                value={searchTerm}
+                onChange={(e) => onSearchChange?.(e.target.value)}
+                className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-64"
+              />
+            </div>
+            
+            {/* Filtres */}
+            <select 
+              value={filterType}
+              onChange={(e) => onFilterChange?.(e.target.value)}
+              className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="all">Toutes les missions</option>
+              <option value="pending">En attente</option>
+              <option value="in-progress">En cours</option>
+              <option value="completed">Terminées</option>
+              <option value="urgent">Urgentes</option>
+            </select>
+            
+            {/* Tri */}
+            <select 
+              value={sortBy}
+              onChange={(e) => onSortChange?.(e.target.value)}
+              className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="date">Par date</option>
+              <option value="priority">Par priorité</option>
+              <option value="status">Par statut</option>
+              <option value="technician">Par technicien</option>
+            </select>
+          </div>
+          
+          {/* Modes d'affichage */}
+          <div className="flex items-center space-x-2">
+            <Button
+              onClick={() => onViewModeChange?.('kanban')}
+              variant={currentViewMode === 'kanban' ? 'default' : 'outline'}
+              size="sm"
+              className="h-8 px-3"
+            >
+              Kanban
+            </Button>
+            <Button
+              onClick={() => onViewModeChange?.('list')}
+              variant={currentViewMode === 'list' ? 'default' : 'outline'}
+              size="sm"
+              className="h-8 px-3"
+            >
+              Liste
+            </Button>
+            <Button
+              onClick={() => onViewModeChange?.('grid')}
+              variant={currentViewMode === 'grid' ? 'default' : 'outline'}
+              size="sm"
+              className="h-8 px-3"
+            >
+              Grille
+            </Button>
+          </div>
+        </div>
+      </div>
+
       {/* Statistiques compactes */}
       <div className="grid grid-cols-4 gap-6 px-6">
         <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
@@ -459,65 +551,7 @@ export function MissionsTab() {
         </div>
       </div>
 
-      {/* Contrôles de filtrage et vue */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-6">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Rechercher..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              />
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              <Filter className="h-4 w-4 text-gray-400" />
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              >
-                <option value="all">Tous les types</option>
-                <option value="Livraison jeux">Livraison jeux</option>
-                <option value="Presta sono">Presta sono</option>
-                <option value="DJ">DJ</option>
-                <option value="Manutention">Manutention</option>
-                <option value="Déplacement">Déplacement</option>
-              </select>
-            </div>
-          </div>
 
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-500">
-              {filteredMissions.length} résultat{filteredMissions.length !== 1 ? 's' : ''}
-            </span>
-            
-            {/* Toggle de vue */}
-            <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
-              <Button
-                size="sm"
-                variant={viewMode === 'kanban' ? 'default' : 'ghost'}
-                onClick={() => setViewMode('kanban')}
-                className="h-8 px-3"
-              >
-                Kanban
-              </Button>
-              <Button
-                size="sm"
-                variant={viewMode === 'list' ? 'default' : 'ghost'}
-                onClick={() => setViewMode('list')}
-                className="h-8 px-3"
-              >
-                Liste
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Contenu des missions */}
       <div className="px-6">
@@ -528,7 +562,7 @@ export function MissionsTab() {
               {searchTerm || filterType !== 'all' ? 'Aucune mission trouvée' : 'Aucune mission créée'}
             </p>
           </div>
-        ) : viewMode === 'kanban' ? (
+        ) : currentViewMode === 'kanban' ? (
           /* Vue Kanban */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {kanbanColumns.map((column) => (

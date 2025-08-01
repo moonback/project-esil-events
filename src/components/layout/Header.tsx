@@ -106,18 +106,7 @@ export function Header() {
               </Button>
             )}
 
-            {/* Statut de connexion amélioré - seulement pour admin */}
-            {profile?.role === 'admin' && (
-              <div className="flex items-center space-x-2 px-3 py-1.5 bg-gray-50 rounded-lg">
-                <div className={cn(
-                  "w-2 h-2 rounded-full",
-                  isConnected ? "bg-emerald-500 shadow-sm shadow-emerald-500/50" : "bg-red-500 shadow-sm shadow-red-500/50"
-                )} />
-                <span className="text-sm font-medium text-gray-700">
-                  {isConnected ? "En ligne" : "Hors ligne"}
-                </span>
-              </div>
-            )}
+            
 
             {/* Plein écran - seulement pour admin */}
             {profile?.role === 'admin' && (

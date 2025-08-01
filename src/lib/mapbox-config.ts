@@ -1,9 +1,6 @@
 // Configuration Mapbox
 export const MAPBOX_CONFIG = {
-  // Remplacez par votre token Mapbox réel
-  accessToken: process.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoiZXNpbC1hZG1pbiIsImEiOiJjbGV4YW1wbGUifQ.example',
-  
-  // Styles de carte disponibles
+  accessToken: import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoiYmxhY2tzcGlkZXI2NjYiLCJhIjoiY21kb2lzejVpMDJnNTJtczNsZGgwZHJmdiJ9.d8jxWkU9Vs3GhbDt9FRAsA',
   styles: {
     streets: 'mapbox://styles/mapbox/streets-v12',
     satellite: 'mapbox://styles/mapbox/satellite-v9',
@@ -11,28 +8,23 @@ export const MAPBOX_CONFIG = {
     light: 'mapbox://styles/mapbox/light-v11',
     outdoors: 'mapbox://styles/mapbox/outdoors-v12'
   },
-  
-  // Coordonnées par défaut (Paris)
   defaultCenter: {
     longitude: 2.3522,
     latitude: 48.8566,
     zoom: 10
   },
-  
-  // Limites de zoom
   zoomLimits: {
     min: 8,
     max: 18
   }
 }
 
-// Types pour les coordonnées
+// Types for coordinates, markers, and routes
 export interface Coordinates {
   longitude: number
   latitude: number
 }
 
-// Types pour les marqueurs
 export interface MapMarker {
   id: string
   coordinates: [number, number] // [longitude, latitude]
@@ -42,7 +34,6 @@ export interface MapMarker {
   size?: number
 }
 
-// Types pour les itinéraires
 export interface Route {
   id: string
   name: string

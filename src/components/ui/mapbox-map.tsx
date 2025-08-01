@@ -23,6 +23,30 @@ interface MapboxMapProps {
   mapView: 'missions' | 'technicians' | 'routes'
 }
 
+// Coordonnées réalistes pour des adresses françaises
+const FRENCH_LOCATIONS = [
+  { name: 'Paris', coords: [2.3522, 48.8566] },
+  { name: 'Lyon', coords: [4.8357, 45.7640] },
+  { name: 'Marseille', coords: [5.3698, 43.2965] },
+  { name: 'Toulouse', coords: [1.4442, 43.6047] },
+  { name: 'Nice', coords: [7.2619, 43.7102] },
+  { name: 'Nantes', coords: [-1.5536, 47.2184] },
+  { name: 'Strasbourg', coords: [7.7521, 48.5734] },
+  { name: 'Montpellier', coords: [3.8767, 43.6108] },
+  { name: 'Bordeaux', coords: [-0.5792, 44.8378] },
+  { name: 'Lille', coords: [3.0573, 50.6292] },
+  { name: 'Rennes', coords: [-1.6778, 48.1173] },
+  { name: 'Reims', coords: [4.0319, 49.2583] },
+  { name: 'Le Havre', coords: [0.1079, 49.4944] },
+  { name: 'Saint-Étienne', coords: [4.3872, 45.4397] },
+  { name: 'Toulon', coords: [5.9280, 43.1242] },
+  { name: 'Grenoble', coords: [5.7221, 45.1885] },
+  { name: 'Dijon', coords: [5.0415, 47.3220] },
+  { name: 'Angers', coords: [-0.5632, 47.4784] },
+  { name: 'Nîmes', coords: [4.3601, 43.8367] },
+  { name: 'Saint-Denis', coords: [2.3522, 48.9361] }
+]
+
 export function MapboxMap({
   missions,
   technicians,
@@ -34,29 +58,62 @@ export function MapboxMap({
   const [mapStyle, setMapStyle] = useState(MAPBOX_CONFIG.styles.streets)
   const [viewState, setViewState] = useState(MAPBOX_CONFIG.defaultCenter)
 
-  // Génération de coordonnées réalistes pour les missions
+  // Génération de coordonnées réalistes pour les missions basées sur des adresses françaises
   const missionsWithCoords = useMemo(() => {
-    return missions.map((mission, index) => ({
-      ...mission,
-      coordinates: [
-        MAPBOX_CONFIG.defaultCenter.longitude + (index * 0.02) % 0.1,
-        MAPBOX_CONFIG.defaultCenter.latitude + Math.floor(index / 5) * 0.02
-      ]
-    }))
+    return missions.map((mission, index) => {
+      // Si la mission a des coordonnées GPS réelles, les utiliser
+      if (mission.coordinates && mission.coordinates.length === 2) {
+        return {
+          ...mission,
+          coordinates: mission.coordinates,
+          locationName: mission.location
+        }
+      }
+      
+      // Sinon, utiliser une localisation française réaliste basée sur l'index
+      const locationIndex = index % FRENCH_LOCATIONS.length
+      const baseLocation = FRENCH_LOCATIONS[locationIndex]
+      
+      // Ajouter une petite variation pour éviter que toutes les missions soient au même endroit
+      const variation = {
+        lng: (Math.random() - 0.5) * 0.02, // ±0.01 degré de longitude
+        lat: (Math.random() - 0.5) * 0.02  // ±0.01 degré de latitude
+      }
+      
+      return {
+        ...mission,
+        coordinates: [
+          baseLocation.coords[0] + variation.lng,
+          baseLocation.coords[1] + variation.lat
+        ],
+        locationName: baseLocation.name
+      }
+    })
   }, [missions])
 
-  // Génération de coordonnées pour les techniciens
+  // Génération de coordonnées pour les techniciens (répartis autour des missions)
   const techniciansWithCoords = useMemo(() => {
-    return technicians.map((tech, index) => ({
-      ...tech,
-      coordinates: [
-        MAPBOX_CONFIG.defaultCenter.longitude + (index * 0.015) % 0.08,
-        MAPBOX_CONFIG.defaultCenter.latitude + Math.floor(index / 4) * 0.015
-      ]
-    }))
-  }, [technicians])
+    return technicians.map((tech, index) => {
+      // Répartir les techniciens autour des missions existantes
+      const missionIndex = index % missionsWithCoords.length
+      const baseMission = missionsWithCoords[missionIndex] || FRENCH_LOCATIONS[0]
+      
+      const variation = {
+        lng: (Math.random() - 0.5) * 0.01, // ±0.005 degré
+        lat: (Math.random() - 0.5) * 0.01
+      }
+      
+      return {
+        ...tech,
+        coordinates: [
+          baseMission.coordinates[0] + variation.lng,
+          baseMission.coordinates[1] + variation.lat
+        ]
+      }
+    })
+  }, [technicians, missionsWithCoords])
 
-  // Calcul du centre de la carte
+  // Calcul du centre de la carte basé sur les missions réelles
   const center = useMemo(() => {
     if (missionsWithCoords.length === 0) {
       return MAPBOX_CONFIG.defaultCenter
@@ -68,7 +125,7 @@ export function MapboxMap({
     return {
       longitude: (Math.min(...lngs) + Math.max(...lngs)) / 2,
       latitude: (Math.min(...lats) + Math.max(...lats)) / 2,
-      zoom: 10
+      zoom: 8 // Zoom plus large pour voir toutes les missions
     }
   }, [missionsWithCoords])
 
@@ -77,7 +134,8 @@ export function MapboxMap({
       setViewState(prev => ({
         ...prev,
         longitude: center.longitude,
-        latitude: center.latitude
+        latitude: center.latitude,
+        zoom: center.zoom
       }))
     }
   }, [center, missionsWithCoords.length])
@@ -324,7 +382,9 @@ export function MapboxMap({
                   <div className="space-y-1 text-sm">
                     <div className="flex items-center space-x-2">
                       <Activity className="h-3 w-3 text-gray-500" />
-                      <span className="text-gray-600">{popupInfo.data.location}</span>
+                      <span className="text-gray-600">
+                        {popupInfo.data.locationName || popupInfo.data.location}
+                      </span>
                     </div>
 
                     <div className="flex items-center space-x-2">
@@ -402,17 +462,17 @@ export function MapboxMap({
             border: none;
             padding: 0;
           }
-
+          
           .mapboxgl-popup-tip {
             border-top-color: white;
           }
-
+          
           .mapboxgl-popup-close-button {
             color: #6b7280;
             font-size: 16px;
             padding: 4px;
           }
-
+          
           .mapboxgl-ctrl-group {
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);

@@ -105,6 +105,7 @@ export interface Database {
           location: string
           forfeit: number
           required_people: number
+          coordinates: number[] | null
           created_by: string | null
           created_at: string
           updated_at: string
@@ -119,6 +120,7 @@ export interface Database {
           location: string
           forfeit: number
           required_people?: number
+          coordinates?: number[] | null
           created_by?: string | null
           created_at?: string
           updated_at?: string
@@ -133,6 +135,7 @@ export interface Database {
           location?: string
           forfeit?: number
           required_people?: number
+          coordinates?: number[] | null
           created_by?: string | null
           created_at?: string
           updated_at?: string

@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { AddressInput } from '@/components/ui/address-input'
+import { geocodeAddress, type GeocodingResult } from '@/lib/geocoding'
 import type { Mission, User, MissionType } from '@/types/database'
 
 interface MissionDialogProps {
@@ -19,6 +21,7 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
   const [technicians, setTechnicians] = useState<User[]>([])
   const [selectedTechnicians, setSelectedTechnicians] = useState<string[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [geocodingResult, setGeocodingResult] = useState<GeocodingResult | null>(null)
   
   const [formData, setFormData] = useState({
     type: 'Livraison jeux' as MissionType,
@@ -28,7 +31,8 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
     date_end: '',
     location: '',
     forfeit: 0,
-    required_people: 1
+    required_people: 1,
+    coordinates: null as [number, number] | null
   })
 
   useEffect(() => {
@@ -43,8 +47,17 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
           date_end: mission.date_end.slice(0, 16),
           location: mission.location,
           forfeit: mission.forfeit,
-          required_people: mission.required_people || 1
+          required_people: mission.required_people || 1,
+          coordinates: mission.coordinates || null
         })
+        // Si la mission a des coordonnées, on les utilise pour le géocodage
+        if (mission.coordinates) {
+          setGeocodingResult({
+            coordinates: mission.coordinates,
+            placeName: mission.location,
+            confidence: 1
+          })
+        }
       } else {
         setFormData({
           type: 'Livraison jeux',
@@ -54,8 +67,10 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
           date_end: '',
           location: '',
           forfeit: 0,
-          required_people: 1
+          required_people: 1,
+          coordinates: null
         })
+        setGeocodingResult(null)
       }
       setSelectedTechnicians([])
       setErrors({})
@@ -85,6 +100,10 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
     
     if (!formData.location.trim()) {
       newErrors.location = 'Le lieu est requis'
+    }
+    
+    if (!geocodingResult && !formData.coordinates) {
+      newErrors.location = 'Veuillez sélectionner une adresse valide'
     }
     
     if (formData.forfeit <= 0) {
@@ -139,6 +158,14 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
     }
   }
 
+  const handleGeocode = (result: GeocodingResult) => {
+    setGeocodingResult(result)
+    setFormData(prev => ({
+      ...prev,
+      coordinates: result.coordinates
+    }))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -151,11 +178,17 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
     try {
       let missionId = mission?.id
       
+      // Préparer les données de la mission avec les coordonnées
+      const missionData = {
+        ...formData,
+        coordinates: geocodingResult?.coordinates || formData.coordinates
+      }
+      
       if (mission) {
         // Mettre à jour la mission
         const { error } = await supabase
           .from('missions')
-          .update(formData)
+          .update(missionData)
           .eq('id', mission.id)
 
         if (error) throw error
@@ -167,7 +200,7 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
         const { data: newMission, error } = await supabase
           .from('missions')
           .insert([{
-            ...formData,
+            ...missionData,
             created_by: user?.id
           }])
           .select()
@@ -195,10 +228,12 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
         date_end: '',
         location: '',
         forfeit: 0,
-        required_people: 1
+        required_people: 1,
+        coordinates: null
       })
       setSelectedTechnicians([])
       setErrors({})
+      setGeocodingResult(null)
       
     } catch (error) {
       console.error('Erreur lors de la création/modification de la mission:', error)
@@ -335,16 +370,24 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
 
             <div className="space-y-2">
               <Label htmlFor="location">Lieu</Label>
-              <Input
-                id="location"
+              <AddressInput
                 value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                placeholder="Adresse ou lieu de la mission"
+                onChange={(address) => setFormData({ ...formData, location: address })}
+                onGeocode={handleGeocode}
+                placeholder="Entrez l'adresse de la mission..."
                 className={errors.location ? 'border-red-500' : ''}
-                required
               />
               {errors.location && (
                 <p className="text-sm text-red-500">{errors.location}</p>
+              )}
+              {geocodingResult && (
+                <div className="flex items-center space-x-2 text-sm text-green-600">
+                  <span>✓</span>
+                  <span>Adresse géocodée avec succès</span>
+                  <span className="text-gray-500">
+                    ({geocodingResult.coordinates[1].toFixed(4)}, {geocodingResult.coordinates[0].toFixed(4)})
+                  </span>
+                </div>
               )}
             </div>
 

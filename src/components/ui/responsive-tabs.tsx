@@ -49,9 +49,9 @@ export function ResponsiveTabs({
       <div className="hidden md:block">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className={cn(
-            'grid w-full',
+            'grid w-full bg-gray-50 border-b border-gray-200',
             orientation === 'horizontal' ? 'grid-cols-4' : 'grid-cols-1',
-            'bg-transparent border-0 shadow-none rounded-none p-0 h-16'
+            'shadow-none rounded-none p-0 h-20'
           )}>
             {items.map((item) => (
               <TabsTrigger
@@ -59,19 +59,38 @@ export function ResponsiveTabs({
                 value={item.value}
                 disabled={item.disabled}
                 className={cn(
-                  'flex items-center space-x-3 transition-all duration-300 text-sm font-semibold h-full',
+                  'flex flex-col items-center justify-center space-y-2 transition-all duration-300 text-sm font-semibold h-full relative',
                   orientation === 'horizontal' ? 'border-r border-gray-200' : 'border-b border-gray-200',
-                  getTabTriggerClasses(variant)
+                  'data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm',
+                  'data-[state=active]:border-b-2 data-[state=active]:border-indigo-500',
+                  'hover:bg-gray-100 hover:text-gray-700',
+                  'data-[state=inactive]:text-gray-600'
                 )}
               >
                 {item.icon && (
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                    <div className="text-white">
+                  <div className={cn(
+                    'w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300',
+                    'data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-indigo-600',
+                    'data-[state=inactive]:bg-gray-200 data-[state=inactive]:text-gray-600',
+                    'hover:bg-indigo-100 hover:text-indigo-600'
+                  )}>
+                    <div className={cn(
+                      'transition-all duration-300',
+                      'data-[state=active]:text-white',
+                      'data-[state=inactive]:text-gray-600'
+                    )}>
                       {item.icon}
                     </div>
                   </div>
                 )}
-                <span>{item.label}</span>
+                <span className="text-xs font-medium">{item.label}</span>
+                
+                {/* Indicateur actif */}
+                <div className={cn(
+                  'absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-1 rounded-full transition-all duration-300',
+                  'data-[state=active]:bg-indigo-500',
+                  'data-[state=inactive]:bg-transparent'
+                )} />
               </TabsTrigger>
             ))}
           </TabsList>
@@ -90,36 +109,38 @@ export function ResponsiveTabs({
         <div className="bg-white border-b border-gray-200 p-4">
           <Button
             variant="outline"
-            className="w-full justify-between"
+            className="w-full justify-between bg-gray-50 hover:bg-gray-100"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             <div className="flex items-center space-x-3">
               {activeTabData?.icon && (
-                <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center">
                   <div className="text-white text-sm">
                     {activeTabData.icon}
                   </div>
                 </div>
               )}
-              <span className="font-medium">{activeTabData?.label}</span>
+              <span className="font-semibold text-gray-900">{activeTabData?.label}</span>
             </div>
             {isMobileMenuOpen ? (
-              <ChevronUp className="h-4 w-4" />
+              <ChevronUp className="h-4 w-4 text-gray-600" />
             ) : (
-              <ChevronDown className="h-4 w-4" />
+              <ChevronDown className="h-4 w-4 text-gray-600" />
             )}
           </Button>
 
           {/* Mobile Menu */}
           {isMobileMenuOpen && (
-            <div className="mt-2 space-y-1">
+            <div className="mt-3 space-y-2 bg-gray-50 rounded-lg p-3">
               {items.map((item) => (
                 <Button
                   key={item.value}
                   variant="ghost"
                   className={cn(
-                    'w-full justify-start',
-                    activeTab === item.value && 'bg-blue-50 text-blue-600'
+                    'w-full justify-start h-12',
+                    activeTab === item.value 
+                      ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' 
+                      : 'hover:bg-gray-100 text-gray-700'
                   )}
                   onClick={() => {
                     setActiveTab(item.value)
@@ -129,13 +150,18 @@ export function ResponsiveTabs({
                 >
                   <div className="flex items-center space-x-3">
                     {item.icon && (
-                      <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                        <div className="text-white text-sm">
+                      <div className={cn(
+                        'w-8 h-8 rounded-lg flex items-center justify-center',
+                        activeTab === item.value 
+                          ? 'bg-indigo-600 text-white' 
+                          : 'bg-gray-200 text-gray-600'
+                      )}>
+                        <div className="text-sm">
                           {item.icon}
                         </div>
                       </div>
                     )}
-                    <span>{item.label}</span>
+                    <span className="font-medium">{item.label}</span>
                   </div>
                 </Button>
               ))}

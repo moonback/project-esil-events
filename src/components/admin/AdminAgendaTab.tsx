@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { DashboardCard } from '@/components/ui/dashboard-card'
 import { getMissionTypeColor } from '@/lib/utils'
 import { 
   Filter, 
@@ -32,11 +33,14 @@ import {
   FilterX,
   Grid3X3,
   List,
-  CalendarDays
+  CalendarDays,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react'
 import type { MissionType, Mission, MissionWithAssignments, MissionAssignment } from '@/types/database'
 import { MissionDialog } from './MissionDialog'
 import { AssignTechniciansDialog } from './AssignTechniciansDialog'
+import { cn } from '@/lib/utils'
 
 // Mapping des couleurs typé
 const missionTypeColors: Record<MissionType, string> = {
@@ -265,138 +269,124 @@ export function AdminAgendaTab() {
   }, [selectedEvent])
 
   return (
-    <div className="space-y-4">
-      {/* En-tête compact */}
-      <div className="flex items-center justify-between bg-white border-b border-gray-200 px-6 py-3">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">Agenda</h2>
-          <p className="text-sm text-gray-500">{stats.total} missions au total</p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowDetailedView(!showDetailedView)}
-          >
-            <Eye className="h-4 w-4 mr-2" />
-            {showDetailedView ? 'Calendrier' : 'Liste'}
-          </Button>
-          <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white">
-            <Plus className="h-4 w-4 mr-2" />
-            Nouvelle mission
-          </Button>
-        </div>
+    <div className="space-y-6">
+      {/* En-tête avec statistiques */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <DashboardCard
+          title="Total Missions"
+          value={stats.total}
+          subtitle="Toutes les missions"
+          icon={<CalendarIcon className="h-6 w-6" />}
+          variant="default"
+        />
+
+        <DashboardCard
+          title="Terminées"
+          value={stats.completed}
+          subtitle="Missions acceptées"
+          icon={<CheckCircle className="h-6 w-6" />}
+          variant="success"
+        />
+
+        <DashboardCard
+          title="En attente"
+          value={stats.pending}
+          subtitle="Missions proposées"
+          icon={<Clock className="h-6 w-6" />}
+          variant="warning"
+        />
+
+        <DashboardCard
+          title="Revenus"
+          value={`${stats.revenue}€`}
+          subtitle={`Moyenne: ${Math.round(stats.avgRevenue)}€`}
+          icon={<Euro className="h-6 w-6" />}
+          variant="info"
+        />
       </div>
 
-      {/* Statistiques compactes */}
-      <div className="grid grid-cols-5 gap-4 px-6">
-        <div className="bg-white rounded-lg p-3 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-600">Total</p>
-              <p className="text-lg font-bold text-gray-900">{stats.total}</p>
+      {/* Barre d'outils responsive */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Rechercher une mission..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
             </div>
-            <CalendarIcon className="h-5 w-5 text-blue-600" />
-          </div>
-        </div>
 
-        <div className="bg-white rounded-lg p-3 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-600">Terminées</p>
-              <p className="text-lg font-bold text-green-600">{stats.completed}</p>
-            </div>
-            <CheckCircle className="h-5 w-5 text-green-600" />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg p-3 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-600">En attente</p>
-              <p className="text-lg font-bold text-orange-600">{stats.pending}</p>
-            </div>
-            <Clock className="h-5 w-5 text-orange-600" />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg p-3 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-600">Revenus</p>
-              <p className="text-lg font-bold text-purple-600">{stats.revenue}€</p>
-            </div>
-            <Euro className="h-5 w-5 text-purple-600" />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg p-3 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-600">Moyenne</p>
-              <p className="text-lg font-bold text-indigo-600">{Math.round(stats.avgRevenue)}€</p>
-            </div>
-            <TrendingUp className="h-5 w-5 text-indigo-600" />
-          </div>
-        </div>
-      </div>
-
-      {/* Barre d'outils avec filtres */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3">
-        <div className="flex items-center space-x-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Rechercher..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 text-sm"
-            />
-          </div>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2"
-          >
-            <Filter className="h-4 w-4" />
-            Filtres
-            {(selectedTypes.length > 0 || selectedStatus.length > 0 || dateRange.start || dateRange.end) && (
-              <Badge className="ml-1 text-xs">{selectedTypes.length + selectedStatus.length + (dateRange.start ? 1 : 0) + (dateRange.end ? 1 : 0)}</Badge>
-            )}
-          </Button>
-
-          {!showDetailedView && (
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center gap-2">
               <Button
-                variant={calendarView === 'dayGridMonth' ? 'default' : 'outline'}
+                variant="outline"
                 size="sm"
-                onClick={() => setCalendarView('dayGridMonth')}
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center gap-2"
               >
-                Mois
+                <Filter className="h-4 w-4" />
+                <span className="hidden sm:inline">Filtres</span>
+                {(selectedTypes.length > 0 || selectedStatus.length > 0 || dateRange.start || dateRange.end) && (
+                  <Badge className="ml-1 text-xs">{selectedTypes.length + selectedStatus.length + (dateRange.start ? 1 : 0) + (dateRange.end ? 1 : 0)}</Badge>
+                )}
               </Button>
-              <Button
-                variant={calendarView === 'timeGridWeek' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setCalendarView('timeGridWeek')}
-              >
-                Semaine
-              </Button>
-              <Button
-                variant={calendarView === 'listWeek' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setCalendarView('listWeek')}
-              >
-                Liste
-              </Button>
+
+              {!showDetailedView && (
+                <div className="flex items-center space-x-1">
+                  <Button
+                    variant={calendarView === 'dayGridMonth' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setCalendarView('dayGridMonth')}
+                    className="hidden sm:flex"
+                  >
+                    <Grid3X3 className="h-4 w-4 mr-1" />
+                    Mois
+                  </Button>
+                  <Button
+                    variant={calendarView === 'timeGridWeek' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setCalendarView('timeGridWeek')}
+                    className="hidden sm:flex"
+                  >
+                    <CalendarDays className="h-4 w-4 mr-1" />
+                    Semaine
+                  </Button>
+                  <Button
+                    variant={calendarView === 'listWeek' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setCalendarView('listWeek')}
+                    className="hidden sm:flex"
+                  >
+                    <List className="h-4 w-4 mr-1" />
+                    Liste
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDetailedView(!showDetailedView)}
+              className="flex items-center gap-2"
+            >
+              <Eye className="h-4 w-4" />
+              <span className="hidden sm:inline">{showDetailedView ? 'Calendrier' : 'Liste'}</span>
+            </Button>
+            <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white">
+              <Plus className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Nouvelle mission</span>
+            </Button>
+          </div>
         </div>
 
-        {/* Panneau de filtres */}
+        {/* Panneau de filtres responsive */}
         {showFilters && (
-          <div className="mt-3 p-3 bg-gray-50 rounded-md border">
+          <div className="mt-4 p-4 bg-gray-50 rounded-md border">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label className="text-xs font-medium mb-2 block">Types de missions</Label>
@@ -475,7 +465,8 @@ export function AdminAgendaTab() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 px-6">
+      {/* Contenu principal responsive */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3">
           {showDetailedView ? (
             <Card>
@@ -488,7 +479,7 @@ export function AdminAgendaTab() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="max-h-[500px] overflow-y-auto">
+                <div className="max-h-[600px] overflow-y-auto">
                   {filteredMissions.length === 0 ? (
                     <div className="p-8 text-center text-gray-500">
                       <CalendarIcon className="h-8 w-8 mx-auto mb-2 text-gray-300" />
@@ -519,22 +510,24 @@ export function AdminAgendaTab() {
                         return (
                           <div 
                             key={mission.id} 
-                            className="p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                            className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
                             onClick={() => setSelectedEvent({ resource: mission, title: mission.title, start: parseISO(mission.date_start), end: parseISO(mission.date_end) })}
                           >
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
-                                <div className="flex items-center space-x-2 mb-1">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
                                   <h4 className="font-medium text-sm">{mission.title}</h4>
-                                  <Badge className={`${getMissionTypeColor(mission.type)} text-xs`}>
-                                    {mission.type}
-                                  </Badge>
-                                  <Badge className={`${statusColor} text-xs`}>
-                                    {statusText}
-                                  </Badge>
+                                  <div className="flex flex-wrap gap-1">
+                                    <Badge className={`${getMissionTypeColor(mission.type)} text-xs`}>
+                                      {mission.type}
+                                    </Badge>
+                                    <Badge className={`${statusColor} text-xs`}>
+                                      {statusText}
+                                    </Badge>
+                                  </div>
                                 </div>
                                 
-                                <div className="grid grid-cols-3 gap-3 text-xs text-gray-600">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-600">
                                   <div className="flex items-center space-x-1">
                                     <MapPin className="h-3 w-3" />
                                     <span className="truncate">{mission.location}</span>
@@ -587,7 +580,7 @@ export function AdminAgendaTab() {
           ) : (
             <Card>
               <CardContent className="p-4">
-                <div style={{ height: '500px' }}>
+                <div style={{ height: '600px' }}>
                   <FullCalendar
                     key={calendarView}
                     ref={calendarRef}
@@ -662,7 +655,7 @@ export function AdminAgendaTab() {
           )}
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           {/* Légende des types de missions */}
           <Card>
             <CardHeader className="pb-2">

@@ -85,7 +85,7 @@ export function AdminDashboard() {
       icon: <CreditCard className="h-4 w-4" />,
       content: (
         <LoadingOverlay loading={loading.billings} text="Chargement des facturations...">
-          <div className="space-y-6 p-6">
+          <div className="space-y-8 p-6">
             <PaymentSummaryCard 
               billings={useAdminStore.getState().billings}
               onViewAll={() => {}}
@@ -105,11 +105,11 @@ export function AdminDashboard() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <MobileMenu />
-              <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 via-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200">
+              <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200">
                 <Crown className="h-6 w-6 text-white" />
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-indigo-700">
                   Administration
                 </h1>
                 <p className="text-sm text-gray-600 font-medium">Gestion complète des missions et techniciens</p>
@@ -127,7 +127,7 @@ export function AdminDashboard() {
                 disabled={refreshing}
                 variant="outline"
                 size="sm"
-                className="hidden sm:inline-flex hover:bg-gray-50 transition-colors duration-200"
+                className="hidden sm:inline-flex hover:bg-indigo-50 transition-colors duration-200"
               >
                 <RefreshCw className={cn("h-4 w-4 mr-2", refreshing && "animate-spin")} />
                 {refreshing ? 'Actualisation...' : 'Actualiser'}
@@ -138,13 +138,13 @@ export function AdminDashboard() {
       </header>
 
       {/* Statistiques rapides avec design responsive */}
-      <section className="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+      <section className="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           <DashboardCard
             title="Total Missions"
             value={stats.missions.total}
             subtitle={`${stats.missions.assignedCount} assignées`}
-            icon={<Activity className="h-6 w-6" />}
+            icon={<Activity className="h-7 w-7" />}
             trend={{ value: "+12% ce mois", isPositive: true }}
             variant="default"
             onClick={() => {/* Navigation vers missions */}}
@@ -154,7 +154,7 @@ export function AdminDashboard() {
             title="Techniciens"
             value={stats.technicians.total}
             subtitle={`${stats.technicians.available} disponibles`}
-            icon={<Users className="h-6 w-6" />}
+            icon={<Users className="h-7 w-7" />}
             trend={{ value: `${stats.technicians.available} actifs`, isPositive: true }}
             variant="info"
             onClick={() => {/* Navigation vers techniciens */}}
@@ -164,7 +164,7 @@ export function AdminDashboard() {
             title="Revenus"
             value={`${(stats.missions.totalRevenue / 1000).toFixed(1)}k€`}
             subtitle="Total des missions"
-            icon={<TrendingUp className="h-6 w-6" />}
+            icon={<TrendingUp className="h-7 w-7" />}
             trend={{ value: "+8% ce mois", isPositive: true }}
             variant="success"
             onClick={() => {/* Navigation vers facturation */}}
@@ -174,7 +174,7 @@ export function AdminDashboard() {
             title="Facturations"
             value={stats.billings.totalAmount > 0 ? `${(stats.billings.totalAmount / 1000).toFixed(1)}k€` : '0€'}
             subtitle={`${(stats.billings.pendingAmount / 1000).toFixed(1)}k€ en attente`}
-            icon={<CreditCard className="h-6 w-6" />}
+            icon={<CreditCard className="h-7 w-7" />}
             trend={{ value: `${(stats.billings.pendingAmount / 1000).toFixed(1)}k€ en attente`, isPositive: false }}
             variant="warning"
             onClick={() => {/* Navigation vers facturation */}}
@@ -183,40 +183,40 @@ export function AdminDashboard() {
       </section>
 
       {/* Indicateurs de statut rapides */}
-      <section className="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle className="h-4 w-4 text-green-600" />
+      <section className="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center space-x-4">
+              <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="h-5 w-5 text-emerald-600" />
               </div>
               <div>
-                                 <p className="text-sm font-medium text-gray-900">Missions en cours</p>
-                 <p className="text-lg font-bold text-green-600">{stats.missions.assignedCount}</p>
+                <p className="text-sm font-medium text-gray-900">Missions en cours</p>
+                <p className="text-xl font-bold text-emerald-600">{stats.missions.assignedCount}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                <Clock className="h-4 w-4 text-yellow-600" />
+          <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center space-x-4">
+              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                <Clock className="h-5 w-5 text-amber-600" />
               </div>
               <div>
-                                 <p className="text-sm font-medium text-gray-900">En attente</p>
-                 <p className="text-lg font-bold text-yellow-600">{stats.missions.assignedCount}</p>
+                <p className="text-sm font-medium text-gray-900">En attente</p>
+                <p className="text-xl font-bold text-amber-600">{stats.missions.assignedCount}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                <AlertTriangle className="h-4 w-4 text-red-600" />
+          <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center space-x-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
               </div>
               <div>
-                                 <p className="text-sm font-medium text-gray-900">Problèmes</p>
-                 <p className="text-lg font-bold text-red-600">0</p>
+                <p className="text-sm font-medium text-gray-900">Problèmes</p>
+                <p className="text-xl font-bold text-red-600">0</p>
               </div>
             </div>
           </div>
@@ -242,7 +242,7 @@ export function AdminDashboard() {
               <div className="flex items-center space-x-2">
                 <div className={cn(
                   "w-2 h-2 rounded-full",
-                  isConnected ? "bg-green-500" : "bg-red-500"
+                  isConnected ? "bg-emerald-500" : "bg-red-500"
                 )} />
                 <span>{isConnected ? "Connecté" : "Déconnecté"}</span>
               </div>

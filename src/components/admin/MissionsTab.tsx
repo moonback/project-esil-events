@@ -39,23 +39,23 @@ const MissionCard = memo(({
     const requiredPeople = mission.required_people || 1
     const isComplete = acceptedCount >= requiredPeople
     
-    if (isComplete) return { status: 'complet', color: 'bg-green-100 text-green-800', icon: CheckCircle }
-    if (acceptedCount > 0) return { status: 'partiellement_assigné', color: 'bg-blue-100 text-blue-800', icon: Activity }
+    if (isComplete) return { status: 'complet', color: 'bg-emerald-100 text-emerald-800', icon: CheckCircle }
+    if (acceptedCount > 0) return { status: 'partiellement_assigné', color: 'bg-indigo-100 text-indigo-800', icon: Activity }
     if (refusedCount === assignments.length) return { status: 'refusé', color: 'bg-red-100 text-red-800', icon: XCircle }
-    if (pendingCount > 0) return { status: 'en_attente', color: 'bg-yellow-100 text-yellow-800', icon: Clock }
+    if (pendingCount > 0) return { status: 'en_attente', color: 'bg-amber-100 text-amber-800', icon: Clock }
     
-    return { status: 'mixte', color: 'bg-orange-100 text-orange-800', icon: Activity }
+    return { status: 'mixte', color: 'bg-blue-100 text-blue-800', icon: Activity }
   }, [mission])
 
   const StatusIcon = missionStatus.icon
 
   return (
-    <Card className="border border-gray-200 hover:border-indigo-200 transition-colors">
-      <CardContent className="p-4">
+    <Card className="border border-gray-200 hover:border-indigo-200 transition-colors hover:shadow-md">
+      <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center space-x-3 mb-2">
-              <h3 className="text-base font-semibold text-gray-900 truncate">{mission.title}</h3>
+            <div className="flex items-center space-x-3 mb-3">
+              <h3 className="text-lg font-bold text-gray-900 truncate">{mission.title}</h3>
               <Badge className={`${getMissionTypeColor(mission.type)} text-xs`}>
                 {mission.type}
               </Badge>
@@ -65,46 +65,46 @@ const MissionCard = memo(({
               </Badge>
             </div>
             
-            <div className="grid grid-cols-4 gap-4 text-xs text-gray-600">
-              <div className="flex items-center space-x-1">
-                <Calendar className="h-3 w-3 text-blue-500" />
+            <div className="grid grid-cols-4 gap-4 text-sm text-gray-600 mb-4">
+              <div className="flex items-center space-x-2">
+                <Calendar className="h-4 w-4 text-indigo-500" />
                 <span className="truncate">{formatDateTime(mission.date_start)}</span>
               </div>
               
-              <div className="flex items-center space-x-1">
-                <MapPin className="h-3 w-3 text-green-500" />
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-4 w-4 text-emerald-500" />
                 <span className="truncate" title={mission.location}>{mission.location}</span>
               </div>
               
-              <div className="flex items-center space-x-1">
-                <span className="font-medium text-green-600">{formatCurrency(mission.forfeit)}</span>
+              <div className="flex items-center space-x-2">
+                <span className="font-semibold text-emerald-600">{formatCurrency(mission.forfeit)}</span>
               </div>
               
-              <div className="flex items-center space-x-1">
-                <Users className="h-3 w-3 text-purple-500" />
+              <div className="flex items-center space-x-2">
+                <Users className="h-4 w-4 text-blue-500" />
                 <span>{mission.required_people || 1} pers.</span>
               </div>
             </div>
 
             {mission.mission_assignments && mission.mission_assignments.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-gray-100">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-gray-500">Assignations</span>
-                  <span className="text-xs font-medium">
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-gray-700">Assignations</span>
+                  <span className="text-sm font-semibold">
                     {mission.mission_assignments.filter((a: any) => a.status === 'accepté').length}/{mission.required_people || 1}
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
                   <div
-                    className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                    className="bg-emerald-500 h-2 rounded-full transition-all duration-300"
                     style={{
                       width: `${Math.min(100, (mission.mission_assignments.filter((a: any) => a.status === 'accepté').length / (mission.required_people || 1)) * 100)}%`
                     }}
                   />
                 </div>
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-2">
                   {mission.mission_assignments.slice(0, 3).map((assignment: any) => (
-                    <div key={assignment.id} className="flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded text-xs">
+                    <div key={assignment.id} className="flex items-center space-x-2 bg-gray-50 px-3 py-2 rounded-md text-sm">
                       <span className="font-medium text-gray-700">{assignment.users?.name || 'Technicien inconnu'}</span>
                       <Badge className={`${getStatusColor(assignment.status)} text-xs`}>
                         {assignment.status}
@@ -112,41 +112,41 @@ const MissionCard = memo(({
                     </div>
                   ))}
                   {mission.mission_assignments.length > 3 && (
-                    <span className="text-xs text-gray-500">+{mission.mission_assignments.length - 3}</span>
+                    <span className="text-sm text-gray-500">+{mission.mission_assignments.length - 3}</span>
                   )}
                 </div>
               </div>
             )}
           </div>
           
-          <div className="flex items-center space-x-1 ml-4">
+          <div className="flex items-center space-x-2 ml-6">
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={() => onEdit(mission)}
-              className="h-7 w-7 p-0 hover:bg-indigo-50 hover:text-indigo-600"
+              className="h-9 w-9 p-0 hover:bg-indigo-50 hover:text-indigo-600"
             >
-              <Edit className="h-3 w-3" />
+              <Edit className="h-4 w-4" />
             </Button>
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={() => onAssign(mission)}
-              className="h-7 w-7 p-0 hover:bg-blue-50 hover:text-blue-600"
+              className="h-9 w-9 p-0 hover:bg-blue-50 hover:text-blue-600"
             >
-              <UserPlus className="h-3 w-3" />
+              <UserPlus className="h-4 w-4" />
             </Button>
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={() => onDelete(mission.id)}
               disabled={deleteLoading === mission.id}
-              className="h-7 w-7 p-0 hover:bg-red-50 hover:text-red-600"
+              className="h-9 w-9 p-0 hover:bg-red-50 hover:text-red-600"
             >
               {deleteLoading === mission.id ? (
-                <div className="w-3 h-3 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
               ) : (
-                <Trash2 className="h-3 w-3" />
+                <Trash2 className="h-4 w-4" />
               )}
             </Button>
           </div>
@@ -269,23 +269,23 @@ export function MissionsTab() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* En-tête compact */}
-      <div className="flex items-center justify-between bg-white border-b border-gray-200 px-6 py-3">
+      <div className="flex items-center justify-between bg-white border-b border-gray-200 px-6 py-4">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Missions</h2>
-          <p className="text-sm text-gray-500">{missionStats.total} missions au total</p>
+          <h2 className="text-xl font-bold text-gray-900">Missions</h2>
+          <p className="text-sm text-gray-600 mt-1">{missionStats.total} missions au total</p>
         </div>
-                 <div className="flex items-center space-x-2">
+                 <div className="flex items-center space-x-3">
            <Button 
              onClick={handleCreateTest}
              disabled={createTestLoading}
              size="sm"
              variant="outline"
-             className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+             className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200"
            >
              {createTestLoading ? (
-               <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin mr-2" />
+               <div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin mr-2" />
              ) : (
                <Play className="h-4 w-4 mr-2" />
              )}
@@ -319,56 +319,56 @@ export function MissionsTab() {
       {/* Affichage des erreurs - Géré par le store admin */}
 
       {/* Statistiques compactes */}
-      <div className="grid grid-cols-4 gap-4 px-6">
-        <div className="bg-white rounded-lg p-3 border border-gray-200">
+      <div className="grid grid-cols-4 gap-6 px-6">
+        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-medium text-gray-600">Total</p>
-              <p className="text-lg font-bold text-gray-900">{missionStats.total}</p>
+              <p className="text-xl font-bold text-gray-900">{missionStats.total}</p>
             </div>
-            <Activity className="h-5 w-5 text-blue-600" />
+            <Activity className="h-6 w-6 text-indigo-600" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-3 border border-gray-200">
+        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-medium text-gray-600">Complètes</p>
-              <p className="text-lg font-bold text-green-600">
+              <p className="text-xl font-bold text-emerald-600">
                 {missions.filter(m => {
                   const acceptedCount = m.mission_assignments?.filter((a: any) => a.status === 'accepté').length || 0
                   return acceptedCount >= (m.required_people || 1)
                 }).length}
               </p>
             </div>
-            <CheckCircle className="h-5 w-5 text-green-600" />
+            <CheckCircle className="h-6 w-6 text-emerald-600" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-3 border border-gray-200">
+        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-medium text-gray-600">Revenus</p>
-              <p className="text-lg font-bold text-purple-600">{formatCurrency(missionStats.totalRevenue)}</p>
+              <p className="text-xl font-bold text-blue-600">{formatCurrency(missionStats.totalRevenue)}</p>
             </div>
-            <TrendingUp className="h-5 w-5 text-purple-600" />
+            <TrendingUp className="h-6 w-6 text-blue-600" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-3 border border-gray-200">
+        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-medium text-gray-600">En attente</p>
-              <p className="text-lg font-bold text-orange-600">{missionStats.total - missionStats.assignedCount}</p>
+              <p className="text-xl font-bold text-amber-600">{missionStats.total - missionStats.assignedCount}</p>
             </div>
-            <Clock className="h-5 w-5 text-orange-600" />
+            <Clock className="h-6 w-6 text-amber-600" />
           </div>
         </div>
       </div>
 
       {/* Contrôles de filtrage */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3">
-        <div className="flex items-center space-x-4">
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center space-x-6">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
@@ -380,7 +380,7 @@ export function MissionsTab() {
             />
           </div>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <Filter className="h-4 w-4 text-gray-400" />
             <select
               value={filterType}
@@ -412,7 +412,7 @@ export function MissionsTab() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredMissions.map((mission) => (
               <MissionCard
                 key={mission.id}

@@ -4,11 +4,12 @@ import { MissionsTab } from './MissionsTab'
 import { TechniciansTab } from './TechniciansTab'
 import { AdminAgendaTab } from './AdminAgendaTab'
 import { AdminBillingTab } from './AdminBillingTab'
+import { TerrainTab } from './TerrainTab'
 import { PaymentSummaryCard } from './PaymentSummaryCard'
 import { DashboardCard } from '@/components/ui/dashboard-card'
 import { ResponsiveTabs } from '@/components/ui/responsive-tabs'
 import { MobileMenu } from '@/components/ui/mobile-menu'
-import { Crown, Users, Calendar, CreditCard, RefreshCw, TrendingUp, Activity, Settings, AlertTriangle, CheckCircle, Clock, BarChart3 } from 'lucide-react'
+import { Crown, Users, Calendar, CreditCard, RefreshCw, TrendingUp, Activity, Settings, AlertTriangle, CheckCircle, Clock, BarChart3, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LoadingOverlay } from '@/components/ui/loading'
 import { useRealtimeSync } from '@/lib/useRealtimeSync'
@@ -66,6 +67,16 @@ export function AdminDashboard() {
       content: (
         <LoadingOverlay loading={loading.technicians} text="Chargement des techniciens...">
           <TechniciansTab />
+        </LoadingOverlay>
+      )
+    },
+    {
+      value: 'terrain',
+      label: 'Terrain',
+      icon: <MapPin className="h-4 w-4" />,
+      content: (
+        <LoadingOverlay loading={loading.missions || loading.technicians} text="Chargement des données terrain...">
+          <TerrainTab />
         </LoadingOverlay>
       )
     },

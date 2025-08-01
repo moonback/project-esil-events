@@ -50,7 +50,7 @@ export function ResponsiveTabs({
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className={cn(
             'grid w-full bg-gray-50 border-b border-gray-200',
-            orientation === 'horizontal' ? 'grid-cols-4' : 'grid-cols-1',
+            orientation === 'horizontal' ? 'grid-cols-5' : 'grid-cols-1',
             'shadow-none rounded-none p-0 h-20'
           )}>
             {items.map((item) => (

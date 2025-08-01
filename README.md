@@ -1,7 +1,7 @@
 
 # 🎉 Esil-events – Plateforme de Gestion Événementielle Moderne
 
-Esil-events est une plateforme **tout-en-un** pour les agences événementielles, offrant une **interface d’administration** et une **interface technicien** dans un design moderne, fluide et responsive.  
+Esil-events est une plateforme **tout-en-un** pour les agences événementielles, offrant une **interface d'administration** et une **interface technicien** dans un design moderne, fluide et responsive.  
 Elle permet de **planifier, gérer et suivre** facilement les missions et disponibilités des techniciens avec un système de facturation intégré.
 
 ## ✨ Points Forts
@@ -11,7 +11,8 @@ Elle permet de **planifier, gérer et suivre** facilement les missions et dispon
 - 💼 **Facturation complète** pour administrateurs et techniciens.  
 - 📱 **Interface responsive** optimisée pour mobile, tablette et desktop.  
 - 🔐 **Sécurité avancée** grâce à Supabase et Row Level Security.  
-- 🚀 **Performance optimisée** avec lazy loading, cache intelligent et calculs en temps réel.  
+- 🚀 **Performance optimisée** avec lazy loading, cache intelligent et calculs en temps réel.
+- 🗺️ **Carte interactive Mapbox** pour la gestion terrain et l'optimisation des tournées.
 
 ## 🖌️ Design & Expérience Utilisateur
 
@@ -37,7 +38,8 @@ Elle permet de **planifier, gérer et suivre** facilement les missions et dispon
 - Visualisation du planning global avec calendrier  
 - Gestion des paiements et facturations  
 - Filtrage intelligent et badges de disponibilité  
-- Gestion des périodes d’indisponibilité  
+- Gestion des périodes d'indisponibilité  
+- **🗺️ Carte interactive Mapbox** avec gestion terrain et optimisation des tournées
 
 ### 👷 Interface Technicien
 - Gestion des disponibilités et indisponibilités via onglets  
@@ -45,6 +47,14 @@ Elle permet de **planifier, gérer et suivre** facilement les missions et dispon
 - Agenda personnel avec planning clair  
 - Consultation des rémunérations  
 - Statut de disponibilité calculé en temps réel  
+
+### 🗺️ Gestion Terrain (Nouveau)
+- **Carte interactive Mapbox** avec vues multiples (missions, techniciens, itinéraires)
+- **Marqueurs dynamiques** avec taille adaptée au nombre de techniciens requis
+- **Popups détaillés** avec informations complètes des missions
+- **Itinéraires optimisés** avec routes GeoJSON et numérotation
+- **Contrôles avancés** : zoom, géolocalisation, plein écran, changement de style
+- **Statistiques terrain** : missions actives, distance totale, durée moyenne
 
 ## 🛠️ Stack Technique
 
@@ -55,7 +65,8 @@ Elle permet de **planifier, gérer et suivre** facilement les missions et dispon
 - **Backend** : Supabase (PostgreSQL + Auth + API REST)  
 - **Sécurité** : RLS + Policies SQL  
 - **Validation** : Zod  
-- **Dates** : date-fns (support français)  
+- **Dates** : date-fns (support français)
+- **🗺️ Cartes** : Mapbox GL JS + react-map-gl
 
 ## 🎨 Palette de Couleurs
 
@@ -69,6 +80,7 @@ Elle permet de **planifier, gérer et suivre** facilement les missions et dispon
 
 - Node.js 18+  
 - Compte Supabase  
+- Compte Mapbox (pour la carte interactive)
 - npm ou yarn installé  
 
 ## ⚙️ Installation
@@ -87,7 +99,15 @@ Configurer Supabase :
 ```env
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_anon_key
+VITE_MAPBOX_TOKEN=your_mapbox_token
 ```
+
+### 🗺️ Configuration Mapbox
+
+1. Créez un compte sur [Mapbox](https://www.mapbox.com/)
+2. Obtenez un token d'accès public
+3. Ajoutez le token dans votre fichier `.env`
+4. Consultez `docs/MAPBOX_SETUP.md` pour plus de détails
 
 ## 🏗️ Architecture du Projet
 
@@ -98,7 +118,7 @@ src/
 │   ├── technician/
 │   ├── auth/
 │   └── ui/
-├── lib/           # Supabase, utils, hooks
+├── lib/           # Supabase, utils, hooks, mapbox-config
 ├── store/         # État global
 ├── types/         # Types TS
 └── App.tsx
@@ -127,6 +147,7 @@ npm run test:e2e   # Tests end-to-end
 - Visualisation de la disponibilité  
 - Système de notifications  
 - Filtrage avancé  
+- **🗺️ Carte interactive Mapbox** avec gestion terrain
 
 🚧 En développement :
 - Mode sombre/clair  
@@ -153,4 +174,4 @@ Projet sous licence MIT – voir [LICENSE](LICENSE).
 
 - [📚 Documentation](#)  
 - [🐛 Issues](#)  
-- ✉️ support@esil-events.com  
+- ✉️ support@esil-events.com

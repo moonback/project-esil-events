@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { 
   Menu, Home, Users, Calendar, CreditCard, Activity, 
-  Plus, Settings, Bell, Search, Filter, ChevronRight
+  Plus, Settings, Bell, Search, Filter, ChevronRight, MapPin
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -32,6 +32,12 @@ export function MobileMenu({ className }: MobileMenuProps) {
       label: 'Techniciens',
       href: '#technicians',
       count: 8
+    },
+    {
+      icon: <MapPin className="h-5 w-5" />,
+      label: 'Terrain',
+      href: '#terrain',
+      count: 5
     },
     {
       icon: <Calendar className="h-5 w-5" />,
@@ -173,7 +179,7 @@ export function MobileMenu({ className }: MobileMenuProps) {
       {/* Barre de navigation inférieure pour mobile */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
         <div className="flex items-center justify-around px-2 py-2">
-          {menuItems.slice(0, 4).map((item, index) => (
+          {menuItems.slice(0, 5).map((item, index) => (
             <a
               key={index}
               href={item.href}

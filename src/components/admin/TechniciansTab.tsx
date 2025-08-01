@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { TechnicianContactDialog } from './TechnicianContactDialog'
+import { CreatePaymentDialog } from './CreatePaymentDialog'
 import { 
   Phone, 
   Users, 
@@ -37,7 +38,8 @@ import {
   Mail,
   Ban,
   CheckCircle2,
-  Clock4
+  Clock4,
+  Plus
 } from 'lucide-react'
 import { format, parseISO, isValid } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -54,6 +56,8 @@ export function TechniciansTab() {
   const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable' | 'unknown'>('all')
   const [contactDialogOpen, setContactDialogOpen] = useState(false)
   const [selectedTechnicianForContact, setSelectedTechnicianForContact] = useState<User | null>(null)
+  const [createPaymentDialogOpen, setCreatePaymentDialogOpen] = useState(false)
+  const [selectedTechnicianForPayment, setSelectedTechnicianForPayment] = useState<User | null>(null)
 
   // Fonction pour déterminer le statut de disponibilité d'un technicien
   const getAvailabilityStatus = (technician: TechnicianWithStats) => {
@@ -193,6 +197,11 @@ export function TechniciansTab() {
   const handleContactUpdated = () => {
     // Les données seront actualisées automatiquement via le store
     console.log('Contact mis à jour')
+  }
+
+  const handleCreatePayment = (technician: User) => {
+    setSelectedTechnicianForPayment(technician)
+    setCreatePaymentDialogOpen(true)
   }
 
   if (loading.technicians) {
@@ -421,6 +430,15 @@ export function TechniciansTab() {
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => handleCreatePayment(technician)}
+                            title="Créer un paiement"
+                            className="text-green-600 hover:text-green-700"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => setSelectedTechnician(selectedTechnician?.id === technician.id ? null : technician)}
                           >
                             <MoreHorizontal className="h-4 w-4" />
@@ -644,6 +662,13 @@ export function TechniciansTab() {
         open={contactDialogOpen}
         onOpenChange={setContactDialogOpen}
         onContactUpdated={handleContactUpdated}
+      />
+
+      {/* Dialogue de création de paiement */}
+      <CreatePaymentDialog
+        technician={selectedTechnicianForPayment || undefined}
+        open={createPaymentDialogOpen}
+        onOpenChange={setCreatePaymentDialogOpen}
       />
     </div>
   )

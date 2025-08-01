@@ -411,20 +411,20 @@ export function MissionsTab() {
               {searchTerm || filterType !== 'all' ? 'Aucune mission trouvée' : 'Aucune mission créée'}
             </p>
           </div>
-                 ) : (
-           <div className="space-y-3">
-             {filteredMissions.map((mission) => (
-               <MissionCard
-                 key={mission.id}
-                 mission={mission as MissionWithAssignments}
-                 onEdit={handlers.onEdit}
-                 onAssign={handlers.onAssign}
-                 onDelete={handlers.onDelete}
-                 deleteLoading={deleteLoading}
-               />
-             ))}
-           </div>
-         )}
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredMissions.map((mission) => (
+              <MissionCard
+                key={mission.id}
+                mission={mission as MissionWithAssignments}
+                onEdit={handlers.onEdit}
+                onAssign={handlers.onAssign}
+                onDelete={handlers.onDelete}
+                deleteLoading={deleteLoading}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       <MissionDialog

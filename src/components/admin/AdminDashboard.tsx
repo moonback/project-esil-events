@@ -83,7 +83,7 @@ export function AdminDashboard() {
       </div> */}
 
       {/* Statistiques rapides */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 mb-8">
+      <div className="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transform hover:scale-105 transition-all duration-300">
             <div className="flex items-center justify-between">
@@ -140,7 +140,7 @@ export function AdminDashboard() {
       </div>
 
       {/* Contenu principal */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+      <div className="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100">

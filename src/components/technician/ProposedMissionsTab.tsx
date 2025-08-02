@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Check, X, Clock, MapPin, Calendar, DollarSign, AlertTriangle } from 'lucide-react'
 import { formatDateTime, formatCurrency, getMissionTypeColor } from '@/lib/utils'
 import type { MissionAssignment, Mission } from '@/types/database'
+import { WhatsAppService } from '@/lib/whatsapp'
 
 interface ProposedMission extends MissionAssignment {
   missions: Mission
@@ -132,6 +133,36 @@ export function ProposedMissionsTab() {
               amount: assignment.missions.forfeit,
               status: 'en_attente'
             }])
+
+          // Envoyer une confirmation WhatsApp si le service est configuré
+          if (WhatsAppService.isConfigured() && profile.phone) {
+            try {
+              const notificationData = {
+                technicianName: profile.name,
+                missionTitle: assignment.missions.title,
+                missionType: assignment.missions.type,
+                dateStart: assignment.missions.date_start,
+                dateEnd: assignment.missions.date_end,
+                location: assignment.missions.location,
+                forfeit: assignment.missions.forfeit,
+                requiredPeople: assignment.missions.required_people,
+                description: assignment.missions.description || undefined
+              }
+
+              const success = await WhatsAppService.sendMissionAccepted(
+                profile.phone,
+                notificationData
+              )
+
+              if (success) {
+                console.log('Confirmation WhatsApp envoyée avec succès')
+              } else {
+                console.error('Échec de l\'envoi de la confirmation WhatsApp')
+              }
+            } catch (error) {
+              console.error('Erreur lors de l\'envoi de la confirmation WhatsApp:', error)
+            }
+          }
         }
       }
 

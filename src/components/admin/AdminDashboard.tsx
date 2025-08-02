@@ -9,9 +9,11 @@ import { MissionsMapTab } from './MissionsMapTab'
 import { PaymentSummaryCard } from './PaymentSummaryCard'
 import { MissionDialog } from './MissionDialog'
 import { MissionViewDialog } from './MissionViewDialog'
+import { WhatsAppConfigDialog } from './WhatsAppConfigDialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
 import { 
-  Users, Calendar, CreditCard, Activity, CheckCircle, MapPin
+  Users, Calendar, CreditCard, Activity, CheckCircle, MapPin, MessageSquare
 } from 'lucide-react'
 import { LoadingOverlay } from '@/components/ui/loading'
 import { useRealtimeSync } from '@/lib/useRealtimeSync'
@@ -31,6 +33,9 @@ export function AdminDashboard() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [viewDialogOpen, setViewDialogOpen] = useState(false)
   const [missionToView, setMissionToView] = useState<MissionWithAssignments | null>(null)
+  
+  // État pour le dialogue de configuration WhatsApp
+  const [whatsappConfigOpen, setWhatsAppConfigOpen] = useState(false)
   
   // Activer la synchronisation en temps réel
   useRealtimeSync()
@@ -135,6 +140,19 @@ export function AdminDashboard() {
             onTabChange={setActiveTab}
             tabs={tabs}
           />
+        </div>
+        
+        {/* Bouton de configuration WhatsApp */}
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setWhatsAppConfigOpen(true)}
+            className="flex items-center space-x-2"
+          >
+            <MessageSquare className="h-4 w-4" />
+            <span className="hidden sm:inline">WhatsApp</span>
+          </Button>
         </div>
       </div>
 
@@ -316,6 +334,12 @@ export function AdminDashboard() {
         open={viewDialogOpen}
         onOpenChange={setViewDialogOpen}
         onEdit={handleEditFromView}
+      />
+
+      {/* Dialogue de configuration WhatsApp */}
+      <WhatsAppConfigDialog
+        open={whatsappConfigOpen}
+        onOpenChange={setWhatsAppConfigOpen}
       />
     </div>
   )

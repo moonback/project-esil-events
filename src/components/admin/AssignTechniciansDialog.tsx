@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { UserPlus, Users, Check, X, Clock, AlertTriangle, Calendar } from 'lucide-react'
 import { formatCurrency, getMissionTypeColor, getStatusColor } from '@/lib/utils'
 import type { Mission, User, MissionAssignment, Availability, Unavailability } from '@/types/database'
+import { WhatsAppService } from '@/lib/whatsapp'
 
 interface AssignTechniciansDialogProps {
   mission?: Mission | null
@@ -209,6 +210,44 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
           .insert(assignments)
 
         if (error) throw error
+
+        // Envoyer les messages WhatsApp aux techniciens assignés
+        if (WhatsAppService.isConfigured()) {
+          const techniciansToNotify = technicians.filter(tech => 
+            selectedTechnicians.includes(tech.id) && tech.phone
+          )
+
+          for (const technician of techniciansToNotify) {
+            try {
+              const notificationData = {
+                technicianName: technician.name,
+                missionTitle: mission.title,
+                missionType: mission.type,
+                dateStart: mission.date_start,
+                dateEnd: mission.date_end,
+                location: mission.location,
+                forfeit: mission.forfeit,
+                requiredPeople: mission.required_people,
+                description: mission.description || undefined
+              }
+
+              const success = await WhatsAppService.sendMissionProposal(
+                technician.phone!,
+                notificationData
+              )
+
+              if (success) {
+                console.log(`Message WhatsApp envoyé avec succès à ${technician.name}`)
+              } else {
+                console.error(`Échec de l'envoi du message WhatsApp à ${technician.name}`)
+              }
+            } catch (error) {
+              console.error(`Erreur lors de l'envoi du message WhatsApp à ${technician.name}:`, error)
+            }
+          }
+        } else {
+          console.warn('Service WhatsApp non configuré. Les messages ne seront pas envoyés.')
+        }
       }
 
       // Rafraîchir les données dans le store admin

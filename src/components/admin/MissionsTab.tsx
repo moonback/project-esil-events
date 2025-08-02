@@ -781,6 +781,7 @@ export function MissionsTab({
         mission={missionForTechnicianDetails}
         open={technicianDetailsOpen}
         onOpenChange={setTechnicianDetailsOpen}
+        onAssignTechnicians={handleAssignTechnicians}
       />
     </div>
   )

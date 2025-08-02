@@ -15,6 +15,7 @@ interface TechnicianContactDialogProps {
   mission?: Mission | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  onAssignTechnicians?: (mission: Mission) => void
 }
 
 interface TechnicianWithAssignment extends User {
@@ -22,7 +23,7 @@ interface TechnicianWithAssignment extends User {
   status: 'accepté' | 'proposé' | 'refusé' | 'non_assigné'
 }
 
-export function TechnicianContactDialog({ mission, open, onOpenChange }: TechnicianContactDialogProps) {
+export function TechnicianContactDialog({ mission, open, onOpenChange, onAssignTechnicians }: TechnicianContactDialogProps) {
   const [loading, setLoading] = useState(false)
   const [technicians, setTechnicians] = useState<TechnicianWithAssignment[]>([])
 
@@ -359,18 +360,20 @@ export function TechnicianContactDialog({ mission, open, onOpenChange }: Technic
                 >
                   Fermer
                 </Button>
-                {acceptedTechnicians.length < requiredPeople && (
-                  <Button 
-                    onClick={() => {
-                      // TODO: Ouvrir le dialogue d'assignation
-                      onOpenChange(false)
-                    }}
-                    className="bg-indigo-600 hover:bg-indigo-700"
-                  >
-                                         <UserIcon className="h-4 w-4 mr-2" />
+                                 {acceptedTechnicians.length < requiredPeople && (
+                   <Button 
+                     onClick={() => {
+                       if (mission && onAssignTechnicians) {
+                         onOpenChange(false)
+                         onAssignTechnicians(mission)
+                       }
+                     }}
+                     className="bg-indigo-600 hover:bg-indigo-700"
+                   >
+                     <UserIcon className="h-4 w-4 mr-2" />
                      Assigner plus de techniciens
-                  </Button>
-                )}
+                   </Button>
+                 )}
               </div>
             </div>
           )}

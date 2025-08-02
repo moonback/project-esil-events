@@ -26,7 +26,7 @@ import { useToast } from '@/lib/useToast'
 
 export function TechnicianProfileTab() {
   const { profile } = useAuthStore()
-  const { toast } = useToast()
+  const { showSuccess, showError } = useToast()
   const [loading, setLoading] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
@@ -68,20 +68,12 @@ export function TechnicianProfileTab() {
 
       if (error) throw error
 
-      toast({
-        title: "Succès",
-        description: "Vos informations de contact ont été mises à jour.",
-        type: "success"
-      })
+      showSuccess("Succès", "Vos informations de contact ont été mises à jour.")
 
       setIsEditing(false)
     } catch (error) {
       console.error('Erreur lors de la mise à jour:', error)
-      toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour vos informations de contact.",
-        type: "error"
-      })
+      showError("Erreur", "Impossible de mettre à jour vos informations de contact.")
     } finally {
       setLoading(false)
     }

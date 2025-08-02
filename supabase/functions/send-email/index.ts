@@ -1,3 +1,4 @@
+// @ts-ignore: Deno types not available in Node.js environment
 /// <reference types="https://deno.land/x/deno@v1.40.4/lib.deno.d.ts" />
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"

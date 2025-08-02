@@ -13,6 +13,7 @@
     "test:email:simulate": "node scripts/test-email-simple.js",
     "test:email:config": "node scripts/test-email-simple.js --config",
     "test:email:final": "node scripts/test-email-final.js",
+    "test:email:real-data": "node scripts/test-email-real-data.js",
     "supabase:start": "npx supabase start",
     "supabase:stop": "npx supabase stop",
     "supabase:deploy": "npx supabase functions deploy email-service"

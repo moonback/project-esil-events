@@ -229,11 +229,23 @@ export function MissionsWithAssignmentsTab() {
                                 </div>
                               </div>
                               <div className="text-xs text-gray-500">
-                                {assignment.responded_at && (
+                                {assignment.responded_at ? (
                                   <span>
-                                    Répondu le {format(parseISO(assignment.responded_at), 'dd/MM/yyyy', { locale: fr })}
+                                    {assignment.cancelled_by_admin ? (
+                                      <span className="text-orange-600">
+                                        Annulé manuellement le {format(parseISO(assignment.responded_at), 'dd/MM/yyyy', { locale: fr })}
+                                      </span>
+                                    ) : (
+                                      <span>
+                                        Répondu le {format(parseISO(assignment.responded_at), 'dd/MM/yyyy', { locale: fr })}
+                                      </span>
+                                    )}
                                   </span>
-                                )}
+                                ) : assignment.status === 'refusé' ? (
+                                  <span className="text-orange-600">
+                                    Annulé manuellement
+                                  </span>
+                                ) : null}
                               </div>
                             </div>
                           ))}

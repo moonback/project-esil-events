@@ -240,7 +240,8 @@ export const useMissionsStore = create<MissionsState>((set, get) => ({
         .from('mission_assignments')
         .update({ 
           status: 'refusé',
-          responded_at: new Date().toISOString()
+          responded_at: new Date().toISOString(),
+          cancelled_by_admin: true
         })
         .eq('mission_id', missionId)
         .eq('status', 'proposé')

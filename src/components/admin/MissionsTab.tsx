@@ -12,8 +12,167 @@ import {
 import { formatDateTime, formatCurrency, getMissionTypeColor, getStatusColor } from '@/lib/utils'
 import { MissionDialog } from './MissionDialog'
 import { AssignTechniciansDialog } from './AssignTechniciansDialog'
+import { TechnicianContactDialog } from './TechnicianContactDialog'
 import type { Mission, MissionWithAssignments } from '@/types/database'
 import { useAdminStore } from '@/store/adminStore'
+
+// Composant pour afficher les détails des assignations
+const AssignmentDetails = memo(({ 
+  mission,
+  onViewTechnicianDetails
+}: { 
+  mission: MissionWithAssignments
+  onViewTechnicianDetails: (mission: Mission) => void
+}) => {
+  const [showDetails, setShowDetails] = useState(false)
+  
+  const assignments = mission.mission_assignments || []
+  const acceptedAssignments = assignments.filter((a: any) => a.status === 'accepté')
+  const pendingAssignments = assignments.filter((a: any) => a.status === 'proposé')
+  const refusedAssignments = assignments.filter((a: any) => a.status === 'refusé')
+  const requiredPeople = mission.required_people || 1
+
+  if (assignments.length === 0) {
+    return (
+      <div className="text-xs text-gray-500 italic">
+        Aucun technicien assigné
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      {/* Résumé des assignations */}
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-gray-600">Assignations</span>
+        <div className="flex items-center space-x-2">
+          {acceptedAssignments.length > 0 && (
+            <Badge className="bg-green-100 text-green-800 text-xs">
+              <Check className="h-3 w-3 mr-1" />
+              {acceptedAssignments.length} accepté(s)
+            </Badge>
+          )}
+          {pendingAssignments.length > 0 && (
+            <Badge className="bg-amber-100 text-amber-800 text-xs">
+              <Clock className="h-3 w-3 mr-1" />
+              {pendingAssignments.length} en attente
+            </Badge>
+          )}
+          {refusedAssignments.length > 0 && (
+            <Badge className="bg-red-100 text-red-800 text-xs">
+              <XIcon className="h-3 w-3 mr-1" />
+              {refusedAssignments.length} refusé(s)
+            </Badge>
+          )}
+        </div>
+      </div>
+
+      {/* Techniciens acceptés avec avatars et noms */}
+      {acceptedAssignments.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-green-700">Techniciens validés</span>
+            <span className="text-xs text-gray-500">
+              {acceptedAssignments.length}/{requiredPeople}
+            </span>
+          </div>
+          
+          <div className="space-y-1">
+            {acceptedAssignments.map((assignment: any) => (
+              <div key={assignment.id} className="flex items-center space-x-2 p-2 bg-green-50 rounded-md">
+                <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                  <User className="h-3 w-3 text-white" />
+                </div>
+                <div className="flex-1">
+                  <span className="text-xs font-medium text-gray-900">
+                    {assignment.users?.name || 'Technicien'}
+                  </span>
+                  {assignment.users?.phone && (
+                    <p className="text-xs text-gray-500">{assignment.users.phone}</p>
+                  )}
+                </div>
+                <Badge className="bg-green-500 text-white text-xs">
+                  <Check className="h-3 w-3 mr-1" />
+                  Validé
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+             {/* Boutons d'action */}
+       {assignments.length > 0 && (
+         <div className="flex space-x-2">
+           <Button
+             variant="ghost"
+             size="sm"
+             onClick={() => setShowDetails(!showDetails)}
+             className="flex-1 text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+           >
+             {showDetails ? 'Masquer les détails' : 'Voir tous les détails'}
+           </Button>
+           <Button
+             variant="ghost"
+             size="sm"
+             onClick={() => onViewTechnicianDetails(mission)}
+             className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+             title="Voir les détails complets des techniciens"
+           >
+             <Users className="h-3 w-3" />
+           </Button>
+         </div>
+       )}
+
+      {/* Détails complets des assignations */}
+      {showDetails && assignments.length > 0 && (
+        <div className="space-y-2 mt-2 p-2 bg-gray-50 rounded-md">
+          <h4 className="text-xs font-medium text-gray-700 mb-2">Détails des assignations</h4>
+          
+          {pendingAssignments.length > 0 && (
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-amber-700">En attente de réponse</span>
+              {pendingAssignments.map((assignment: any) => (
+                <div key={assignment.id} className="flex items-center space-x-2 p-1">
+                  <div className="w-4 h-4 bg-gradient-to-r from-amber-500 to-amber-600 rounded-full flex items-center justify-center">
+                    <User className="h-2 w-2 text-white" />
+                  </div>
+                  <span className="text-xs text-gray-700">
+                    {assignment.users?.name || 'Technicien'}
+                  </span>
+                  <Badge className="bg-amber-100 text-amber-800 text-xs">
+                    En attente
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {refusedAssignments.length > 0 && (
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-red-700">Refusés</span>
+              {refusedAssignments.map((assignment: any) => (
+                <div key={assignment.id} className="flex items-center space-x-2 p-1">
+                  <div className="w-4 h-4 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center">
+                    <User className="h-2 w-2 text-white" />
+                  </div>
+                  <span className="text-xs text-gray-700">
+                    {assignment.users?.name || 'Technicien'}
+                  </span>
+                  <Badge className="bg-red-100 text-red-800 text-xs">
+                    Refusé
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+})
+
+AssignmentDetails.displayName = 'AssignmentDetails'
 
 // Composant optimisé pour les cartes de missions en vue Kanban
 const MissionCard = memo(({ 
@@ -22,6 +181,7 @@ const MissionCard = memo(({
   onAssign, 
   onDelete, 
   onQuickAssign,
+  onViewTechnicianDetails,
   deleteLoading 
 }: {
   mission: MissionWithAssignments
@@ -29,6 +189,7 @@ const MissionCard = memo(({
   onAssign: (mission: Mission) => void
   onDelete: (id: string) => void
   onQuickAssign: (mission: Mission) => void
+  onViewTechnicianDetails: (mission: Mission) => void
   deleteLoading: string | null
 }) => {
   const missionStatus = useMemo(() => {
@@ -68,6 +229,15 @@ const MissionCard = memo(({
           </div>
           
           <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => onViewTechnicianDetails(mission)}
+              className="h-7 w-7 p-0 hover:bg-blue-50 hover:text-blue-600"
+              title="Voir les techniciens assignés"
+            >
+              <Users className="h-3 w-3" />
+            </Button>
             <Button 
               variant="ghost" 
               size="sm" 
@@ -138,37 +308,12 @@ const MissionCard = memo(({
           </div>
         </div>
 
-        {/* Techniciens assignés avec avatars */}
-        {acceptedAssignments.length > 0 && (
-          <div className="mb-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-gray-600">Techniciens assignés</span>
-              <span className="text-xs text-gray-500">
-                {acceptedAssignments.length}/{requiredPeople}
-              </span>
-            </div>
-            
-            <div className="flex items-center space-x-1">
-              {acceptedAssignments.slice(0, 3).map((assignment: any, index: number) => (
-                <div key={assignment.id} className="flex items-center space-x-1">
-                  <div className="w-6 h-6 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center">
-                    <User className="h-3 w-3 text-white" />
-                  </div>
-                  {index < 2 && <div className="w-px h-4 bg-gray-200" />}
-                </div>
-              ))}
-              {acceptedAssignments.length > 3 && (
-                <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center">
-                  <span className="text-xs text-gray-600">+{acceptedAssignments.length - 3}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+                 {/* Détails des assignations */}
+         <AssignmentDetails mission={mission} onViewTechnicianDetails={onViewTechnicianDetails} />
 
         {/* Barre de progression */}
         {mission.mission_assignments && mission.mission_assignments.length > 0 && (
-          <div className="w-full bg-gray-200 rounded-full h-1.5">
+          <div className="w-full bg-gray-200 rounded-full h-1.5 mt-3">
             <div
               className="bg-emerald-500 h-1.5 rounded-full transition-all duration-300"
               style={{
@@ -208,6 +353,8 @@ export function MissionsTab({
   const [dialogOpen, setDialogOpen] = useState(false)
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
   const [missionToAssign, setMissionToAssign] = useState<Mission | null>(null)
+  const [technicianDetailsOpen, setTechnicianDetailsOpen] = useState(false)
+  const [missionForTechnicianDetails, setMissionForTechnicianDetails] = useState<Mission | null>(null)
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
   const [deleteAllLoading, setDeleteAllLoading] = useState(false)
   const [createTestLoading, setCreateTestLoading] = useState(false)
@@ -235,6 +382,11 @@ export function MissionsTab({
   const handleQuickAssign = useCallback((mission: Mission) => {
     setMissionToAssign(mission)
     setAssignDialogOpen(true)
+  }, [])
+
+  const handleViewTechnicianDetails = useCallback((mission: Mission) => {
+    setMissionForTechnicianDetails(mission)
+    setTechnicianDetailsOpen(true)
   }, [])
 
   const handleDelete = useCallback(async (id: string) => {
@@ -293,8 +445,9 @@ export function MissionsTab({
     onEdit: handleEdit,
     onAssign: handleAssignTechnicians,
     onDelete: handleDelete,
-    onQuickAssign: handleQuickAssign
-  }), [handleEdit, handleAssignTechnicians, handleDelete, handleQuickAssign])
+    onQuickAssign: handleQuickAssign,
+    onViewTechnicianDetails: handleViewTechnicianDetails
+  }), [handleEdit, handleAssignTechnicians, handleDelete, handleQuickAssign, handleViewTechnicianDetails])
 
   const missionStats = stats.missions
 
@@ -585,6 +738,7 @@ export function MissionsTab({
                       onAssign={handlers.onAssign}
                       onDelete={handlers.onDelete}
                       onQuickAssign={handlers.onQuickAssign}
+                      onViewTechnicianDetails={handlers.onViewTechnicianDetails}
                       deleteLoading={deleteLoading}
                     />
                   ))}
@@ -603,6 +757,7 @@ export function MissionsTab({
                 onAssign={handlers.onAssign}
                 onDelete={handlers.onDelete}
                 onQuickAssign={handlers.onQuickAssign}
+                onViewTechnicianDetails={handlers.onViewTechnicianDetails}
                 deleteLoading={deleteLoading}
               />
             ))}
@@ -620,6 +775,12 @@ export function MissionsTab({
         mission={missionToAssign}
         open={assignDialogOpen}
         onOpenChange={setAssignDialogOpen}
+      />
+
+      <TechnicianContactDialog
+        mission={missionForTechnicianDetails}
+        open={technicianDetailsOpen}
+        onOpenChange={setTechnicianDetailsOpen}
       />
     </div>
   )

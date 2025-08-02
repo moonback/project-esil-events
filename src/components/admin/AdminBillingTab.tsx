@@ -1,21 +1,37 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAdminStore } from '@/store/adminStore'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Check, Edit, Trash2, DollarSign, TrendingUp, Users, Filter, X, Clock, CheckCircle, CreditCard, Plus } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { 
+  Check, Edit, Trash2, DollarSign, TrendingUp, Users, Filter, X, 
+  Clock, CheckCircle, CreditCard, Plus, Calendar, List, BarChart3,
+  Eye, EyeOff, Download, FileText
+} from 'lucide-react'
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils'
 import type { BillingWithDetails, User } from '@/types/database'
 import { CreatePaymentDialog } from './CreatePaymentDialog'
+import { BillingCalendarView } from './BillingCalendarView'
+import { AdvancedBillingFilters, type BillingFilters } from './AdvancedBillingFilters'
 
 export function AdminBillingTab() {
   const { billings, technicians, loading, stats } = useAdminStore()
-  const [filter, setFilter] = useState<'all' | 'en_attente' | 'validé' | 'payé'>('all')
-  const [technicianFilter, setTechnicianFilter] = useState<string>('all')
   const [createPaymentDialogOpen, setCreatePaymentDialogOpen] = useState(false)
   const [selectedTechnician, setSelectedTechnician] = useState<User | null>(null)
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
+  const [filters, setFilters] = useState<BillingFilters>({
+    search: '',
+    status: 'all',
+    technician: 'all',
+    dateRange: { start: '', end: '' },
+    amountRange: { min: '', max: '' },
+    sortBy: 'date',
+    sortOrder: 'desc',
+    showStats: true
+  })
 
   // Les données sont maintenant gérées par le store admin
 
@@ -58,15 +74,88 @@ export function AdminBillingTab() {
     }
   }
 
-  const filteredBillings = billings.filter(billing => {
-    // Filtre par statut
-    const statusMatch = filter === 'all' || billing.status === filter
-    
-    // Filtre par technicien
-    const technicianMatch = technicianFilter === 'all' || billing.technician_id === technicianFilter
-    
-    return statusMatch && technicianMatch
-  })
+  // Appliquer les filtres avancés
+  const filteredBillings = useMemo(() => {
+    return billings.filter(billing => {
+      // Recherche textuelle
+      if (filters.search) {
+        const searchTerm = filters.search.toLowerCase()
+        const matchesSearch = 
+          billing.missions?.title?.toLowerCase().includes(searchTerm) ||
+          billing.users?.name?.toLowerCase().includes(searchTerm) ||
+          billing.notes?.toLowerCase().includes(searchTerm) ||
+          billing.id.toLowerCase().includes(searchTerm)
+        
+        if (!matchesSearch) return false
+      }
+
+      // Filtre par statut
+      if (filters.status !== 'all' && billing.status !== filters.status) {
+        return false
+      }
+
+      // Filtre par technicien
+      if (filters.technician !== 'all' && billing.technician_id !== filters.technician) {
+        return false
+      }
+
+      // Filtre par plage de dates
+      if (filters.dateRange.start || filters.dateRange.end) {
+        const paymentDate = billing.payment_date ? new Date(billing.payment_date) : null
+        if (!paymentDate) return false
+
+        if (filters.dateRange.start) {
+          const startDate = new Date(filters.dateRange.start)
+          if (paymentDate < startDate) return false
+        }
+
+        if (filters.dateRange.end) {
+          const endDate = new Date(filters.dateRange.end)
+          if (paymentDate > endDate) return false
+        }
+      }
+
+      // Filtre par plage de montants
+      if (filters.amountRange.min || filters.amountRange.max) {
+        const amount = billing.amount
+
+        if (filters.amountRange.min) {
+          const minAmount = parseFloat(filters.amountRange.min)
+          if (amount < minAmount) return false
+        }
+
+        if (filters.amountRange.max) {
+          const maxAmount = parseFloat(filters.amountRange.max)
+          if (amount > maxAmount) return false
+        }
+      }
+
+      return true
+    }).sort((a, b) => {
+      const order = filters.sortOrder === 'asc' ? 1 : -1
+      
+      switch (filters.sortBy) {
+        case 'date':
+          const dateA = a.payment_date ? new Date(a.payment_date).getTime() : 0
+          const dateB = b.payment_date ? new Date(b.payment_date).getTime() : 0
+          return (dateA - dateB) * order
+          
+        case 'amount':
+          return (a.amount - b.amount) * order
+          
+        case 'technician':
+          const nameA = a.users?.name || ''
+          const nameB = b.users?.name || ''
+          return nameA.localeCompare(nameB) * order
+          
+        case 'status':
+          return a.status.localeCompare(b.status) * order
+          
+        default:
+          return 0
+      }
+    })
+  }, [billings, filters])
 
   const handleCreatePayment = (technician: User) => {
     setSelectedTechnician(technician)
@@ -91,13 +180,24 @@ export function AdminBillingTab() {
           <h3 className="text-xl font-semibold">Gestion de la Facturation</h3>
           <p className="text-gray-600">Gérez les paiements et rémunérations des techniciens</p>
         </div>
-        <Button
-          onClick={() => setCreatePaymentDialogOpen(true)}
-          className="bg-green-600 hover:bg-green-700"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Créer un paiement
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}
+            className="flex items-center space-x-2"
+          >
+            {viewMode === 'list' ? <Calendar className="h-4 w-4" /> : <List className="h-4 w-4" />}
+            <span>{viewMode === 'list' ? 'Vue Calendrier' : 'Vue Liste'}</span>
+          </Button>
+          <Button
+            onClick={() => setCreatePaymentDialogOpen(true)}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Créer un paiement
+          </Button>
+        </div>
       </div>
 
       {/* Statistiques */}
@@ -151,231 +251,136 @@ export function AdminBillingTab() {
         </Card>
       </div>
 
-      {/* Filtres */}
-      <Card className="bg-white border-gray-200 shadow-sm">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-gray-600" />
-              <h3 className="text-sm font-semibold text-gray-700">Filtres</h3>
-            </div>
-            {(filter !== 'all' || technicianFilter !== 'all') && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setFilter('all')
-                  setTechnicianFilter('all')
-                }}
-                className="h-6 px-2 text-xs text-gray-500 hover:text-red-600"
-              >
-                <X className="h-3 w-3 mr-1" />
-                Effacer
-              </Button>
-            )}
+      {/* Filtres et recherche */}
+      <AdvancedBillingFilters
+        billings={billings}
+        technicians={technicians}
+        filters={filters}
+        onFiltersChange={setFilters}
+      />
+
+      {/* Vue des facturations */}
+      {viewMode === 'list' ? (
+        <div className="space-y-4">
+          {/* Indicateur de résultats */}
+          <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
+            <span>
+              {filteredBillings.length} facturation{filteredBillings.length > 1 ? 's' : ''} 
+              {filteredBillings.length !== billings.length && (
+                <span> sur {billings.length} total</span>
+              )}
+            </span>
+            {filters.search || filters.status !== 'all' || filters.technician !== 'all' || 
+             filters.dateRange.start || filters.dateRange.end || 
+             filters.amountRange.min || filters.amountRange.max ? (
+              <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-600 border-blue-200">
+                Filtres actifs
+              </Badge>
+            ) : null}
           </div>
-          
-          <div className="space-y-3">
-            {/* Filtre par statut */}
-            <div className="flex items-center gap-2">
-              <CreditCard className="h-3 w-3 text-gray-500 flex-shrink-0" />
-              <div className="flex flex-wrap gap-1">
-                <Button
-                  variant={filter === 'all' ? 'default' : 'ghost'}
-                  onClick={() => setFilter('all')}
-                  size="sm"
-                  className={`h-6 px-2 text-xs ${
-                    filter === 'all' 
-                      ? 'bg-blue-600 hover:bg-blue-700' 
-                      : 'hover:bg-blue-50'
-                  }`}
-                >
-                  Toutes
-                </Button>
-                <Button
-                  variant={filter === 'en_attente' ? 'default' : 'ghost'}
-                  onClick={() => setFilter('en_attente')}
-                  size="sm"
-                  className={`h-6 px-2 text-xs ${
-                    filter === 'en_attente' 
-                      ? 'bg-yellow-600 hover:bg-yellow-700' 
-                      : 'hover:bg-yellow-50'
-                  }`}
-                >
-                  En attente
-                </Button>
-                <Button
-                  variant={filter === 'validé' ? 'default' : 'ghost'}
-                  onClick={() => setFilter('validé')}
-                  size="sm"
-                  className={`h-6 px-2 text-xs ${
-                    filter === 'validé' 
-                      ? 'bg-blue-600 hover:bg-blue-700' 
-                      : 'hover:bg-blue-50'
-                  }`}
-                >
-                  Validées
-                </Button>
-                <Button
-                  variant={filter === 'payé' ? 'default' : 'ghost'}
-                  onClick={() => setFilter('payé')}
-                  size="sm"
-                  className={`h-6 px-2 text-xs ${
-                    filter === 'payé' 
-                      ? 'bg-green-600 hover:bg-green-700' 
-                      : 'hover:bg-green-50'
-                  }`}
-                >
-                  Payées
-                </Button>
-              </div>
-            </div>
 
-            {/* Filtre par technicien */}
-            <div className="flex items-center gap-2">
-              <Users className="h-3 w-3 text-gray-500 flex-shrink-0" />
-              <div className="flex flex-wrap gap-1">
-                <Button
-                  variant={technicianFilter === 'all' ? 'default' : 'ghost'}
-                  onClick={() => setTechnicianFilter('all')}
-                  size="sm"
-                  className={`h-6 px-2 text-xs ${
-                    technicianFilter === 'all' 
-                      ? 'bg-purple-600 hover:bg-purple-700' 
-                      : 'hover:bg-purple-50'
-                  }`}
-                >
-                  Tous
-                </Button>
-                {technicians.map((technician) => (
-                  <Button
-                    key={technician.id}
-                    variant={technicianFilter === technician.id ? 'default' : 'ghost'}
-                    onClick={() => setTechnicianFilter(technician.id)}
-                    size="sm"
-                    className={`h-6 px-2 text-xs ${
-                      technicianFilter === technician.id 
-                        ? 'bg-purple-600 hover:bg-purple-700' 
-                        : 'hover:bg-purple-50'
-                    }`}
-                  >
-                    {technician.name}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Liste des facturations */}
-      <div className="space-y-4">
-        {/* Indicateur de résultats */}
-        <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
-          <span>
-            {filteredBillings.length} facturation{filteredBillings.length > 1 ? 's' : ''} 
-            {filteredBillings.length !== billings.length && (
-              <span> sur {billings.length} total</span>
-            )}
-          </span>
-          {(filter !== 'all' || technicianFilter !== 'all') && (
-            <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-600 border-blue-200">
-              Filtres actifs
-            </Badge>
-          )}
-        </div>
-
-        <div className="grid gap-4">
-          {filteredBillings.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <p className="text-gray-500">
-                  {filter === 'all' && technicianFilter === 'all' 
-                    ? 'Aucune facturation' 
-                    : 'Aucune facturation correspondant aux critères sélectionnés'
-                  }
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            filteredBillings.map((billing) => (
-              <Card key={billing.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center">
-                    <div className="md:col-span-2">
-                      <h4 className="font-medium">{billing.missions?.title || 'Mission inconnue'}</h4>
-                      <p className="text-sm text-gray-600">{billing.users?.name || 'Technicien inconnu'}</p>
-                      <p className="text-xs text-gray-500">
-                        {billing.missions?.date_start ? formatDate(billing.missions.date_start) : 'Date inconnue'}
-                      </p>
-                    </div>
-
-                    <div className="text-center">
-                      <p className="text-lg font-bold text-green-600">
-                        {formatCurrency(billing.amount)}
-                      </p>
-                    </div>
-
-                    <div className="text-center">
-                      <Badge className={getStatusColor(billing.status)}>
-                        {billing.status.replace('_', ' ')}
-                      </Badge>
-                    </div>
-
-                    <div className="text-center">
-                      {billing.payment_date ? (
-                        <p className="text-sm text-gray-600">
-                          {formatDate(billing.payment_date)}
-                        </p>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </div>
-
-                    <div className="flex justify-end space-x-2">
-                      {billing.status === 'en_attente' && (
-                        <Button
-                          size="sm"
-                          onClick={() => updateBillingStatus(billing.id, 'validé')}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          Valider
-                        </Button>
-                      )}
-                      
-                      {billing.status === 'validé' && (
-                        <Button
-                          size="sm"
-                          onClick={() => updateBillingStatus(billing.id, 'payé')}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          Marquer payé
-                        </Button>
-                      )}
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => deleteBilling(billing.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {billing.notes && (
-                    <div className="mt-4 pt-4 border-t">
-                      <p className="text-sm text-gray-600">
-                        <strong>Notes:</strong> {billing.notes}
-                      </p>
-                    </div>
-                  )}
+          <div className="grid gap-4">
+            {filteredBillings.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <p className="text-gray-500">
+                    {!filters.search && filters.status === 'all' && filters.technician === 'all' && 
+                     !filters.dateRange.start && !filters.dateRange.end && 
+                     !filters.amountRange.min && !filters.amountRange.max
+                      ? 'Aucune facturation' 
+                      : 'Aucune facturation correspondant aux critères sélectionnés'
+                    }
+                  </p>
                 </CardContent>
               </Card>
-            ))
-          )}
+            ) : (
+              filteredBillings.map((billing) => (
+                <Card key={billing.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center">
+                      <div className="md:col-span-2">
+                        <h4 className="font-medium">{billing.missions?.title || 'Mission inconnue'}</h4>
+                        <p className="text-sm text-gray-600">{billing.users?.name || 'Technicien inconnu'}</p>
+                        <p className="text-xs text-gray-500">
+                          {billing.missions?.date_start ? formatDate(billing.missions.date_start) : 'Date inconnue'}
+                        </p>
+                      </div>
+
+                      <div className="text-center">
+                        <p className="text-lg font-bold text-green-600">
+                          {formatCurrency(billing.amount)}
+                        </p>
+                      </div>
+
+                      <div className="text-center">
+                        <Badge className={getStatusColor(billing.status)}>
+                          {billing.status.replace('_', ' ')}
+                        </Badge>
+                      </div>
+
+                      <div className="text-center">
+                        {billing.payment_date ? (
+                          <p className="text-sm text-gray-600">
+                            {formatDate(billing.payment_date)}
+                          </p>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </div>
+
+                      <div className="flex justify-end space-x-2">
+                        {billing.status === 'en_attente' && (
+                          <Button
+                            size="sm"
+                            onClick={() => updateBillingStatus(billing.id, 'validé')}
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            Valider
+                          </Button>
+                        )}
+                        
+                        {billing.status === 'validé' && (
+                          <Button
+                            size="sm"
+                            onClick={() => updateBillingStatus(billing.id, 'payé')}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            Marquer payé
+                          </Button>
+                        )}
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deleteBilling(billing.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {billing.notes && (
+                      <div className="mt-4 pt-4 border-t">
+                        <p className="text-sm text-gray-600">
+                          <strong>Notes:</strong> {billing.notes}
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         </div>
-      </div>
+      ) : (
+        <BillingCalendarView 
+          billings={filteredBillings}
+          onBillingClick={(billing) => {
+            // TODO: Ouvrir une modal de détails pour la facturation
+            console.log('Billing clicked:', billing)
+          }}
+        />
+      )}
 
       {/* Dialog de création de paiement */}
       <CreatePaymentDialog

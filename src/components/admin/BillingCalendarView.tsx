@@ -237,17 +237,25 @@ export function BillingCalendarView({ billings, onBillingClick }: BillingCalenda
                      </div>
                    )}
 
-                  {/* Montant total */}
-                  {stats.total > 0 && (
-                    <div className="mt-1">
-                      <div className="flex items-center space-x-1">
-                        <DollarSign className="h-2 w-2 text-green-500" />
-                        <span className="text-xs font-medium text-green-700">
-                          {formatCurrency(stats.total)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
+                                     {/* Montant total */}
+                   {stats.total > 0 && (
+                     <div className="mt-1">
+                       <div className="flex items-center space-x-1">
+                         <DollarSign className="h-2 w-2 text-green-500" />
+                         <span className="text-xs font-medium text-green-700">
+                           {formatCurrency(stats.total)}
+                         </span>
+                       </div>
+                       {/* Afficher le nombre de techniciens */}
+                       {stats.count > 0 && (
+                         <div className="mt-1">
+                           <span className="text-xs text-blue-600 font-medium">
+                             {stats.count} paiement{stats.count > 1 ? 's' : ''}
+                           </span>
+                         </div>
+                       )}
+                     </div>
+                   )}
                 </div>
               )
             })}
@@ -256,18 +264,23 @@ export function BillingCalendarView({ billings, onBillingClick }: BillingCalenda
       </Card>
 
       {/* Détails de la date sélectionnée */}
-      {selectedDate && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Calendar className="h-5 w-5" />
-              <span>Paiements du {formatDate(selectedDate)}</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {(() => {
-              const dateKey = selectedDate.toDateString()
-              const dayBillings = billingsByDate[dateKey] || []
+      {selectedDate && (() => {
+        const dateKey = selectedDate.toDateString()
+        const dayBillings = billingsByDate[dateKey] || []
+        
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Calendar className="h-5 w-5" />
+                <span>Paiements du {formatDate(selectedDate)}</span>
+                <Badge variant="secondary" className="ml-2">
+                  {dayBillings.length} paiement{dayBillings.length > 1 ? 's' : ''}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {(() => {
               
               if (dayBillings.length === 0) {
                 return (
@@ -277,50 +290,62 @@ export function BillingCalendarView({ billings, onBillingClick }: BillingCalenda
                 )
               }
 
-                             return (
-                 <div className="space-y-3">
-                   {dayBillings.map(billing => (
-                     <div
-                       key={billing.id}
-                       className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
-                       onClick={() => onBillingClick?.(billing)}
-                     >
-                       <div className="flex-1">
-                         <h4 className="font-medium">{billing.missions?.title || 'Mission inconnue'}</h4>
-                         <p className="text-sm text-gray-600">{billing.users?.name || 'Technicien inconnu'}</p>
-                         <div className="flex items-center space-x-2 mt-1">
-                           {billing.payment_date ? (
-                             <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
-                               Payé le {formatDate(billing.payment_date)}
-                             </span>
-                           ) : billing.status === 'validé' ? (
-                             <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                               Validé - En attente de paiement
-                             </span>
-                           ) : billing.status === 'en_attente' ? (
-                             <span className="text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded">
-                               En attente de validation
-                             </span>
-                           ) : null}
-                         </div>
-                       </div>
-                       
-                       <div className="flex items-center space-x-3">
-                         <Badge className={getStatusColor(billing.status)}>
-                           {billing.status.replace('_', ' ')}
-                         </Badge>
-                         <span className="font-semibold text-green-600">
-                           {formatCurrency(billing.amount)}
-                         </span>
-                       </div>
-                     </div>
-                   ))}
-                 </div>
-               )
-            })()}
-          </CardContent>
-        </Card>
-      )}
+                                                           return (
+                  <div className="space-y-3">
+                    {dayBillings.map(billing => (
+                      <div
+                        key={billing.id}
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                        onClick={() => onBillingClick?.(billing)}
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <h4 className="font-medium text-blue-600">
+                              {billing.users?.name || 'Technicien inconnu'}
+                            </h4>
+                            <Badge className={getStatusColor(billing.status)}>
+                              {billing.status.replace('_', ' ')}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-700 font-medium">
+                            {billing.missions?.title || 'Mission inconnue'}
+                          </p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            {billing.payment_date ? (
+                              <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                                💰 Payé le {formatDate(billing.payment_date)}
+                              </span>
+                            ) : billing.status === 'validé' ? (
+                              <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                ⏳ Validé - En attente de paiement
+                              </span>
+                            ) : billing.status === 'en_attente' ? (
+                              <span className="text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded">
+                                ⏸️ En attente de validation
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-col items-end space-y-1">
+                          <span className="font-bold text-lg text-green-600">
+                            {formatCurrency(billing.amount)}
+                          </span>
+                          {billing.missions?.date_start && (
+                            <span className="text-xs text-gray-500">
+                              Mission: {formatDate(billing.missions.date_start)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()}
+            </CardContent>
+          </Card>
+        )
+      })()}
     </div>
   )
 } 

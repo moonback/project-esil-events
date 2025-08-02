@@ -96,59 +96,59 @@ export function TechnicianBillingTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h3 className="text-xl font-semibold">Ma Facturation</h3>
-        <p className="text-gray-600">
+        <h3 className="text-lg md:text-xl font-semibold">Ma Facturation</h3>
+        <p className="text-sm md:text-base text-gray-600">
           Consultez vos rémunérations et leur statut de paiement
         </p>
       </div>
 
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center space-x-2">
-              <TrendingUp className="h-8 w-8 text-blue-600" />
+              <TrendingUp className="h-6 w-6 md:h-8 md:w-8 text-blue-600" />
               <div>
-                <p className="text-sm font-medium text-gray-600">Total gagné</p>
-                <p className="text-xl font-bold">{formatCurrency(stats.totalAmount)}</p>
+                <p className="text-xs md:text-sm font-medium text-gray-600">Total gagné</p>
+                <p className="text-lg md:text-xl font-bold">{formatCurrency(stats.totalAmount)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center space-x-2">
-              <Clock className="h-8 w-8 text-yellow-600" />
+              <Clock className="h-6 w-6 md:h-8 md:w-8 text-yellow-600" />
               <div>
-                <p className="text-sm font-medium text-gray-600">En attente</p>
-                <p className="text-xl font-bold text-yellow-600">{formatCurrency(stats.pendingAmount)}</p>
+                <p className="text-xs md:text-sm font-medium text-gray-600">En attente</p>
+                <p className="text-lg md:text-xl font-bold text-yellow-600">{formatCurrency(stats.pendingAmount)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center space-x-2">
-              <CheckCircle className="h-8 w-8 text-blue-600" />
+              <CheckCircle className="h-6 w-6 md:h-8 md:w-8 text-blue-600" />
               <div>
-                <p className="text-sm font-medium text-gray-600">Validé</p>
-                <p className="text-xl font-bold text-blue-600">{formatCurrency(stats.validatedAmount)}</p>
+                <p className="text-xs md:text-sm font-medium text-gray-600">Validé</p>
+                <p className="text-lg md:text-xl font-bold text-blue-600">{formatCurrency(stats.validatedAmount)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center space-x-2">
-              <DollarSign className="h-8 w-8 text-green-600" />
+              <DollarSign className="h-6 w-6 md:h-8 md:w-8 text-green-600" />
               <div>
-                <p className="text-sm font-medium text-gray-600">Payé</p>
-                <p className="text-xl font-bold text-green-600">{formatCurrency(stats.paidAmount)}</p>
+                <p className="text-xs md:text-sm font-medium text-gray-600">Payé</p>
+                <p className="text-lg md:text-xl font-bold text-green-600">{formatCurrency(stats.paidAmount)}</p>
               </div>
             </div>
           </CardContent>
@@ -156,11 +156,12 @@ export function TechnicianBillingTab() {
       </div>
 
       {/* Filtres */}
-      <div className="flex space-x-2">
+      <div className="flex flex-wrap gap-2">
         <Button
           variant={filter === 'all' ? 'default' : 'outline'}
           onClick={() => setFilter('all')}
           size="sm"
+          className="text-xs px-3 py-1"
         >
           Toutes
         </Button>
@@ -168,6 +169,7 @@ export function TechnicianBillingTab() {
           variant={filter === 'en_attente' ? 'default' : 'outline'}
           onClick={() => setFilter('en_attente')}
           size="sm"
+          className="text-xs px-3 py-1"
         >
           En attente
         </Button>
@@ -175,6 +177,7 @@ export function TechnicianBillingTab() {
           variant={filter === 'validé' ? 'default' : 'outline'}
           onClick={() => setFilter('validé')}
           size="sm"
+          className="text-xs px-3 py-1"
         >
           Validées
         </Button>
@@ -182,6 +185,7 @@ export function TechnicianBillingTab() {
           variant={filter === 'payé' ? 'default' : 'outline'}
           onClick={() => setFilter('payé')}
           size="sm"
+          className="text-xs px-3 py-1"
         >
           Payées
         </Button>

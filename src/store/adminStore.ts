@@ -431,57 +431,112 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       // Créer 5 missions de test avec des données variées
       const testMissions = [
         {
-          title: 'Événement DJ - Soirée étudiante',
-          description: 'Animation musicale pour soirée étudiante avec système son complet',
-          type: 'DJ',
-          location: 'Campus universitaire - Salle des fêtes',
-          date_start: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // +7 jours
-          date_end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000).toISOString(), // +4h
+          title: 'Livraison jeux - Anniversaire',
+          description: 'Installation et animation de jeux en bois pour anniversaire enfants',
+          type: 'Livraison jeux',
+          location: 'Salle des fêtes municipale',
+          date_start: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // +5 jours
+          date_end: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000).toISOString(), // +4h
           forfeit: 800,
           required_people: 2,
           created_by: user?.id
         },
         {
-          title: 'Livraison jeux - Mariage',
-          description: 'Installation et animation de jeux pour réception de mariage',
-          type: 'Livraison jeux',
-          location: 'Château de la Vallée - Salle de réception',
-          date_start: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // +14 jours
-          date_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000 + 6 * 60 * 60 * 1000).toISOString(), // +6h
-          forfeit: 1200,
+          title: 'Soirée DJ - Club',
+          description: 'Animation DJ pour soirée en club',
+          type: 'DJ',
+          location: 'Le Petit Club',
+          date_start: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // +7 jours
+          date_end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000 + 6 * 60 * 60 * 1000).toISOString(), // +6h
+          forfeit: 450,
+          required_people: 1,
+          created_by: user?.id
+        },
+        {
+          title: 'Sonorisation - Concert',
+          description: 'Installation et gestion son pour concert live',
+          type: 'Presta sono',
+          location: 'Théâtre municipal',
+          date_start: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString(), // +12 jours
+          date_end: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000 + 5 * 60 * 60 * 1000).toISOString(), // +5h
+          forfeit: 1100,
           required_people: 3,
           created_by: user?.id
         },
         {
-          title: 'Presta sono - Concert rock',
-          description: 'Installation sonore complète pour concert de rock en salle',
-          type: 'Presta sono',
-          location: 'Salle de concert Le Rock - Centre-ville',
+          title: 'Déménagement matériel',
+          description: 'Transport de matériel entre deux entrepôts',
+          type: 'Manutention',
+          location: 'Zone industrielle Est',
           date_start: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // +3 jours
           date_end: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 8 * 60 * 60 * 1000).toISOString(), // +8h
+          forfeit: 600,
+          required_people: 4,
+          created_by: user?.id
+        },
+        {
+          title: 'Transport sono - Festival',
+          description: 'Transport et installation système son pour festival',
+          type: 'Déplacement',
+          location: 'Champ festival - Route des vignes',
+          date_start: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString(), // +8 jours
+          date_end: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000).toISOString(), // +3h
+          forfeit: 350,
+          required_people: 2,
+          created_by: user?.id
+        },
+        {
+          title: 'Animation DJ - Mariage',
+          description: 'Animation musicale pour mariage avec système son et éclairage',
+          type: 'DJ',
+          location: 'Domaine des Roses - Salle de réception',
+          date_start: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // +10 jours
+          date_end: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000 + 8 * 60 * 60 * 1000).toISOString(), // +8h
+          forfeit: 1200,
+          required_people: 2,
+          created_by: user?.id
+        },
+        {
+          title: 'Livraison jeux - Festival',
+          description: 'Installation et animation de jeux en bois pour festival familial',
+          type: 'Livraison jeux', 
+          location: 'Parc municipal - Zone animations',
+          date_start: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(), // +21 jours
+          date_end: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000 + 10 * 60 * 60 * 1000).toISOString(), // +10h
           forfeit: 1500,
           required_people: 4,
           created_by: user?.id
         },
         {
-          title: 'Manutention - Déménagement bureau',
-          description: 'Aide au déménagement et installation de mobilier de bureau',
-          type: 'Manutention',
-          location: 'Bâtiment administratif - 3ème étage',
-          date_start: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(), // +1 jour
-          date_end: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000 + 5 * 60 * 60 * 1000).toISOString(), // +5h
-          forfeit: 600,
+          title: 'Sonorisation - Conférence',
+          description: 'Installation et gestion du système son pour conférence d\'entreprise',
+          type: 'Presta sono',
+          location: 'Centre de congrès - Auditorium principal',
+          date_start: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(), // +4 jours
+          date_end: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000 + 6 * 60 * 60 * 1000).toISOString(), // +6h
+          forfeit: 900,
           required_people: 2,
           created_by: user?.id
         },
         {
-          title: 'Déplacement - Installation exposition',
-          description: 'Transport et installation d\'équipements pour exposition d\'art',
+          title: 'Manutention - Festival',
+          description: 'Installation et démontage des structures pour festival de musique',
+          type: 'Manutention',
+          location: 'Esplanade du port',
+          date_start: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // +2 jours
+          date_end: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000).toISOString(), // +12h
+          forfeit: 1800,
+          required_people: 6,
+          created_by: user?.id
+        },
+        {
+          title: 'Transport matériel - Salon',
+          description: 'Transport et installation du matériel pour salon professionnel',
           type: 'Déplacement',
-          location: 'Musée d\'Art Contemporain - Galerie principale',
-          date_start: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // +5 jours
-          date_end: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000 + 7 * 60 * 60 * 1000).toISOString(), // +7h
-          forfeit: 900,
+          location: 'Parc des expositions - Hall 3',
+          date_start: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(), // +15 jours
+          date_end: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000 + 5 * 60 * 60 * 1000).toISOString(), // +5h
+          forfeit: 750,
           required_people: 3,
           created_by: user?.id
         }

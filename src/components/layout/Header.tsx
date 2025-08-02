@@ -1,23 +1,25 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
   LogOut, User, Sparkles, Menu, X, Bell, Settings, ChevronDown, Crown, Wrench,
-  Search, RefreshCw, Maximize2, Minimize2, BarChart3
+  Search, RefreshCw, Maximize2, Minimize2, BarChart3, Activity, Clock, 
+  Wifi, WifiOff, AlertCircle, CheckCircle, TrendingUp, Users as UsersIcon
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function Header() {
   const { profile, signOut } = useAuthStore()
-  const { isConnected, refreshData } = useAdminStore()
+  const { isConnected, refreshData, stats, lastSync } = useAdminStore()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTimeRange, setSelectedTimeRange] = useState('30d')
   const [notifications, setNotifications] = useState(3)
+  const [showStats, setShowStats] = useState(false)
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
 
@@ -38,6 +40,36 @@ export function Header() {
       setIsFullscreen(false)
     }
   }
+
+  // Formater la dernière synchronisation
+  const formatLastSync = () => {
+    if (!lastSync) return 'Jamais'
+    const now = new Date()
+    const syncTime = new Date(lastSync)
+    const diffMs = now.getTime() - syncTime.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    
+    if (diffMins < 1) return 'À l\'instant'
+    if (diffMins < 60) return `Il y a ${diffMins} min`
+    const diffHours = Math.floor(diffMins / 60)
+    if (diffHours < 24) return `Il y a ${diffHours}h`
+    const diffDays = Math.floor(diffHours / 24)
+    return `Il y a ${diffDays}j`
+  }
+
+  // Calculer les statistiques rapides
+  const getQuickStats = () => {
+    if (!stats) return null
+    
+    return {
+      missions: stats.missions.total,
+      technicians: stats.technicians.available,
+      revenue: stats.billings.totalAmount,
+      pending: stats.missions.total - (stats.missions.assignedCount || 0)
+    }
+  }
+
+  const quickStats = getQuickStats()
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-lg shadow-sm border-b border-gray-200/50">
@@ -76,7 +108,27 @@ export function Header() {
                 )}
               </Badge>
             )}
+
+            
           </div>
+
+          {/* Statistiques rapides - seulement pour admin */}
+          {profile?.role === 'admin' && quickStats && (
+            <div className="hidden lg:flex items-center space-x-4">
+              <div className="flex items-center space-x-2 px-3 py-1 bg-blue-50 rounded-full">
+                <Activity className="h-3 w-3 text-blue-600" />
+                <span className="text-xs font-medium text-blue-700">{quickStats.missions} missions</span>
+              </div>
+              
+              
+              {quickStats.pending > 0 && (
+                <div className="flex items-center space-x-2 px-3 py-1 bg-orange-50 rounded-full">
+                  <AlertCircle className="h-3 w-3 text-orange-600" />
+                  <span className="text-xs font-medium text-orange-700">{quickStats.pending} en attente</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Actions et statut */}
           <div className="flex items-center space-x-2 sm:space-x-4">
@@ -103,6 +155,7 @@ export function Header() {
                 onClick={handleRefresh}
                 disabled={isRefreshing}
                 className="hidden sm:block p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                title="Actualiser les données"
               >
                 <RefreshCw className={cn("h-4 w-4 sm:h-5 sm:w-5", isRefreshing && "animate-spin")} />
               </Button>
@@ -115,14 +168,15 @@ export function Header() {
                 size="sm"
                 onClick={toggleFullscreen}
                 className="hidden lg:block p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
               >
                 {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
               </Button>
             )}
 
             {/* Profil utilisateur - version desktop */}
-            <div className="hidden sm:flex items-center space-x-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-md border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 cursor-pointer">
-              <div className="p-1 rounded-md bg-blue-600 text-white">
+            <div className="hidden sm:flex items-center space-x-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-md border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
+              <div className="p-1 rounded-md bg-gradient-to-br from-blue-600 to-blue-700 text-white">
                 <User className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
               </div>
               <div className="flex flex-col">
@@ -139,7 +193,7 @@ export function Header() {
               variant="outline"
               size="sm"
               onClick={signOut}
-              className="hidden sm:flex items-center space-x-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-md font-medium border-red-200 text-red-600 hover:bg-red-50"
+              className="hidden sm:flex items-center space-x-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-md font-medium border-red-200 text-red-600 hover:bg-red-50 transition-colors"
             >
               <LogOut className="h-3 w-3" />
               <span className="hidden lg:inline text-xs">Déconnexion</span>
@@ -162,14 +216,14 @@ export function Header() {
         {/* Menu mobile déroulant */}
         <div className={`
           sm:hidden overflow-hidden transition-all duration-300
-          ${isMenuOpen ? 'max-h-80 opacity-100 mt-2' : 'max-h-0 opacity-0'}
+          ${isMenuOpen ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'}
         `}>
           <div className="p-3 rounded-md border border-gray-200 bg-white shadow-lg">
             {profile && (
               <div className="space-y-3">
                 {/* Profil mobile */}
                 <div className="flex items-center space-x-3 p-3 rounded-md bg-gray-50">
-                  <div className="p-2 rounded-md bg-blue-600 text-white">
+                  <div className="p-2 rounded-md bg-gradient-to-br from-blue-600 to-blue-700 text-white">
                     <User className="h-4 w-4" />
                   </div>
                   <div className="flex-1">
@@ -194,6 +248,64 @@ export function Header() {
                     )}
                   </Badge>
                 </div>
+
+                {/* Statut de connexion mobile */}
+                <div className="flex items-center justify-between p-3 rounded-md bg-gray-50">
+                  <div className="flex items-center space-x-2">
+                    {isConnected ? (
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-red-500" />
+                    )}
+                    <span className="text-sm text-gray-700">
+                      {isConnected ? 'Connecté' : 'Déconnecté'}
+                    </span>
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {formatLastSync()}
+                  </span>
+                </div>
+
+                {/* Statistiques rapides mobile - seulement pour admin */}
+                {profile?.role === 'admin' && quickStats && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-3 rounded-md bg-blue-50">
+                      <div className="flex items-center space-x-2">
+                        <Activity className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm font-medium text-blue-700">{quickStats.missions}</span>
+                      </div>
+                      <p className="text-xs text-blue-600 mt-1">Missions</p>
+                    </div>
+                    
+                    <div className="p-3 rounded-md bg-green-50">
+                      <div className="flex items-center space-x-2">
+                        <UsersIcon className="h-4 w-4 text-green-600" />
+                        <span className="text-sm font-medium text-green-700">{quickStats.technicians}</span>
+                      </div>
+                      <p className="text-xs text-green-600 mt-1">Techniciens</p>
+                    </div>
+                    
+                    <div className="p-3 rounded-md bg-amber-50">
+                      <div className="flex items-center space-x-2">
+                        <TrendingUp className="h-4 w-4 text-amber-600" />
+                        <span className="text-sm font-medium text-amber-700">
+                          {quickStats.revenue > 0 ? `${(quickStats.revenue / 1000).toFixed(1)}k€` : '0€'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-amber-600 mt-1">Revenus</p>
+                    </div>
+                    
+                    {quickStats.pending > 0 && (
+                      <div className="p-3 rounded-md bg-orange-50">
+                        <div className="flex items-center space-x-2">
+                          <AlertCircle className="h-4 w-4 text-orange-600" />
+                          <span className="text-sm font-medium text-orange-700">{quickStats.pending}</span>
+                        </div>
+                        <p className="text-xs text-orange-600 mt-1">En attente</p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Actions mobiles */}
                 <div className="space-y-1">

@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useEmailService } from '@/services/emailService'
 import { SmtpStatus } from '@/components/ui/smtp-status'
-import { Mail, Send, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { Mail, Send, CheckCircle, XCircle } from 'lucide-react'
 
 interface SmtpTestDialogProps {
   open: boolean
@@ -44,47 +44,35 @@ export function SmtpTestDialog({ open, onOpenChange }: SmtpTestDialogProps) {
         template: {
           subject,
           html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center;">
-                <h1 style="margin: 0;">Esil-events</h1>
-                <p style="margin: 10px 0 0 0;">Test SMTP</p>
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h2 style="color: #2563eb;">Test SMTP - Esil-events</h2>
+              <p>Ceci est un email de test pour vérifier la configuration SMTP.</p>
+              <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #1e293b; margin-top: 0;">Détails du test</h3>
+                <p><strong>Date :</strong> ${new Date().toLocaleString('fr-FR')}</p>
+                <p><strong>Statut SMTP :</strong> ${isConnected ? 'Connecté' : 'Déconnecté'}</p>
               </div>
-              
-              <div style="padding: 20px; background: #f9f9f9;">
-                <h2 style="color: #333;">Test de configuration SMTP</h2>
-                
-                <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                  <p><strong>Message de test :</strong></p>
-                  <p>${message}</p>
-                </div>
-                
-                <div style="background: #e8f5e8; padding: 15px; border-radius: 6px; margin: 20px 0;">
-                  <p style="margin: 0; color: #2d5a2d;">
-                    ✅ Si vous recevez cet email, la configuration SMTP fonctionne correctement !
-                  </p>
-                </div>
-                
-                <p style="color: #666; font-size: 14px;">
-                  Date et heure du test : ${new Date().toLocaleString('fr-FR')}
+              <p>Si vous recevez cet email, la configuration SMTP fonctionne correctement.</p>
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="color: #64748b; font-size: 14px;">
+                  Cet email a été envoyé automatiquement par le système Esil-events.
                 </p>
-              </div>
-              
-              <div style="background: #333; color: white; padding: 20px; text-align: center; font-size: 12px;">
-                <p>Cet email a été envoyé automatiquement par le système Esil-events</p>
-                <p>Statut de connexion: ${isConnected ? 'Connecté' : 'Non connecté'}</p>
               </div>
             </div>
           `,
           text: `
-            Test de configuration SMTP - Esil-events
-            
-            Message de test :
-            ${message}
-            
-            Si vous recevez cet email, la configuration SMTP fonctionne correctement !
-            
-            Date et heure du test : ${new Date().toLocaleString('fr-FR')}
-            Statut de connexion: ${isConnected ? 'Connecté' : 'Non connecté'}
+Test SMTP - Esil-events
+
+Ceci est un email de test pour vérifier la configuration SMTP.
+
+Détails du test :
+Date : ${new Date().toLocaleString('fr-FR')}
+Statut SMTP : ${isConnected ? 'Connecté' : 'Déconnecté'}
+
+Si vous recevez cet email, la configuration SMTP fonctionne correctement.
+
+---
+Cet email a été envoyé automatiquement par le système Esil-events.
           `
         }
       })
@@ -115,7 +103,7 @@ export function SmtpTestDialog({ open, onOpenChange }: SmtpTestDialogProps) {
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Mail className="h-5 w-5 text-blue-600" />
+            <Mail className="h-5 w-5" />
             Test de configuration SMTP
           </DialogTitle>
         </DialogHeader>
@@ -123,59 +111,57 @@ export function SmtpTestDialog({ open, onOpenChange }: SmtpTestDialogProps) {
         <div className="space-y-6">
           {/* Statut SMTP */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <AlertCircle className="h-5 w-5" />
-                Statut de la connexion SMTP
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <SmtpStatus showDetails />
+                <span>Statut de la connexion</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <SmtpStatus showDetails={true} />
-                <Badge variant={isConnected ? 'default' : 'destructive'}>
-                  {isConnected ? 'Connecté' : 'Déconnecté'}
-                </Badge>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Badge variant={isConnected ? "default" : "destructive"}>
+                    {isConnected ? "Connecté" : "Déconnecté"}
+                  </Badge>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Configuration SMTP active. Les emails sont envoyés via le serveur SMTP.
+                </p>
               </div>
             </CardContent>
           </Card>
 
           {/* Configuration SMTP */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Mail className="h-5 w-5" />
-                Configuration SMTP
-              </CardTitle>
+            <CardHeader>
+              <CardTitle>Configuration SMTP</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <Label className="text-xs text-gray-600">Serveur SMTP</Label>
-                  <p className="font-medium">{import.meta.env.VITE_SMTP_HOST || 'mail.dresscodeia.fr'}</p>
+                  <span className="font-medium">Serveur :</span>
+                  <p className="text-gray-600">{import.meta.env.VITE_SMTP_HOST || 'mail.dresscodeia.fr'}</p>
                 </div>
                 <div>
-                  <Label className="text-xs text-gray-600">Port</Label>
-                  <p className="font-medium">{import.meta.env.VITE_SMTP_PORT || '465'}</p>
+                  <span className="font-medium">Port :</span>
+                  <p className="text-gray-600">{import.meta.env.VITE_SMTP_PORT || '465'}</p>
                 </div>
                 <div>
-                  <Label className="text-xs text-gray-600">Utilisateur</Label>
-                  <p className="font-medium">{import.meta.env.VITE_SMTP_USER || 'client@dresscodeia.fr'}</p>
+                  <span className="font-medium">Utilisateur :</span>
+                  <p className="text-gray-600">{import.meta.env.VITE_SMTP_USER || 'client@dresscodeia.fr'}</p>
                 </div>
                 <div>
-                  <Label className="text-xs text-gray-600">Expéditeur</Label>
-                  <p className="font-medium">{import.meta.env.VITE_SMTP_FROM || 'client@dresscodeia.fr'}</p>
+                  <span className="font-medium">Expéditeur :</span>
+                  <p className="text-gray-600">{import.meta.env.VITE_SMTP_FROM || 'client@dresscodeia.fr'}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Test d'envoi */}
+          {/* Formulaire de test */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Send className="h-5 w-5" />
-                Test d'envoi d'email
-              </CardTitle>
+            <CardHeader>
+              <CardTitle>Test d'envoi d'email</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -188,7 +174,7 @@ export function SmtpTestDialog({ open, onOpenChange }: SmtpTestDialogProps) {
                   onChange={(e) => setTestEmail(e.target.value)}
                 />
               </div>
-
+              
               <div>
                 <Label htmlFor="test-subject">Sujet</Label>
                 <Input
@@ -197,7 +183,7 @@ export function SmtpTestDialog({ open, onOpenChange }: SmtpTestDialogProps) {
                   onChange={(e) => setSubject(e.target.value)}
                 />
               </div>
-
+              
               <div>
                 <Label htmlFor="test-message">Message</Label>
                 <Textarea
@@ -208,8 +194,8 @@ export function SmtpTestDialog({ open, onOpenChange }: SmtpTestDialogProps) {
                 />
               </div>
 
-              <Button
-                onClick={handleSendTest}
+              <Button 
+                onClick={handleSendTest} 
                 disabled={sending || !isConnected}
                 className="w-full"
               >
@@ -234,12 +220,15 @@ export function SmtpTestDialog({ open, onOpenChange }: SmtpTestDialogProps) {
                 }`}>
                   <div className="flex items-center gap-2">
                     {result.success ? (
-                      <CheckCircle className="h-5 w-5" />
+                      <CheckCircle className="h-5 w-5 text-green-600" />
                     ) : (
-                      <XCircle className="h-5 w-5" />
+                      <XCircle className="h-5 w-5 text-red-600" />
                     )}
-                    <p className="font-medium">{result.message}</p>
+                    <span className="font-medium">
+                      {result.success ? 'Succès' : 'Erreur'}
+                    </span>
                   </div>
+                  <p className="mt-1 text-sm">{result.message}</p>
                 </div>
               )}
             </CardContent>

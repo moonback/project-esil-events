@@ -68,16 +68,19 @@ export const useSmtpStatus = () => {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const checkConnection = () => {
+    const checkStatus = () => {
       const emailService = EmailService.getInstance()
       setIsConnected(emailService.getConnectionStatus())
       setIsLoading(false)
     }
 
-    checkConnection()
-    const interval = setInterval(checkConnection, 30000)
+    checkStatus()
+    const interval = setInterval(checkStatus, 30000)
     return () => clearInterval(interval)
   }, [])
 
-  return { isConnected, isLoading }
+  return {
+    isConnected,
+    isLoading
+  }
 } 

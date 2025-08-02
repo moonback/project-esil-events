@@ -33,7 +33,7 @@ export class EmailService {
   // Vérification de la connexion SMTP
   private async verifyConnection(): Promise<void> {
     try {
-      // Test de connexion via l'API
+      // Test de connexion via l'API Supabase
       const { data, error } = await supabase.functions.invoke('send-email', {
         body: {
           emailData: {

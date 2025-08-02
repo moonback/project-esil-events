@@ -3,9 +3,11 @@ import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { SmtpStatus } from '@/components/ui/smtp-status'
+import { SmtpTestDialog } from '@/components/admin/SmtpTestDialog'
 import { 
   LogOut, User, Sparkles, Menu, X, Bell, Settings, ChevronDown, Crown, Wrench,
-  Search, RefreshCw, Maximize2, Minimize2, BarChart3
+  Search, RefreshCw, Maximize2, Minimize2, BarChart3, Mail
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -18,6 +20,7 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTimeRange, setSelectedTimeRange] = useState('30d')
   const [notifications, setNotifications] = useState(3)
+  const [smtpTestOpen, setSmtpTestOpen] = useState(false)
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
 
@@ -81,6 +84,22 @@ export function Header() {
           {/* Actions et statut */}
           <div className="flex items-center space-x-2 sm:space-x-4">
             
+            {/* Statut SMTP - seulement pour admin */}
+            {profile?.role === 'admin' && (
+              <div className="hidden sm:flex items-center gap-2">
+                <SmtpStatus />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSmtpTestOpen(true)}
+                  className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Test SMTP"
+                >
+                  <Mail className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
             {/* Notifications */}
             <Button
               variant="ghost"
@@ -243,6 +262,9 @@ export function Header() {
           </div>
         </div>
       </div>
+
+      {/* Dialog de test SMTP */}
+      <SmtpTestDialog open={smtpTestOpen} onOpenChange={setSmtpTestOpen} />
     </header>
   )
 }

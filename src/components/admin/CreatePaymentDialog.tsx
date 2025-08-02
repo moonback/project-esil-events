@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
+import { useEmailService } from '@/services/emailService'
 import { Calendar, DollarSign, Clock, MapPin, Plus, X, User as UserIcon, AlertCircle, CheckCircle, Eye } from 'lucide-react'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import type { User, Mission, MissionAssignment, Billing } from '@/types/database'
@@ -27,6 +28,7 @@ interface BillingWithDetails extends Billing {
 }
 
 export function CreatePaymentDialog({ open, onOpenChange, technician: initialTechnician }: CreatePaymentDialogProps) {
+  const { sendPaymentCreated } = useEmailService()
   const [loading, setLoading] = useState(false)
   const [loadingTechnicians, setLoadingTechnicians] = useState(false)
   const [technicians, setTechnicians] = useState<User[]>([])
@@ -218,6 +220,19 @@ export function CreatePaymentDialog({ open, onOpenChange, technician: initialTec
       }).filter(Boolean)
 
       await Promise.all(billingPromises)
+
+      // Envoyer un email au technicien
+      if (selectedTechnician && selectedTechnician.email) {
+        try {
+          const selectedMissionsData = acceptedMissions.filter(m => selectedMissions.includes(m.id))
+          const totalAmount = customAmount !== null ? customAmount : totalAmount
+          
+          await sendPaymentCreated(selectedTechnician, totalAmount, selectedMissionsData)
+          console.log(`✅ Email de paiement envoyé à ${selectedTechnician.name} (${selectedTechnician.email})`)
+        } catch (emailError) {
+          console.error(`❌ Erreur lors de l'envoi de l'email de paiement:`, emailError)
+        }
+      }
 
       // Réinitialiser le formulaire et recharger les données
       setSelectedMissions([])

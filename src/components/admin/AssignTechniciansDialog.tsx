@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { useEmailService } from '@/services/emailService'
 import { UserPlus, Users, Check, X, Clock, AlertTriangle, Calendar } from 'lucide-react'
 import { formatCurrency, getMissionTypeColor, getStatusColor } from '@/lib/utils'
 import type { Mission, User, MissionAssignment, Availability, Unavailability } from '@/types/database'
@@ -25,6 +26,7 @@ interface TechnicianWithAssignment extends User {
 
 export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignTechniciansDialogProps) {
   const { fetchMissions } = useAdminStore()
+  const { sendMissionAssignment } = useEmailService()
   const [loading, setLoading] = useState(false)
   const [technicians, setTechnicians] = useState<TechnicianWithAssignment[]>([])
   const [selectedTechnicians, setSelectedTechnicians] = useState<string[]>([])
@@ -204,11 +206,27 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
           status: 'proposé' as const
         }))
 
-        const { error } = await supabase
+        const { data: newAssignments, error } = await supabase
           .from('mission_assignments')
           .insert(assignments)
+          .select()
 
         if (error) throw error
+
+        // Envoyer les emails aux techniciens assignés
+        if (newAssignments) {
+          for (const assignment of newAssignments) {
+            const technician = technicians.find(t => t.id === assignment.technician_id)
+            if (technician && technician.email) {
+              try {
+                await sendMissionAssignment(technician, mission, assignment)
+                console.log(`✅ Email envoyé à ${technician.name} (${technician.email})`)
+              } catch (emailError) {
+                console.error(`❌ Erreur lors de l'envoi de l'email à ${technician.name}:`, emailError)
+              }
+            }
+          }
+        }
       }
 
       // Rafraîchir les données dans le store admin

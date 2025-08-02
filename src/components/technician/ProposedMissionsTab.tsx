@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { useEmailService } from '@/services/emailService'
 import { Check, X, Clock, MapPin, Calendar, DollarSign, AlertTriangle } from 'lucide-react'
 import { formatDateTime, formatCurrency, getMissionTypeColor } from '@/lib/utils'
 import type { MissionAssignment, Mission } from '@/types/database'
@@ -16,6 +17,7 @@ interface ProposedMission extends MissionAssignment {
 export function ProposedMissionsTab() {
   const profile = useAuthStore(state => state.profile)
   const { updateAssignmentStatus } = useMissionsStore()
+  const { sendMissionAccepted, sendMissionRejected } = useEmailService()
   const [proposedMissions, setProposedMissions] = useState<ProposedMission[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
@@ -132,6 +134,22 @@ export function ProposedMissionsTab() {
               amount: assignment.missions.forfeit,
               status: 'en_attente'
             }])
+        }
+      }
+
+      // Envoyer un email de confirmation
+      const assignment = proposedMissions.find(m => m.id === assignmentId)
+      if (assignment && profile) {
+        try {
+          if (status === 'accepté') {
+            await sendMissionAccepted(profile, assignment.missions)
+            console.log(`✅ Email de confirmation envoyé à ${profile.name}`)
+          } else {
+            await sendMissionRejected(profile, assignment.missions)
+            console.log(`✅ Email de refus envoyé à ${profile.name}`)
+          }
+        } catch (emailError) {
+          console.error(`❌ Erreur lors de l'envoi de l'email:`, emailError)
         }
       }
 

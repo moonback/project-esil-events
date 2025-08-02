@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { useAdminStore } from '@/store/adminStore'
 import { MissionsTab } from './MissionsTab'
 import { TechniciansTab } from './TechniciansTab'
@@ -6,13 +6,13 @@ import { AdminAgendaTab } from './AdminAgendaTab'
 import { AdminBillingTab } from './AdminBillingTab'
 import { MissionsWithAssignmentsTab } from './MissionsWithAssignmentsTab'
 import { PaymentSummaryCard } from './PaymentSummaryCard'
-import { ResponsiveTabs } from '@/components/ui/responsive-tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
-  Users, Calendar, CreditCard, Activity, CheckCircle, 
-  Clock, ArrowUp, ArrowDown, Eye, EyeOff} from 'lucide-react'
+  Users, Calendar, CreditCard, Activity, CheckCircle
+} from 'lucide-react'
 import { LoadingOverlay } from '@/components/ui/loading'
 import { useRealtimeSync } from '@/lib/useRealtimeSync'
-import { cn } from '@/lib/utils'
+import { MobileMenu } from '@/components/ui/mobile-menu'
 
 export function AdminDashboard() {
   const { fetchAllData, refreshData, loading, lastSync, isConnected, stats } = useAdminStore()
@@ -20,7 +20,7 @@ export function AdminDashboard() {
   const [selectedFilter, setSelectedFilter] = useState('all')
   const [sortBy, setSortBy] = useState('date')
   const [viewMode, setViewMode] = useState<'kanban' | 'list' | 'grid'>('kanban')
-  const [activeSection, setActiveSection] = useState<'missions' | 'assignations' | 'technicians' | 'agenda' | 'billing'>('missions')
+  const [activeTab, setActiveTab] = useState('missions')
   
   // Activer la synchronisation en temps réel
   useRealtimeSync()
@@ -41,226 +41,211 @@ export function AdminDashboard() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [refreshData])
 
-  // Fonction pour rendre le contenu de la section active
-  const renderActiveSection = () => {
-    switch (activeSection) {
-      case 'missions':
-        return (
-          <LoadingOverlay loading={loading.missions} text="Chargement des missions...">
-            <MissionsTab 
-              searchQuery={searchQuery}
-              selectedFilter={selectedFilter}
-              sortBy={sortBy}
-              viewMode={viewMode}
-              onSearchChange={setSearchQuery}
-              onFilterChange={setSelectedFilter}
-              onSortChange={setSortBy}
-              onViewModeChange={setViewMode}
-            />
-          </LoadingOverlay>
-        )
-      case 'assignations':
-        return (
-          <LoadingOverlay loading={loading.missions} text="Chargement des assignations...">
-            <MissionsWithAssignmentsTab />
-          </LoadingOverlay>
-        )
-      case 'technicians':
-        return (
-          <LoadingOverlay loading={loading.technicians} text="Chargement des techniciens...">
-            <TechniciansTab />
-          </LoadingOverlay>
-        )
-      case 'agenda':
-        return (
-          <LoadingOverlay loading={loading.missions} text="Chargement de l'agenda...">
-            <AdminAgendaTab />
-          </LoadingOverlay>
-        )
-      case 'billing':
-        return (
-          <LoadingOverlay loading={loading.billings} text="Chargement des facturations...">
-            <div className="space-y-8 p-6">
-              <PaymentSummaryCard 
-                billings={useAdminStore.getState().billings}
-                onViewAll={() => {}}
-              />
-              <AdminBillingTab />
-            </div>
-          </LoadingOverlay>
-        )
-      default:
-        return null
+  const tabs = [
+    {
+      value: 'missions',
+      label: 'Missions',
+      icon: Activity,
+      color: 'indigo'
+    },
+    {
+      value: 'assignations',
+      label: 'Assignations',
+      icon: Users,
+      color: 'blue'
+    },
+    {
+      value: 'technicians',
+      label: 'Techniciens',
+      icon: Users,
+      color: 'green'
+    },
+    {
+      value: 'agenda',
+      label: 'Agenda',
+      icon: Calendar,
+      color: 'purple'
+    },
+    {
+      value: 'billing',
+      label: 'Facturation',
+      icon: CreditCard,
+      color: 'orange'
     }
+  ]
+
+  const getTabColor = (color: string, isActive: boolean) => {
+    const colors = {
+      indigo: isActive ? 'bg-indigo-600 text-white' : 'hover:bg-indigo-50 data-[state=active]:bg-indigo-600 data-[state=active]:text-white',
+      blue: isActive ? 'bg-blue-600 text-white' : 'hover:bg-blue-50 data-[state=active]:bg-blue-600 data-[state=active]:text-white',
+      green: isActive ? 'bg-green-600 text-white' : 'hover:bg-green-50 data-[state=active]:bg-green-600 data-[state=active]:text-white',
+      purple: isActive ? 'bg-purple-600 text-white' : 'hover:bg-purple-50 data-[state=active]:bg-purple-600 data-[state=active]:text-white',
+      orange: isActive ? 'bg-orange-600 text-white' : 'hover:bg-orange-50 data-[state=active]:bg-orange-600 data-[state=active]:text-white'
+    }
+    return colors[color as keyof typeof colors] || colors.indigo
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
-      {/* Composant principal - Gestion des données */}
-      <section className="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+    <div className="space-y-6 animate-fade-in-up p-4">
+      {/* Header responsive */}
+      <div className="flex items-center justify-between">
+        <div className="hidden md:block">
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard ESIL</h1>
+          <p className="text-gray-600 mt-1">Administration & Monitoring</p>
+        </div>
+        
+        {/* Menu mobile */}
+        <div className="md:hidden">
+          <MobileMenu 
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            tabs={tabs}
+          />
+        </div>
+      </div>
 
-          
-          {/* Menu de navigation amélioré */}
-          <div className="px-8 py-6">
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Gestion des données</h2>
-              <p className="text-gray-600 text-lg">Sélectionnez une section pour gérer vos ressources</p>
-            </div>
-            
-            {/* Menu de navigation avec design moderne */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-              <button 
-                onClick={() => setActiveSection('missions')}
-                className={`group relative rounded-2xl p-6 border transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
-                  activeSection === 'missions' 
-                    ? 'bg-gradient-to-br from-indigo-100 to-indigo-200 border-indigo-300 shadow-lg' 
-                    : 'bg-gradient-to-br from-indigo-50 to-indigo-100 hover:from-indigo-100 hover:to-indigo-200 border-indigo-200 hover:border-indigo-300'
-                }`}
-              >
-                <div className="flex flex-col items-center text-center space-y-4">
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 ${
-                    activeSection === 'missions' 
-                      ? 'bg-gradient-to-br from-indigo-600 to-indigo-700' 
-                      : 'bg-gradient-to-br from-indigo-500 to-indigo-600'
-                  }`}>
-                    <Activity className="h-8 w-8 text-white" />
-                  </div>
-                  <div>
-                    <h3 className={`text-lg font-bold transition-colors ${
-                      activeSection === 'missions' ? 'text-indigo-700' : 'text-gray-900 group-hover:text-indigo-700'
-                    }`}>Missions</h3>
-                    <p className="text-sm text-gray-600 mt-1">Gestion des missions actives</p>
-                    <div className="mt-2 text-xs font-semibold text-indigo-600 bg-indigo-100 px-2 py-1 rounded-full">
-                      {stats.missions.total} missions
-                    </div>
-                  </div>
-                </div>
-              </button>
+      {/* Tabs desktop */}
+      <div className="hidden md:block">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5 bg-white border border-gray-200 shadow-sm rounded-lg p-1">
+            {tabs.map((tab) => {
+              const Icon = tab.icon
+              return (
+                <TabsTrigger 
+                  key={tab.value}
+                  value={tab.value} 
+                  className={`flex items-center space-x-2 rounded-md transition-all duration-200 text-sm font-medium ${getTabColor(tab.color, false)}`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{tab.label}</span>
+                </TabsTrigger>
+              )
+            })}
+          </TabsList>
 
-              <button 
-                onClick={() => setActiveSection('assignations')}
-                className={`group relative rounded-2xl p-6 border transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
-                  activeSection === 'assignations' 
-                    ? 'bg-gradient-to-br from-blue-100 to-blue-200 border-blue-300 shadow-lg' 
-                    : 'bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border-blue-200 hover:border-blue-300'
-                }`}
-              >
-                <div className="flex flex-col items-center text-center space-y-4">
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 ${
-                    activeSection === 'assignations' 
-                      ? 'bg-gradient-to-br from-blue-600 to-blue-700' 
-                      : 'bg-gradient-to-br from-blue-500 to-blue-600'
-                  }`}>
-                    <Users className="h-8 w-8 text-white" />
-                  </div>
-                  <div>
-                    <h3 className={`text-lg font-bold transition-colors ${
-                      activeSection === 'assignations' ? 'text-blue-700' : 'text-gray-900 group-hover:text-blue-700'
-                    }`}>Assignations</h3>
-                    <p className="text-sm text-gray-600 mt-1">Gestion des assignations</p>
-                    <div className="mt-2 text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
-                      {stats.missions.assignedCount} assignées
-                    </div>
-                  </div>
-                </div>
-              </button>
+          <TabsContent value="missions" className="animate-slide-in-right">
+            <LoadingOverlay loading={loading.missions} text="Chargement des missions...">
+              <MissionsTab 
+                searchQuery={searchQuery}
+                selectedFilter={selectedFilter}
+                sortBy={sortBy}
+                viewMode={viewMode}
+                onSearchChange={setSearchQuery}
+                onFilterChange={setSelectedFilter}
+                onSortChange={setSortBy}
+                onViewModeChange={setViewMode}
+              />
+            </LoadingOverlay>
+          </TabsContent>
 
-              <button 
-                onClick={() => setActiveSection('technicians')}
-                className={`group relative rounded-2xl p-6 border transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
-                  activeSection === 'technicians' 
-                    ? 'bg-gradient-to-br from-emerald-100 to-emerald-200 border-emerald-300 shadow-lg' 
-                    : 'bg-gradient-to-br from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 border-emerald-200 hover:border-emerald-300'
-                }`}
-              >
-                <div className="flex flex-col items-center text-center space-y-4">
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 ${
-                    activeSection === 'technicians' 
-                      ? 'bg-gradient-to-br from-emerald-600 to-emerald-700' 
-                      : 'bg-gradient-to-br from-emerald-500 to-emerald-600'
-                  }`}>
-                    <Users className="h-8 w-8 text-white" />
-                  </div>
-                  <div>
-                    <h3 className={`text-lg font-bold transition-colors ${
-                      activeSection === 'technicians' ? 'text-emerald-700' : 'text-gray-900 group-hover:text-emerald-700'
-                    }`}>Techniciens</h3>
-                    <p className="text-sm text-gray-600 mt-1">Équipe et ressources</p>
-                    <div className="mt-2 text-xs font-semibold text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full">
-                      {stats.technicians.available} disponibles
-                    </div>
-                  </div>
-                </div>
-              </button>
+          <TabsContent value="assignations" className="animate-slide-in-right">
+            <LoadingOverlay loading={loading.missions} text="Chargement des assignations...">
+              <MissionsWithAssignmentsTab />
+            </LoadingOverlay>
+          </TabsContent>
 
-              <button 
-                onClick={() => setActiveSection('agenda')}
-                className={`group relative rounded-2xl p-6 border transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
-                  activeSection === 'agenda' 
-                    ? 'bg-gradient-to-br from-purple-100 to-purple-200 border-purple-300 shadow-lg' 
-                    : 'bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border-purple-200 hover:border-purple-300'
-                }`}
-              >
-                <div className="flex flex-col items-center text-center space-y-4">
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 ${
-                    activeSection === 'agenda' 
-                      ? 'bg-gradient-to-br from-purple-600 to-purple-700' 
-                      : 'bg-gradient-to-br from-purple-500 to-purple-600'
-                  }`}>
-                    <Calendar className="h-8 w-8 text-white" />
-                  </div>
-                  <div>
-                    <h3 className={`text-lg font-bold transition-colors ${
-                      activeSection === 'agenda' ? 'text-purple-700' : 'text-gray-900 group-hover:text-purple-700'
-                    }`}>Agenda</h3>
-                    <p className="text-sm text-gray-600 mt-1">Planning et rendez-vous</p>
-                    <div className="mt-2 text-xs font-semibold text-purple-600 bg-purple-100 px-2 py-1 rounded-full">
-                      Planning
-                    </div>
-                  </div>
-                </div>
-              </button>
+          <TabsContent value="technicians" className="animate-slide-in-right">
+            <LoadingOverlay loading={loading.technicians} text="Chargement des techniciens...">
+              <TechniciansTab />
+            </LoadingOverlay>
+          </TabsContent>
 
-              <button 
-                onClick={() => setActiveSection('billing')}
-                className={`group relative rounded-2xl p-6 border transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
-                  activeSection === 'billing' 
-                    ? 'bg-gradient-to-br from-amber-100 to-amber-200 border-amber-300 shadow-lg' 
-                    : 'bg-gradient-to-br from-amber-50 to-amber-100 hover:from-amber-100 hover:to-amber-200 border-amber-200 hover:border-amber-300'
-                }`}
-              >
-                <div className="flex flex-col items-center text-center space-y-4">
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 ${
-                    activeSection === 'billing' 
-                      ? 'bg-gradient-to-br from-amber-600 to-amber-700' 
-                      : 'bg-gradient-to-br from-amber-500 to-amber-600'
-                  }`}>
-                    <CreditCard className="h-8 w-8 text-white" />
-                  </div>
-                  <div>
-                    <h3 className={`text-lg font-bold transition-colors ${
-                      activeSection === 'billing' ? 'text-amber-700' : 'text-gray-900 group-hover:text-amber-700'
-                    }`}>Facturation</h3>
-                    <p className="text-sm text-gray-600 mt-1">Gestion financière</p>
-                    <div className="mt-2 text-xs font-semibold text-amber-600 bg-amber-100 px-2 py-1 rounded-full">
-                      {stats.billings.totalAmount > 0 ? `${(stats.billings.totalAmount / 1000).toFixed(1)}k€` : '0€'}
-                    </div>
-                  </div>
-                </div>
-              </button>
-            </div>
-            
-            {/* Contenu de la section active */}
-            <div className="bg-gray-50 rounded-2xl p-6">
-              {renderActiveSection()}
-            </div>
+          <TabsContent value="agenda" className="animate-slide-in-right">
+            <LoadingOverlay loading={loading.missions} text="Chargement de l'agenda...">
+              <AdminAgendaTab />
+            </LoadingOverlay>
+          </TabsContent>
+
+          <TabsContent value="billing" className="animate-slide-in-right">
+            <LoadingOverlay loading={loading.billings} text="Chargement des facturations...">
+              <div className="space-y-6">
+                <PaymentSummaryCard 
+                  billings={useAdminStore.getState().billings}
+                  onViewAll={() => {}}
+                />
+                <AdminBillingTab />
+              </div>
+            </LoadingOverlay>
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Content mobile */}
+      <div className="md:hidden">
+        {activeTab === 'missions' && (
+          <div className="animate-slide-in-right">
+            <LoadingOverlay loading={loading.missions} text="Chargement des missions...">
+              <MissionsTab 
+                searchQuery={searchQuery}
+                selectedFilter={selectedFilter}
+                sortBy={sortBy}
+                viewMode={viewMode}
+                onSearchChange={setSearchQuery}
+                onFilterChange={setSelectedFilter}
+                onSortChange={setSortBy}
+                onViewModeChange={setViewMode}
+              />
+            </LoadingOverlay>
+          </div>
+        )}
+        
+        {activeTab === 'assignations' && (
+          <div className="animate-slide-in-right">
+            <LoadingOverlay loading={loading.missions} text="Chargement des assignations...">
+              <MissionsWithAssignmentsTab />
+            </LoadingOverlay>
+          </div>
+        )}
+        
+        {activeTab === 'technicians' && (
+          <div className="animate-slide-in-right">
+            <LoadingOverlay loading={loading.technicians} text="Chargement des techniciens...">
+              <TechniciansTab />
+            </LoadingOverlay>
+          </div>
+        )}
+        
+        {activeTab === 'agenda' && (
+          <div className="animate-slide-in-right">
+            <LoadingOverlay loading={loading.missions} text="Chargement de l'agenda...">
+              <AdminAgendaTab />
+            </LoadingOverlay>
+          </div>
+        )}
+        
+        {activeTab === 'billing' && (
+          <div className="animate-slide-in-right space-y-6">
+            <LoadingOverlay loading={loading.billings} text="Chargement des facturations...">
+              <div className="space-y-6">
+                <PaymentSummaryCard 
+                  billings={useAdminStore.getState().billings}
+                  onViewAll={() => {}}
+                />
+                <AdminBillingTab />
+              </div>
+            </LoadingOverlay>
+          </div>
+        )}
+      </div>
+
+      {/* Indicateur d'onglet actuel pour mobile */}
+      <div className="md:hidden">
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
+          <div className="flex items-center space-x-3">
+            {(() => {
+              const currentTab = tabs.find(tab => tab.value === activeTab)
+              if (!currentTab) return null
+              const Icon = currentTab.icon
+              return (
+                <>
+                  <Icon className={`h-5 w-5 text-${currentTab.color}-600`} />
+                  <span className="font-medium text-gray-900">{currentTab.label}</span>
+                </>
+              )
+            })()}
           </div>
         </div>
-      </section>
-
-      {/* Espacement pour la barre de navigation mobile */}
-      <div className="md:hidden h-20"></div>
+      </div>
     </div>
   )
 }

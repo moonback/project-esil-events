@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { UserPlus, Users, Check, X, Clock, AlertTriangle, Calendar } from 'lucide-react'
+import { UserPlus, Users, Check, X, Clock, AlertTriangle, Calendar, MessageSquare } from 'lucide-react'
 import { formatCurrency, getMissionTypeColor, getStatusColor } from '@/lib/utils'
+import { useWhatsAppNotifications } from '@/lib/useWhatsAppNotifications'
 import type { Mission, User, MissionAssignment, Availability, Unavailability } from '@/types/database'
 
 interface AssignTechniciansDialogProps {
@@ -25,9 +26,11 @@ interface TechnicianWithAssignment extends User {
 
 export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignTechniciansDialogProps) {
   const { fetchMissions } = useAdminStore()
+  const { sendBulkAssignmentNotifications } = useWhatsAppNotifications()
   const [loading, setLoading] = useState(false)
   const [technicians, setTechnicians] = useState<TechnicianWithAssignment[]>([])
   const [selectedTechnicians, setSelectedTechnicians] = useState<string[]>([])
+  const [sendNotifications, setSendNotifications] = useState(true)
 
   useEffect(() => {
     if (open && mission) {
@@ -209,6 +212,18 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
           .insert(assignments)
 
         if (error) throw error
+
+        // Envoyer les notifications WhatsApp si activé
+        if (sendNotifications && selectedTechnicians.length > 0) {
+          const selectedTechnicianUsers = technicians.filter(tech => 
+            selectedTechnicians.includes(tech.id)
+          )
+
+          await sendBulkAssignmentNotifications(
+            selectedTechnicianUsers,
+            mission
+          )
+        }
       }
 
       // Rafraîchir les données dans le store admin
@@ -473,11 +488,33 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
             </div>
 
             {selectedTechnicians.length > 0 && (
-              <div className="bg-blue-50 p-3 rounded-md">
-                <p className="text-sm text-blue-800">
-                  <Users className="h-4 w-4 inline mr-1" />
-                  {selectedTechnicians.length} technicien(s) sélectionné(s)
-                </p>
+              <div className="space-y-3">
+                <div className="bg-blue-50 p-3 rounded-md">
+                  <p className="text-sm text-blue-800">
+                    <Users className="h-4 w-4 inline mr-1" />
+                    {selectedTechnicians.length} technicien(s) sélectionné(s)
+                  </p>
+                </div>
+                
+                {/* Option pour les notifications WhatsApp */}
+                <div className="bg-gray-50 p-3 rounded-md">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="send-notifications"
+                      checked={sendNotifications}
+                      onChange={(e) => setSendNotifications(e.target.checked)}
+                      className="rounded"
+                    />
+                    <Label htmlFor="send-notifications" className="text-sm font-medium">
+                      <MessageSquare className="h-4 w-4 inline mr-1" />
+                      Envoyer les notifications WhatsApp
+                    </Label>
+                  </div>
+                  <p className="text-xs text-gray-600 mt-1 ml-6">
+                    Les techniciens recevront une notification WhatsApp avec les détails de la mission
+                  </p>
+                </div>
               </div>
             )}
 

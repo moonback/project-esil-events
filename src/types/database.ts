@@ -199,6 +199,47 @@ export interface Database {
           updated_at?: string
         }
       }
+      whatsapp_notifications: {
+        Row: {
+          id: string
+          technician_phone: string
+          message: string
+          mission_id: string
+          technician_id: string
+          status: 'sent' | 'failed' | 'delivered'
+          whatsapp_message_id: string | null
+          error_message: string | null
+          sent_at: string
+          delivered_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          technician_phone: string
+          message: string
+          mission_id: string
+          technician_id: string
+          status?: 'sent' | 'failed' | 'delivered'
+          whatsapp_message_id?: string | null
+          error_message?: string | null
+          sent_at?: string
+          delivered_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          technician_phone?: string
+          message?: string
+          mission_id?: string
+          technician_id?: string
+          status?: 'sent' | 'failed' | 'delivered'
+          whatsapp_message_id?: string | null
+          error_message?: string | null
+          sent_at?: string
+          delivered_at?: string | null
+          created_at?: string
+        }
+      }
     }
   }
 }
@@ -214,6 +255,7 @@ export type Unavailability = Database['public']['Tables']['unavailability']['Row
 export type Mission = Database['public']['Tables']['missions']['Row']
 export type MissionAssignment = Database['public']['Tables']['mission_assignments']['Row']
 export type Billing = Database['public']['Tables']['billing']['Row']
+export type WhatsAppNotification = Database['public']['Tables']['whatsapp_notifications']['Row']
 
 // Types avec relations
 export type MissionWithAssignments = Mission & {

@@ -4,11 +4,12 @@ import { MissionsTab } from './MissionsTab'
 import { TechniciansTab } from './TechniciansTab'
 import { AdminAgendaTab } from './AdminAgendaTab'
 import { AdminBillingTab } from './AdminBillingTab'
+import { WhatsAppNotificationsTab } from './WhatsAppNotificationsTab'
 import { PaymentSummaryCard } from './PaymentSummaryCard'
 import { ResponsiveTabs } from '@/components/ui/responsive-tabs'
 import { 
   Users, Calendar, CreditCard, Activity, CheckCircle, 
-  Clock, ArrowUp, ArrowDown, Eye, EyeOff, Filter, Search, Download
+  Clock, ArrowUp, ArrowDown, Eye, EyeOff, Filter, Search, Download, MessageSquare
 } from 'lucide-react'
 import { LoadingOverlay } from '@/components/ui/loading'
 import { useRealtimeSync } from '@/lib/useRealtimeSync'
@@ -130,6 +131,18 @@ export function AdminDashboard() {
             />
             <AdminBillingTab />
           </div>
+        </LoadingOverlay>
+      )
+    },
+    {
+      value: 'notifications',
+      label: 'Notifications',
+      icon: <MessageSquare className="h-4 w-4" />,
+      badge: null,
+      description: 'Historique des notifications WhatsApp',
+      content: (
+        <LoadingOverlay loading={false} text="Chargement des notifications...">
+          <WhatsAppNotificationsTab />
         </LoadingOverlay>
       )
     }

@@ -289,6 +289,100 @@ body {
     flex: 1;
     min-width: 80px;
   }
+
+  /* Améliorations pour le dashboard technicien */
+  .technician-dashboard {
+    padding: 1rem;
+  }
+
+  .technician-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .technician-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-card {
+    margin-bottom: 1rem;
+  }
+
+  .mobile-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .mobile-form {
+    padding: 1rem;
+  }
+
+  .mobile-button {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .mobile-calendar {
+    height: 400px;
+    min-height: 400px;
+  }
+
+  .mobile-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .mobile-navigation {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+    z-index: 50;
+    padding: 0.5rem;
+  }
+
+  .mobile-tab-indicator {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-top: 1rem;
+  }
+}
+
+/* Améliorations pour tablette */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .tablet-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .tablet-stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .tablet-calendar {
+    height: 500px;
+  }
+}
+
+/* Améliorations pour desktop */
+@media (min-width: 1025px) {
+  .desktop-layout {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .desktop-sidebar {
+    width: 280px;
+  }
+
+  .desktop-content {
+    flex: 1;
+  }
 }
 
 /* Styles pour les badges de statut avec gradients */

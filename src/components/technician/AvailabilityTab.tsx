@@ -351,39 +351,39 @@ export function AvailabilityTab() {
   return (
     <div className="space-y-6">
       {/* En-tête avec statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-600 font-medium">Disponibilités</p>
-                <p className="text-2xl font-bold text-green-800">{stats.availabilityCount}</p>
+                <p className="text-xs md:text-sm text-green-600 font-medium">Disponibilités</p>
+                <p className="text-lg md:text-2xl font-bold text-green-800">{stats.availabilityCount}</p>
                 <p className="text-xs text-green-600">{stats.totalAvailabilityHours}h</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <CheckCircle className="h-6 w-6 md:h-8 md:w-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-r from-red-50 to-red-100 border-red-200">
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-red-600 font-medium">Indisponibilités</p>
-                <p className="text-2xl font-bold text-red-800">{stats.unavailabilityCount}</p>
+                <p className="text-xs md:text-sm text-red-600 font-medium">Indisponibilités</p>
+                <p className="text-lg md:text-2xl font-bold text-red-800">{stats.unavailabilityCount}</p>
                 <p className="text-xs text-red-600">{stats.totalUnavailabilityHours}h</p>
               </div>
-              <Ban className="h-8 w-8 text-red-600" />
+              <Ban className="h-6 w-6 md:h-8 md:w-8 text-red-600" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-600 font-medium">Ce mois</p>
-                <p className="text-2xl font-bold text-blue-800">
+                <p className="text-xs md:text-sm text-blue-600 font-medium">Ce mois</p>
+                <p className="text-lg md:text-2xl font-bold text-blue-800">
                   {availabilities.filter(a => {
                     const start = parseISO(a.start_time)
                     const now = new Date()
@@ -391,23 +391,23 @@ export function AvailabilityTab() {
                   }).length}
                 </p>
               </div>
-              <CalendarIcon className="h-8 w-8 text-blue-600" />
+              <CalendarIcon className="h-6 w-6 md:h-8 md:w-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200">
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-purple-600 font-medium">Taux de disponibilité</p>
-                <p className="text-2xl font-bold text-purple-800">
+                <p className="text-xs md:text-sm text-purple-600 font-medium">Taux de disponibilité</p>
+                <p className="text-lg md:text-2xl font-bold text-purple-800">
                   {stats.availabilityCount + stats.unavailabilityCount > 0 
                     ? Math.round((stats.availabilityCount / (stats.availabilityCount + stats.unavailabilityCount)) * 100)
                     : 0}%
                 </p>
               </div>
-              <Clock className="h-8 w-8 text-purple-600" />
+              <Clock className="h-6 w-6 md:h-8 md:w-8 text-purple-600" />
             </div>
           </CardContent>
         </Card>
@@ -426,47 +426,53 @@ export function AvailabilityTab() {
         </TabsList>
 
         <TabsContent value="availability" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
             <div className="lg:col-span-3">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>Mes disponibilités</span>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant={calendarView === 'dayGridMonth' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setCalendarView('dayGridMonth')}
-                      >
-                        Mois
-                      </Button>
-                      <Button
-                        variant={calendarView === 'timeGridWeek' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setCalendarView('timeGridWeek')}
-                      >
-                        Semaine
-                      </Button>
-                      <Button
-                        variant={calendarView === 'listWeek' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setCalendarView('listWeek')}
-                      >
-                        Liste
-                      </Button>
+                  <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <span className="text-lg md:text-xl">Mes disponibilités</span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex items-center space-x-1">
+                        <Button
+                          variant={calendarView === 'dayGridMonth' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setCalendarView('dayGridMonth')}
+                          className="text-xs px-2 py-1"
+                        >
+                          Mois
+                        </Button>
+                        <Button
+                          variant={calendarView === 'timeGridWeek' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setCalendarView('timeGridWeek')}
+                          className="text-xs px-2 py-1"
+                        >
+                          Semaine
+                        </Button>
+                        <Button
+                          variant={calendarView === 'listWeek' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setCalendarView('listWeek')}
+                          className="text-xs px-2 py-1"
+                        >
+                          Liste
+                        </Button>
+                      </div>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setShowAvailabilityForm(true)}
+                        className="text-xs px-3 py-1"
                       >
-                        <Plus className="h-4 w-4 mr-1" />
+                        <Plus className="h-3 w-3 mr-1" />
                         Ajouter
                       </Button>
                     </div>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
-                  <div style={{ height: '600px' }}>
+                <CardContent className="p-3 md:p-6">
+                  <div style={{ height: '400px', minHeight: '400px' }} className="md:h-[600px]">
                     <FullCalendar
                       key={calendarView}
                       ref={calendarRef}

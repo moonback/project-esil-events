@@ -156,10 +156,10 @@ export function ProposedMissionsTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h3 className="text-xl font-semibold">Missions Proposées</h3>
-        <p className="text-gray-600">
+        <h3 className="text-lg md:text-xl font-semibold">Missions Proposées</h3>
+        <p className="text-sm md:text-base text-gray-600">
           Acceptez ou refusez les missions qui vous sont proposées
         </p>
       </div>
@@ -217,33 +217,33 @@ export function ProposedMissionsTab() {
               </CardHeader>
               
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-gray-500" />
-                    <div>
-                      <p className="text-sm font-medium">Période</p>
-                      <p className="text-sm text-gray-600">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
+                  <div className="flex items-start space-x-2">
+                    <Calendar className="h-4 w-4 text-gray-500 mt-0.5" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs md:text-sm font-medium">Période</p>
+                      <p className="text-xs md:text-sm text-gray-600">
                         {formatDateTime(assignment.missions.date_start)}
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-xs md:text-sm text-gray-600">
                         → {formatDateTime(assignment.missions.date_end)}
                       </p>
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="h-4 w-4 text-gray-500" />
-                    <div>
-                      <p className="text-sm font-medium">Lieu</p>
-                      <p className="text-sm text-gray-600">{assignment.missions.location}</p>
+                  <div className="flex items-start space-x-2">
+                    <MapPin className="h-4 w-4 text-gray-500 mt-0.5" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs md:text-sm font-medium">Lieu</p>
+                      <p className="text-xs md:text-sm text-gray-600 truncate">{assignment.missions.location}</p>
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-2">
-                    <DollarSign className="h-4 w-4 text-gray-500" />
-                    <div>
-                      <p className="text-sm font-medium">Rémunération</p>
-                      <p className="text-lg font-bold text-green-600">
+                  <div className="flex items-start space-x-2 sm:col-span-2 lg:col-span-1">
+                    <DollarSign className="h-4 w-4 text-gray-500 mt-0.5" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs md:text-sm font-medium">Rémunération</p>
+                      <p className="text-base md:text-lg font-bold text-green-600">
                         {formatCurrency(assignment.missions.forfeit)}
                       </p>
                     </div>

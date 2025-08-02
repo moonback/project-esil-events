@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AvailabilityTab } from './AvailabilityTab'
 import { ProposedMissionsTab } from './ProposedMissionsTab'
@@ -7,93 +7,176 @@ import { TechnicianAgendaTab } from './TechnicianAgendaTab'
 import { TechnicianProfileTab } from './TechnicianProfileTab'
 import { PaymentSummaryCard } from './PaymentSummaryCard'
 import { Calendar, CreditCard, Clock, CheckCircle, User } from 'lucide-react'
+import { MobileMenu } from '@/components/ui/mobile-menu'
 
 export function TechnicianDashboard() {
+  const [activeTab, setActiveTab] = useState('availability')
+
+  const tabs = [
+    {
+      value: 'availability',
+      label: 'Disponibilités',
+      icon: Clock,
+      color: 'blue'
+    },
+    {
+      value: 'missions',
+      label: 'Missions Proposées',
+      icon: Calendar,
+      color: 'indigo'
+    },
+    {
+      value: 'billing',
+      label: 'Facturation',
+      icon: CreditCard,
+      color: 'purple'
+    },
+    {
+      value: 'agenda',
+      label: 'Mes Missions',
+      icon: CheckCircle,
+      color: 'green'
+    },
+    {
+      value: 'profile',
+      label: 'Mon Profil',
+      icon: User,
+      color: 'orange'
+    }
+  ]
+
+  const getTabColor = (color: string, isActive: boolean) => {
+    const colors = {
+      blue: isActive ? 'bg-blue-600 text-white' : 'hover:bg-blue-50 data-[state=active]:bg-blue-600 data-[state=active]:text-white',
+      indigo: isActive ? 'bg-indigo-600 text-white' : 'hover:bg-indigo-50 data-[state=active]:bg-indigo-600 data-[state=active]:text-white',
+      purple: isActive ? 'bg-purple-600 text-white' : 'hover:bg-purple-50 data-[state=active]:bg-purple-600 data-[state=active]:text-white',
+      green: isActive ? 'bg-green-600 text-white' : 'hover:bg-green-50 data-[state=active]:bg-green-600 data-[state=active]:text-white',
+      orange: isActive ? 'bg-orange-600 text-white' : 'hover:bg-orange-50 data-[state=active]:bg-orange-600 data-[state=active]:text-white'
+    }
+    return colors[color as keyof typeof colors] || colors.blue
+  }
+
   return (
-    <div className="space-y-8 animate-fade-in-up">
-      {/* <div className="text-center space-y-4">
-        <div className="flex items-center justify-center space-x-3 mb-6">
-          <div className="relative">
-            <Wrench className="h-10 w-10 text-blue-600 animate-pulse-slow" />
-            <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-yellow-400 animate-bounce-slow" />
-          </div>
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            Espace Technicien
-          </h2>
+    <div className="space-y-6 animate-fade-in-up">
+      {/* Header responsive */}
+      <div className="flex items-center justify-between">
+        <div className="hidden md:block">
+          <h1 className="text-2xl font-bold text-gray-900">Espace Technicien</h1>
+          <p className="text-gray-600 mt-1">Gérez vos missions et disponibilités</p>
         </div>
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-          Gérez vos disponibilités, missions et rémunérations avec une interface intuitive
-        </p>
-      </div> */}
+        
+        {/* Menu mobile */}
+        <div className="md:hidden">
+          <MobileMenu 
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            tabs={tabs}
+          />
+        </div>
+      </div>
 
-      <Tabs defaultValue="availability" className="space-y-8">
-        <TabsList className="grid w-full grid-cols-5 bg-white border border-gray-200 shadow-sm rounded-lg p-1">
-          <TabsTrigger 
-            value="availability" 
-            className="flex items-center space-x-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-md transition-all duration-200 text-sm font-medium hover:bg-blue-50 data-[state=active]:hover:bg-blue-600"
-          >
-            <Clock className="h-4 w-4" />
-            <span>Disponibilités</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="missions" 
-            className="flex items-center space-x-2 data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-md transition-all duration-200 text-sm font-medium hover:bg-indigo-50 data-[state=active]:hover:bg-indigo-600"
-          >
-            <Calendar className="h-4 w-4" />
-            <span>Missions Proposées</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="billing" 
-            className="flex items-center space-x-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white rounded-md transition-all duration-200 text-sm font-medium hover:bg-purple-50 data-[state=active]:hover:bg-purple-600"
-          >
-            <CreditCard className="h-4 w-4" />
-            <span>Facturation</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="agenda" 
-            className="flex items-center space-x-2 data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-md transition-all duration-200 text-sm font-medium hover:bg-green-50 data-[state=active]:hover:bg-green-600"
-          >
-            <CheckCircle className="h-4 w-4" />
-            <span>Mes Missions</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="profile" 
-            className="flex items-center space-x-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white rounded-md transition-all duration-200 text-sm font-medium hover:bg-orange-50 data-[state=active]:hover:bg-orange-600"
-          >
-            <User className="h-4 w-4" />
-            <span>Mon Profil</span>
-          </TabsTrigger>
-        </TabsList>
+      {/* Tabs desktop */}
+      <div className="hidden md:block">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5 bg-white border border-gray-200 shadow-sm rounded-lg p-1">
+            {tabs.map((tab) => {
+              const Icon = tab.icon
+              return (
+                <TabsTrigger 
+                  key={tab.value}
+                  value={tab.value} 
+                  className={`flex items-center space-x-2 rounded-md transition-all duration-200 text-sm font-medium ${getTabColor(tab.color, false)}`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{tab.label}</span>
+                </TabsTrigger>
+              )
+            })}
+          </TabsList>
 
-        <TabsContent value="availability" className="animate-slide-in-right">
-          <AvailabilityTab />
-        </TabsContent>
+          <TabsContent value="availability" className="animate-slide-in-right">
+            <AvailabilityTab />
+          </TabsContent>
 
-        <TabsContent value="missions" className="animate-slide-in-right">
-          <ProposedMissionsTab />
-        </TabsContent>
+          <TabsContent value="missions" className="animate-slide-in-right">
+            <ProposedMissionsTab />
+          </TabsContent>
 
-        <TabsContent value="billing" className="animate-slide-in-right">
-          <div className="space-y-6">
-            {/* Résumé des paiements */}
+          <TabsContent value="billing" className="animate-slide-in-right">
+            <div className="space-y-6">
+              <PaymentSummaryCard 
+                billings={[]}
+                onViewAll={() => {}}
+              />
+              <TechnicianBillingTab />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="agenda" className="animate-slide-in-right">
+            <TechnicianAgendaTab />
+          </TabsContent>
+
+          <TabsContent value="profile" className="animate-slide-in-right">
+            <TechnicianProfileTab />
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Content mobile */}
+      <div className="md:hidden">
+        {activeTab === 'availability' && (
+          <div className="animate-slide-in-right">
+            <AvailabilityTab />
+          </div>
+        )}
+        
+        {activeTab === 'missions' && (
+          <div className="animate-slide-in-right">
+            <ProposedMissionsTab />
+          </div>
+        )}
+        
+        {activeTab === 'billing' && (
+          <div className="animate-slide-in-right space-y-6">
             <PaymentSummaryCard 
-              billings={[]} // Sera rempli par le composant TechnicianBillingTab
-              onViewAll={() => {}} // Navigation vers la vue détaillée
+              billings={[]}
+              onViewAll={() => {}}
             />
-            
-            {/* Vue détaillée des paiements */}
             <TechnicianBillingTab />
           </div>
-        </TabsContent>
+        )}
+        
+        {activeTab === 'agenda' && (
+          <div className="animate-slide-in-right">
+            <TechnicianAgendaTab />
+          </div>
+        )}
+        
+        {activeTab === 'profile' && (
+          <div className="animate-slide-in-right">
+            <TechnicianProfileTab />
+          </div>
+        )}
+      </div>
 
-        <TabsContent value="agenda" className="animate-slide-in-right">
-          <TechnicianAgendaTab />
-        </TabsContent>
-
-        <TabsContent value="profile" className="animate-slide-in-right">
-          <TechnicianProfileTab />
-        </TabsContent>
-      </Tabs>
+      {/* Indicateur d'onglet actuel pour mobile */}
+      <div className="md:hidden">
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
+          <div className="flex items-center space-x-3">
+            {(() => {
+              const currentTab = tabs.find(tab => tab.value === activeTab)
+              if (!currentTab) return null
+              const Icon = currentTab.icon
+              return (
+                <>
+                  <Icon className={`h-5 w-5 text-${currentTab.color}-600`} />
+                  <span className="font-medium text-gray-900">{currentTab.label}</span>
+                </>
+              )
+            })()}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

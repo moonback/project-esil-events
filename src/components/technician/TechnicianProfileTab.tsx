@@ -112,20 +112,20 @@ export function TechnicianProfileTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* En-tête */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Mon Profil</h2>
-          <p className="text-gray-600">Gérez vos informations de contact</p>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900">Mon Profil</h2>
+          <p className="text-sm md:text-base text-gray-600">Gérez vos informations de contact</p>
         </div>
-        <Badge variant="secondary" className="flex items-center gap-2">
+        <Badge variant="secondary" className="flex items-center gap-2 w-fit">
           <Shield className="h-4 w-4" />
           Technicien
         </Badge>
       </div>
 
-             <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 gap-4 md:gap-6">
         {/* Informations personnelles */}
         <Card>
           <CardHeader>

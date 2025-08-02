@@ -431,7 +431,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           title: 'Livraison jeux - Anniversaire',
           description: 'Installation et animation de jeux en bois pour anniversaire enfants',
           type: 'Livraison jeux',
-          location: 'Salle des fêtes municipale',
+          location: 'Paris 15ème - Parc André Citroën',
+          latitude: 48.8417,
+          longitude: 2.2744,
           date_start: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // +5 jours
           date_end: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000).toISOString(), // +4h
           forfeit: 800,
@@ -442,7 +444,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           title: 'Soirée DJ - Club',
           description: 'Animation DJ pour soirée en club',
           type: 'DJ',
-          location: 'Le Petit Club',
+          location: 'Paris 11ème - Bastille',
+          latitude: 48.8532,
+          longitude: 2.3698,
           date_start: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // +7 jours
           date_end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000 + 6 * 60 * 60 * 1000).toISOString(), // +6h
           forfeit: 450,
@@ -453,7 +457,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           title: 'Sonorisation - Concert',
           description: 'Installation et gestion son pour concert live',
           type: 'Presta sono',
-          location: 'Théâtre municipal',
+          location: 'Paris 19ème - La Villette',
+          latitude: 48.8938,
+          longitude: 2.3910,
           date_start: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString(), // +12 jours
           date_end: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000 + 5 * 60 * 60 * 1000).toISOString(), // +5h
           forfeit: 1100,
@@ -464,7 +470,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           title: 'Déménagement matériel',
           description: 'Transport de matériel entre deux entrepôts',
           type: 'Manutention',
-          location: 'Zone industrielle Est',
+          location: 'Paris 18ème - La Chapelle',
+          latitude: 48.8853,
+          longitude: 2.3598,
           date_start: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // +3 jours
           date_end: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 8 * 60 * 60 * 1000).toISOString(), // +8h
           forfeit: 600,
@@ -475,7 +483,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           title: 'Transport sono - Festival',
           description: 'Transport et installation système son pour festival',
           type: 'Déplacement',
-          location: 'Champ festival - Route des vignes',
+          location: 'Paris 16ème - Bois de Boulogne',
+          latitude: 48.8621,
+          longitude: 2.2497,
           date_start: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString(), // +8 jours
           date_end: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000).toISOString(), // +3h
           forfeit: 350,
@@ -486,7 +496,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           title: 'Animation DJ - Mariage',
           description: 'Animation musicale pour mariage avec système son et éclairage',
           type: 'DJ',
-          location: 'Domaine des Roses - Salle de réception',
+          location: 'Paris 8ème - Champs-Élysées',
+          latitude: 48.8738,
+          longitude: 2.2950,
           date_start: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // +10 jours
           date_end: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000 + 8 * 60 * 60 * 1000).toISOString(), // +8h
           forfeit: 1200,
@@ -496,8 +508,10 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         {
           title: 'Livraison jeux - Festival',
           description: 'Installation et animation de jeux en bois pour festival familial',
-          type: 'Livraison jeux', 
-          location: 'Parc municipal - Zone animations',
+          type: 'Livraison jeux',
+          location: 'Paris 12ème - Bois de Vincennes',
+          latitude: 48.8338,
+          longitude: 2.4346,
           date_start: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(), // +21 jours
           date_end: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000 + 10 * 60 * 60 * 1000).toISOString(), // +10h
           forfeit: 1500,
@@ -508,7 +522,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           title: 'Sonorisation - Conférence',
           description: 'Installation et gestion du système son pour conférence d\'entreprise',
           type: 'Presta sono',
-          location: 'Centre de congrès - Auditorium principal',
+          location: 'Paris 17ème - Palais des Congrès',
+          latitude: 48.8789,
+          longitude: 2.2833,
           date_start: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(), // +4 jours
           date_end: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000 + 6 * 60 * 60 * 1000).toISOString(), // +6h
           forfeit: 900,
@@ -519,7 +535,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           title: 'Manutention - Festival',
           description: 'Installation et démontage des structures pour festival de musique',
           type: 'Manutention',
-          location: 'Esplanade du port',
+          location: 'Paris 13ème - Bibliothèque François Mitterrand',
+          latitude: 48.8297,
+          longitude: 2.3758,
           date_start: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // +2 jours
           date_end: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000).toISOString(), // +12h
           forfeit: 1800,
@@ -530,7 +548,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           title: 'Transport matériel - Salon',
           description: 'Transport et installation du matériel pour salon professionnel',
           type: 'Déplacement',
-          location: 'Parc des expositions - Hall 3',
+          location: 'Paris 15ème - Parc des Expositions',
+          latitude: 48.8325,
+          longitude: 2.2789,
           date_start: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(), // +15 jours
           date_end: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000 + 5 * 60 * 60 * 1000).toISOString(), // +5h
           forfeit: 750,

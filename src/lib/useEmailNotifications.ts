@@ -27,7 +27,15 @@ export function useEmailNotifications() {
   // Notification d'assignation de mission
   const sendMissionAssignedEmail = useCallback(async (mission: Mission, technician: User) => {
     try {
-      const success = await emailService.sendMissionAssignedEmail(mission, technician)
+      const emailData = {
+        technicianName: technician.name,
+        missionTitle: mission.title,
+        missionDate: new Date(mission.date).toLocaleDateString('fr-FR'),
+        missionLocation: mission.location,
+        missionDescription: mission.description
+      }
+      
+      const success = await emailService.sendTechnicianAssignedEmail(technician.email, emailData)
       if (success) {
         addToast({
           type: 'success',
@@ -56,7 +64,14 @@ export function useEmailNotifications() {
   // Notification d'acceptation de mission
   const sendMissionAcceptedEmail = useCallback(async (mission: Mission, technician: User) => {
     try {
-      const success = await emailService.sendMissionAcceptedEmail(mission, technician)
+      const emailData = {
+        technicianName: technician.name,
+        missionTitle: mission.title,
+        missionDate: new Date(mission.date).toLocaleDateString('fr-FR'),
+        missionLocation: mission.location
+      }
+      
+      const success = await emailService.sendMissionAcceptedEmail(technician.email, emailData)
       if (success) {
         addToast({
           type: 'success',
@@ -85,7 +100,13 @@ export function useEmailNotifications() {
   // Notification de refus de mission
   const sendMissionRejectedEmail = useCallback(async (mission: Mission, technician: User) => {
     try {
-      const success = await emailService.sendMissionRejectedEmail(mission, technician)
+      const emailData = {
+        technicianName: technician.name,
+        missionTitle: mission.title,
+        reason: mission.rejection_reason || 'Aucune raison spécifiée'
+      }
+      
+      const success = await emailService.sendMissionRejectedEmail(technician.email, emailData)
       if (success) {
         addToast({
           type: 'success',
@@ -114,7 +135,14 @@ export function useEmailNotifications() {
   // Notification de création de paiement
   const sendPaymentCreatedEmail = useCallback(async (billing: Billing & { missions: Mission }, technician: User) => {
     try {
-      const success = await emailService.sendPaymentCreatedEmail(billing, technician)
+      const emailData = {
+        technicianName: technician.name,
+        amount: billing.amount,
+        missionTitle: billing.missions.title,
+        createdDate: new Date(billing.created_at).toLocaleDateString('fr-FR')
+      }
+      
+      const success = await emailService.sendPaymentCreatedEmail(technician.email, emailData)
       if (success) {
         addToast({
           type: 'success',
@@ -143,7 +171,14 @@ export function useEmailNotifications() {
   // Notification de validation de paiement
   const sendPaymentValidatedEmail = useCallback(async (billing: Billing & { missions: Mission }, technician: User) => {
     try {
-      const success = await emailService.sendPaymentValidatedEmail(billing, technician)
+      const emailData = {
+        technicianName: technician.name,
+        amount: billing.amount,
+        missionTitle: billing.missions.title,
+        validatedDate: new Date(billing.validated_at || billing.updated_at).toLocaleDateString('fr-FR')
+      }
+      
+      const success = await emailService.sendPaymentValidatedEmail(technician.email, emailData)
       if (success) {
         addToast({
           type: 'success',
@@ -172,7 +207,14 @@ export function useEmailNotifications() {
   // Notification de paiement effectué
   const sendPaymentPaidEmail = useCallback(async (billing: Billing & { missions: Mission }, technician: User) => {
     try {
-      const success = await emailService.sendPaymentPaidEmail(billing, technician)
+      const emailData = {
+        technicianName: technician.name,
+        amount: billing.amount,
+        missionTitle: billing.missions.title,
+        completedDate: new Date(billing.paid_at || billing.updated_at).toLocaleDateString('fr-FR')
+      }
+      
+      const success = await emailService.sendPaymentCompletedEmail(technician.email, emailData)
       if (success) {
         addToast({
           type: 'success',
@@ -201,7 +243,14 @@ export function useEmailNotifications() {
   // Notification de mise à jour des disponibilités
   const sendAvailabilityUpdatedEmail = useCallback(async (technician: User, availabilityCount: number) => {
     try {
-      const success = await emailService.sendAvailabilityUpdatedEmail(technician, availabilityCount)
+      const emailData = {
+        technicianName: technician.name,
+        startDate: new Date().toLocaleDateString('fr-FR'),
+        endDate: new Date().toLocaleDateString('fr-FR'),
+        type: 'Disponibilité'
+      }
+      
+      const success = await emailService.sendAvailabilityCreatedEmail(technician.email, emailData)
       if (success) {
         addToast({
           type: 'success',
@@ -230,7 +279,14 @@ export function useEmailNotifications() {
   // Notification de création d'indisponibilité
   const sendUnavailabilityCreatedEmail = useCallback(async (technician: User, unavailabilityCount: number) => {
     try {
-      const success = await emailService.sendUnavailabilityCreatedEmail(technician, unavailabilityCount)
+      const emailData = {
+        technicianName: technician.name,
+        startDate: new Date().toLocaleDateString('fr-FR'),
+        endDate: new Date().toLocaleDateString('fr-FR'),
+        reason: 'Indisponibilité'
+      }
+      
+      const success = await emailService.sendUnavailabilityCreatedEmail(technician.email, emailData)
       if (success) {
         addToast({
           type: 'success',

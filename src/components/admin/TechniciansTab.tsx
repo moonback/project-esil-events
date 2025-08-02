@@ -47,27 +47,35 @@ import { fr } from 'date-fns/locale'
 import type { User, MissionAssignment, Mission, Availability, Unavailability, Billing, TechnicianWithStats } from '@/types/database'
 
 export function TechniciansTab() {
-  const { technicians, loading, stats, validateTechnician } = useAdminStore()
+  const { technicians, loading, stats, validateTechnician, fetchTechnicians } = useAdminStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [showDetailedView, setShowDetailedView] = useState(false)
   const [selectedTechnician, setSelectedTechnician] = useState<TechnicianWithStats | null>(null)
   const [showFilters, setShowFilters] = useState(false)
   const [sortBy, setSortBy] = useState<'name' | 'missions' | 'revenue' | 'rating'>('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
-  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable' | 'unknown'>('all')
+  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable' | 'available_on_request'>('all')
   const [validationFilter, setValidationFilter] = useState<'all' | 'validated' | 'not_validated'>('all')
   const [contactDialogOpen, setContactDialogOpen] = useState(false)
   const [selectedTechnicianForContact, setSelectedTechnicianForContact] = useState<User | null>(null)
   const [createPaymentDialogOpen, setCreatePaymentDialogOpen] = useState(false)
   const [selectedTechnicianForPayment, setSelectedTechnicianForPayment] = useState<User | null>(null)
   const [validationLoading, setValidationLoading] = useState<string | null>(null)
-  const { toast } = useToast()
+  const { showSuccess, showError } = useToast()
+
+  // Charger les données des techniciens au montage du composant
+  useEffect(() => {
+    if (technicians.length === 0 && !loading.technicians) {
+      fetchTechnicians()
+    }
+  }, [technicians.length, loading.technicians, fetchTechnicians])
 
   // Fonction pour déterminer le statut de disponibilité d'un technicien
   const getAvailabilityStatus = (technician: TechnicianWithStats) => {
     const now = new Date()
     const currentTime = now.getTime()
     
+    // Vérifier d'abord s'il y a une indisponibilité actuelle
     const currentUnavailability = technician.unavailabilities?.find(unavail => {
       const start = parseISO(unavail.start_time)
       const end = parseISO(unavail.end_time)
@@ -84,6 +92,7 @@ export function TechniciansTab() {
       }
     }
     
+    // Vérifier s'il y a une disponibilité explicite actuelle
     const currentAvailability = technician.availabilities?.find(avail => {
       const start = parseISO(avail.start_time)
       const end = parseISO(avail.end_time)
@@ -100,6 +109,7 @@ export function TechniciansTab() {
       }
     }
     
+    // Vérifier s'il y a une disponibilité future dans les prochaines 24h
     const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000)
     const futureAvailability = technician.availabilities?.find(avail => {
       const start = parseISO(avail.start_time)
@@ -116,12 +126,13 @@ export function TechniciansTab() {
       }
     }
     
+    // Si le technicien n'a pas de disponibilités explicites, il est "Disponible sur demande"
     return {
-      status: 'unknown',
-      text: 'Statut inconnu',
-      color: 'bg-gray-100 text-gray-800',
+      status: 'available_on_request',
+      text: 'Disponible sur demande',
+      color: 'bg-yellow-100 text-yellow-800',
       icon: AlertTriangle,
-      reason: 'Aucune disponibilité définie'
+      reason: 'Contactez le technicien pour vérifier sa disponibilité'
     }
   }
 
@@ -139,7 +150,7 @@ export function TechniciansTab() {
       const availabilityStatus = getAvailabilityStatus(tech)
       if (availabilityFilter === 'available' && availabilityStatus.status !== 'disponible') return false
       if (availabilityFilter === 'unavailable' && availabilityStatus.status !== 'indisponible') return false
-      if (availabilityFilter === 'unknown' && availabilityStatus.status !== 'unknown') return false
+      if (availabilityFilter === 'available_on_request' && availabilityStatus.status !== 'available_on_request') return false
     }
     
     // Filtre par validation
@@ -219,20 +230,18 @@ export function TechniciansTab() {
       setValidationLoading(technicianId)
       await validateTechnician(technicianId, isValidated)
       
-      toast({
-        title: isValidated ? 'Technicien validé' : 'Technicien dévalidé',
-        description: isValidated 
+      showSuccess(
+        isValidated ? 'Technicien validé' : 'Technicien dévalidé',
+        isValidated 
           ? 'Le technicien a été validé avec succès. Les demandes en attente peuvent être automatiquement annulées.'
-          : 'Le technicien a été dévalidé avec succès.',
-        type: 'success'
-      })
+          : 'Le technicien a été dévalidé avec succès.'
+      )
     } catch (error) {
       console.error('Erreur lors de la validation du technicien:', error)
-      toast({
-        title: 'Erreur',
-        description: 'Une erreur est survenue lors de la validation du technicien.',
-        type: 'error'
-      })
+      showError(
+        'Erreur',
+        'Une erreur est survenue lors de la validation du technicien.'
+      )
     } finally {
       setValidationLoading(null)
     }
@@ -330,7 +339,7 @@ export function TechniciansTab() {
                     <option value="all">Tous</option>
                     <option value="available">Disponibles</option>
                     <option value="unavailable">Indisponibles</option>
-                    <option value="unknown">Statut inconnu</option>
+                    <option value="available_on_request">Disponible sur demande</option>
                   </select>
                 </div>
                 <div>
@@ -429,7 +438,11 @@ export function TechniciansTab() {
             <div>
               <p className="text-xs font-medium text-gray-600">Disponibles</p>
               <p className="text-lg font-bold text-green-600">
-                {technicians.filter(tech => getAvailabilityStatus(tech).status === 'disponible').length}
+                {technicians.filter(tech => {
+                  const status = getAvailabilityStatus(tech).status
+                  // Considérer comme disponible tous les techniciens sauf ceux qui sont explicitement indisponibles
+                  return status !== 'indisponible'
+                }).length}
               </p>
             </div>
             <CheckCircle2 className="h-5 w-5 text-green-600" />
@@ -757,12 +770,51 @@ export function TechniciansTab() {
       </div>
 
       {/* Dialogue de contact */}
-      <TechnicianContactDialog
-        technician={selectedTechnicianForContact}
-        open={contactDialogOpen}
-        onOpenChange={setContactDialogOpen}
-        onContactUpdated={handleContactUpdated}
-      />
+      {contactDialogOpen && selectedTechnicianForContact && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Contact du technicien</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Nom</label>
+                <p className="text-gray-900">{selectedTechnicianForContact.name}</p>
+              </div>
+              {selectedTechnicianForContact.phone && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Téléphone</label>
+                  <p className="text-gray-900">{selectedTechnicianForContact.phone}</p>
+                </div>
+              )}
+              {selectedTechnicianForContact.email && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Email</label>
+                  <p className="text-gray-900">{selectedTechnicianForContact.email}</p>
+                </div>
+              )}
+              {selectedTechnicianForContact.address && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Adresse</label>
+                  <p className="text-gray-900">{selectedTechnicianForContact.address}</p>
+                </div>
+              )}
+              {selectedTechnicianForContact.notes && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Notes</label>
+                  <p className="text-gray-900">{selectedTechnicianForContact.notes}</p>
+                </div>
+              )}
+            </div>
+            <div className="flex justify-end space-x-3 mt-6">
+              <Button
+                variant="outline"
+                onClick={() => setContactDialogOpen(false)}
+              >
+                Fermer
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Dialogue de création de paiement */}
       <CreatePaymentDialog

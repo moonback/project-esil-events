@@ -285,7 +285,11 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       // Calculer les statistiques globales
       const stats = {
         total: techniciansWithStats.length,
-        available: techniciansWithStats.filter(t => t.stats.availabilityCount > 0).length,
+        available: techniciansWithStats.filter(t => {
+          // Un technicien est considéré comme disponible par défaut
+          // sauf s'il a des indisponibilités explicites
+          return t.unavailabilities.length === 0
+        }).length,
         busy: techniciansWithStats.filter(t => t.stats.totalAssignments > 0).length
       }
 

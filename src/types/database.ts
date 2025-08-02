@@ -106,6 +106,8 @@ export interface Database {
           date_start: string
           date_end: string
           location: string
+          latitude: number | null
+          longitude: number | null
           forfeit: number
           required_people: number
           created_by: string | null
@@ -120,6 +122,8 @@ export interface Database {
           date_start: string
           date_end: string
           location: string
+          latitude?: number | null
+          longitude?: number | null
           forfeit: number
           required_people?: number
           created_by?: string | null
@@ -134,6 +138,8 @@ export interface Database {
           date_start?: string
           date_end?: string
           location?: string
+          latitude?: number | null
+          longitude?: number | null
           forfeit?: number
           required_people?: number
           created_by?: string | null

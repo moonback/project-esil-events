@@ -5,10 +5,11 @@ import { TechniciansTab } from './TechniciansTab'
 import { AdminAgendaTab } from './AdminAgendaTab'
 import { AdminBillingTab } from './AdminBillingTab'
 import { MissionsWithAssignmentsTab } from './MissionsWithAssignmentsTab'
+import { MissionsMapTab } from './MissionsMapTab'
 import { PaymentSummaryCard } from './PaymentSummaryCard'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
-  Users, Calendar, CreditCard, Activity, CheckCircle
+  Users, Calendar, CreditCard, Activity, CheckCircle, MapPin
 } from 'lucide-react'
 import { LoadingOverlay } from '@/components/ui/loading'
 import { useRealtimeSync } from '@/lib/useRealtimeSync'
@@ -49,6 +50,12 @@ export function AdminDashboard() {
       color: 'indigo'
     },
     {
+      value: 'map',
+      label: 'Carte',
+      icon: MapPin,
+      color: 'red'
+    },
+    {
       value: 'assignations',
       label: 'Assignations',
       icon: Users,
@@ -77,6 +84,7 @@ export function AdminDashboard() {
   const getTabColor = (color: string, isActive: boolean) => {
     const colors = {
       indigo: isActive ? 'bg-indigo-600 text-white' : 'hover:bg-indigo-50 data-[state=active]:bg-indigo-600 data-[state=active]:text-white',
+      red: isActive ? 'bg-red-600 text-white' : 'hover:bg-red-50 data-[state=active]:bg-red-600 data-[state=active]:text-white',
       blue: isActive ? 'bg-blue-600 text-white' : 'hover:bg-blue-50 data-[state=active]:bg-blue-600 data-[state=active]:text-white',
       green: isActive ? 'bg-green-600 text-white' : 'hover:bg-green-50 data-[state=active]:bg-green-600 data-[state=active]:text-white',
       purple: isActive ? 'bg-purple-600 text-white' : 'hover:bg-purple-50 data-[state=active]:bg-purple-600 data-[state=active]:text-white',
@@ -107,7 +115,7 @@ export function AdminDashboard() {
       {/* Tabs desktop */}
       <div className="hidden md:block">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white border border-gray-200 shadow-sm rounded-lg p-1">
+          <TabsList className="grid w-full grid-cols-6 bg-white border border-gray-200 shadow-sm rounded-lg p-1">
             {tabs.map((tab) => {
               const Icon = tab.icon
               return (
@@ -135,6 +143,12 @@ export function AdminDashboard() {
                 onSortChange={setSortBy}
                 onViewModeChange={setViewMode}
               />
+            </LoadingOverlay>
+          </TabsContent>
+
+          <TabsContent value="map" className="animate-slide-in-right">
+            <LoadingOverlay loading={loading.missions} text="Chargement de la carte...">
+              <MissionsMapTab />
             </LoadingOverlay>
           </TabsContent>
 
@@ -185,6 +199,14 @@ export function AdminDashboard() {
                 onSortChange={setSortBy}
                 onViewModeChange={setViewMode}
               />
+            </LoadingOverlay>
+          </div>
+        )}
+        
+        {activeTab === 'map' && (
+          <div className="animate-slide-in-right">
+            <LoadingOverlay loading={loading.missions} text="Chargement de la carte...">
+              <MissionsMapTab />
             </LoadingOverlay>
           </div>
         )}

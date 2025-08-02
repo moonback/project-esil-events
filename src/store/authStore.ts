@@ -109,7 +109,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           data: {
             name,
             role
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       })
 
@@ -118,43 +119,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       if (data.user) {
-        // Attendre un peu pour que l'authentification soit complète
-        setTimeout(async () => {
-          try {
-            // Créer le profil utilisateur après que l'auth soit établie
-            const { error: profileError } = await supabase
-              .from('users')
-              .insert([{
-                id: data.user!.id,
-                name,
-                role
-              }])
+        // Créer le profil utilisateur immédiatement
+        try {
+          const { error: profileError } = await supabase
+            .from('users')
+            .insert([{
+              id: data.user.id,
+              name,
+              role
+            }])
 
-            if (!profileError && data.session) {
-              const { data: profile } = await supabase
-                .from('users')
-                .select('*')
-                .eq('id', data.user!.id)
-                .single()
-
-              set({
-                user: data.user,
-                profile,
-                loading: false
-              })
-            }
-          } catch (err) {
-            console.error('Erreur lors de la création du profil:', err)
+          if (profileError) {
+            console.error('Erreur lors de la création du profil:', profileError)
+            return { error: 'Erreur lors de la création du profil utilisateur' }
           }
-        }, 1000)
-
-        // Pour l'instant, juste définir l'utilisateur
-        if (data.session) {
-          set({
-            user: data.user,
-            profile: null,
-            loading: false
-          })
+        } catch (err) {
+          console.error('Erreur lors de la création du profil:', err)
+          return { error: 'Erreur lors de la création du profil utilisateur' }
         }
       }
 

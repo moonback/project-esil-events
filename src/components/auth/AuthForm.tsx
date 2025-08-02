@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Sparkles, Eye, EyeOff, User, Lock, Mail, Shield, CheckCircle, AlertCircle, Zap } from 'lucide-react'
+import { EmailVerificationDialog } from './EmailVerificationDialog'
 
 export function AuthForm() {
   const [isSignUp, setIsSignUp] = useState(false)
@@ -17,6 +18,8 @@ export function AuthForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [focusedField, setFocusedField] = useState<string | null>(null)
   const [passwordStrength, setPasswordStrength] = useState(0)
+  const [showEmailVerification, setShowEmailVerification] = useState(false)
+  const [registeredEmail, setRegisteredEmail] = useState('')
   
   const { signIn, signUp } = useAuthStore()
 
@@ -49,6 +52,10 @@ export function AuthForm() {
         
       if (result.error) {
         setError(result.error)
+      } else if (isSignUp && role === 'technicien') {
+        // Afficher le dialogue de validation d'email pour les techniciens
+        setRegisteredEmail(email)
+        setShowEmailVerification(true)
       }
     } catch (err) {
       setError(isSignUp ? 'Erreur d\'inscription' : 'Erreur de connexion')
@@ -64,6 +71,8 @@ export function AuthForm() {
     setRole('technicien')
     setError('')
     setPasswordStrength(0)
+    setShowEmailVerification(false)
+    setRegisteredEmail('')
   }
 
   const toggleMode = () => {
@@ -295,6 +304,13 @@ export function AuthForm() {
           
         </CardContent>
       </Card>
+
+      {/* Dialogue de validation d'email */}
+      <EmailVerificationDialog
+        open={showEmailVerification}
+        onClose={() => setShowEmailVerification(false)}
+        email={registeredEmail}
+      />
     </div>
   )
 }

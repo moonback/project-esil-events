@@ -40,7 +40,7 @@ serve(async (req) => {
     }
 
     // Création du transporteur SMTP
-    const transporter = nodemailer.createTransporter(smtpConfig)
+    const transporter = nodemailer.createTransport(smtpConfig)
 
     // Vérification de la connexion SMTP
     await transporter.verify()

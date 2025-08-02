@@ -45,7 +45,7 @@ async function testSMTP() {
   try {
     // Création du transporteur
     console.log('🔌 Création du transporteur SMTP...')
-    const transporter = nodemailer.createTransporter(smtpConfig)
+    const transporter = nodemailer.createTransport(smtpConfig)
     console.log('✅ Transporteur créé')
 
     // Test de connexion

@@ -18,6 +18,7 @@ export interface Database {
           email: string | null
           address: string | null
           notes: string | null
+          is_validated: boolean
           created_at: string
           updated_at: string
         }
@@ -29,6 +30,7 @@ export interface Database {
           email?: string | null
           address?: string | null
           notes?: string | null
+          is_validated?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -40,6 +42,7 @@ export interface Database {
           email?: string | null
           address?: string | null
           notes?: string | null
+          is_validated?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -146,6 +149,7 @@ export interface Database {
           status: 'proposé' | 'accepté' | 'refusé'
           assigned_at: string
           responded_at: string | null
+          cancelled_by_admin: boolean
         }
         Insert: {
           id?: string
@@ -154,6 +158,7 @@ export interface Database {
           status?: 'proposé' | 'accepté' | 'refusé'
           assigned_at?: string
           responded_at?: string | null
+          cancelled_by_admin?: boolean
         }
         Update: {
           id?: string
@@ -162,6 +167,7 @@ export interface Database {
           status?: 'proposé' | 'accepté' | 'refusé'
           assigned_at?: string
           responded_at?: string | null
+          cancelled_by_admin?: boolean
         }
       }
       billing: {

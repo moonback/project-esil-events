@@ -12,6 +12,7 @@ interface MissionsState {
   deleteMission: (id: string) => Promise<void>
   assignTechnicians: (missionId: string, technicianIds: string[]) => Promise<void>
   updateAssignmentStatus: (assignmentId: string, status: MissionAssignment['status']) => Promise<void>
+  cancelPendingAssignmentsForMission: (missionId: string) => Promise<void>
   clearError: () => void
 }
 
@@ -230,5 +231,32 @@ export const useMissionsStore = create<MissionsState>((set, get) => ({
 
   clearError: () => {
     set({ error: null })
+  },
+
+  cancelPendingAssignmentsForMission: async (missionId: string) => {
+    set({ loading: true, error: null })
+    try {
+      const { error } = await supabase
+        .from('mission_assignments')
+        .update({ 
+          status: 'refusé',
+          responded_at: new Date().toISOString(),
+          cancelled_by_admin: true
+        })
+        .eq('mission_id', missionId)
+        .eq('status', 'proposé')
+
+      if (error) throw error
+
+      // Rafraîchir la liste
+      get().fetchMissions()
+    } catch (error) {
+      console.error('Erreur lors de l\'annulation des demandes en attente:', error)
+      set({ 
+        loading: false, 
+        error: 'Erreur lors de l\'annulation des demandes en attente. Veuillez réessayer.' 
+      })
+      throw error
+    }
   }
 }))

@@ -4,6 +4,7 @@ import { MissionsTab } from './MissionsTab'
 import { TechniciansTab } from './TechniciansTab'
 import { AdminAgendaTab } from './AdminAgendaTab'
 import { AdminBillingTab } from './AdminBillingTab'
+import { MissionsWithAssignmentsTab } from './MissionsWithAssignmentsTab'
 import { PaymentSummaryCard } from './PaymentSummaryCard'
 import { ResponsiveTabs } from '@/components/ui/responsive-tabs'
 import { 
@@ -15,12 +16,11 @@ import { cn } from '@/lib/utils'
 
 export function AdminDashboard() {
   const { fetchAllData, refreshData, loading, lastSync, isConnected, stats } = useAdminStore()
-  const [showAdvancedStats, setShowAdvancedStats] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFilter, setSelectedFilter] = useState('all')
   const [sortBy, setSortBy] = useState('date')
   const [viewMode, setViewMode] = useState<'kanban' | 'list' | 'grid'>('kanban')
-  const [isOverviewExpanded, setIsOverviewExpanded] = useState(false)
+  const [activeSection, setActiveSection] = useState<'missions' | 'assignations' | 'technicians' | 'agenda' | 'billing'>('missions')
   
   // Activer la synchronisation en temps réel
   useRealtimeSync()
@@ -41,342 +41,317 @@ export function AdminDashboard() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [refreshData])
 
-  // Optimisation des calculs avec useMemo
-  const kpiTrends = useMemo(() => ({
-    missions: Math.random() > 0.5 ? 'up' : 'down',
-    technicians: Math.random() > 0.5 ? 'up' : 'down',
-    billing: Math.random() > 0.5 ? 'up' : 'down'
-  }), [])
-
-  const completionRate = useMemo(() => 
-    Math.round((stats.missions.assignedCount / stats.missions.total) * 100) || 75, 
-    [stats.missions.assignedCount, stats.missions.total]
-  )
-
-  const efficiency = useMemo(() => 
-    Math.round(Math.random() * 100) || 85, 
-    []
-  )
-
-  // Filtres optimisés pour les missions
-  const filterOptions = useMemo(() => [
-    { value: 'all', label: 'Toutes', count: stats.missions.total },
-    { value: 'pending', label: 'En attente', count: stats.missions.total - stats.missions.assignedCount },
-    { value: 'in-progress', label: 'En cours', count: stats.missions.assignedCount },
-    { value: 'completed', label: 'Terminées', count: Math.floor(stats.missions.total * 0.7) },
-    { value: 'urgent', label: 'Urgentes', count: Math.floor(stats.missions.total * 0.1) }
-  ], [stats.missions])
-
-  // Configuration des onglets optimisée
-  const tabItems = useMemo(() => [
-    {
-      value: 'missions',
-      label: 'Missions',
-      icon: <Activity className="h-4 w-4" />,
-      badge: stats.missions.total || 0,
-      description: 'Gestion des missions actives',
-      content: (
-        <LoadingOverlay loading={loading.missions} text="Chargement des missions...">
-          <MissionsTab 
-            searchQuery={searchQuery}
-            selectedFilter={selectedFilter}
-            sortBy={sortBy}
-            viewMode={viewMode}
-            onSearchChange={setSearchQuery}
-            onFilterChange={setSelectedFilter}
-            onSortChange={setSortBy}
-            onViewModeChange={setViewMode}
-          />
-        </LoadingOverlay>
-      )
-    },
-    {
-      value: 'technicians',
-      label: 'Techniciens',
-      icon: <Users className="h-4 w-4" />,
-      badge: stats.technicians.available || 0,
-      description: 'Équipe et ressources',
-      content: (
-        <LoadingOverlay loading={loading.technicians} text="Chargement des techniciens...">
-          <TechniciansTab />
-        </LoadingOverlay>
-      )
-    },
-    {
-      value: 'agenda',
-      label: 'Agenda',
-      icon: <Calendar className="h-4 w-4" />,
-      badge: null,
-      description: 'Planning et rendez-vous',
-      content: (
-        <LoadingOverlay loading={loading.missions} text="Chargement de l'agenda...">
-          <AdminAgendaTab />
-        </LoadingOverlay>
-      )
-    },
-    {
-      value: 'billing',
-      label: 'Facturation',
-      icon: <CreditCard className="h-4 w-4" />,
-      badge: 0,
-      description: 'Gestion financière',
-      content: (
-        <LoadingOverlay loading={loading.billings} text="Chargement des facturations...">
-          <div className="space-y-8 p-6">
-            <PaymentSummaryCard 
-              billings={useAdminStore.getState().billings}
-              onViewAll={() => {}}
+  // Fonction pour rendre le contenu de la section active
+  const renderActiveSection = () => {
+    switch (activeSection) {
+      case 'missions':
+        return (
+          <LoadingOverlay loading={loading.missions} text="Chargement des missions...">
+            <MissionsTab 
+              searchQuery={searchQuery}
+              selectedFilter={selectedFilter}
+              sortBy={sortBy}
+              viewMode={viewMode}
+              onSearchChange={setSearchQuery}
+              onFilterChange={setSelectedFilter}
+              onSortChange={setSortBy}
+              onViewModeChange={setViewMode}
             />
-            <AdminBillingTab />
-          </div>
-        </LoadingOverlay>
-      )
+          </LoadingOverlay>
+        )
+      case 'assignations':
+        return (
+          <LoadingOverlay loading={loading.missions} text="Chargement des assignations...">
+            <MissionsWithAssignmentsTab />
+          </LoadingOverlay>
+        )
+      case 'technicians':
+        return (
+          <LoadingOverlay loading={loading.technicians} text="Chargement des techniciens...">
+            <TechniciansTab />
+          </LoadingOverlay>
+        )
+      case 'agenda':
+        return (
+          <LoadingOverlay loading={loading.missions} text="Chargement de l'agenda...">
+            <AdminAgendaTab />
+          </LoadingOverlay>
+        )
+      case 'billing':
+        return (
+          <LoadingOverlay loading={loading.billings} text="Chargement des facturations...">
+            <div className="space-y-8 p-6">
+              <PaymentSummaryCard 
+                billings={useAdminStore.getState().billings}
+                onViewAll={() => {}}
+              />
+              <AdminBillingTab />
+            </div>
+          </LoadingOverlay>
+        )
+      default:
+        return null
     }
-  ], [stats, loading, searchQuery, selectedFilter, sortBy, viewMode])
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
-      {/* Vue d'ensemble déployable */}
-      <section className="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => setIsOverviewExpanded(!isOverviewExpanded)}
-              className="flex items-center space-x-2 px-3 py-2 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors"
-            >
-              {isOverviewExpanded ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              <span className="font-medium">Vue d'ensemble</span>
-              <span className="text-xs bg-indigo-200 px-2 py-1 rounded-full">
-                {isOverviewExpanded ? 'Masquer' : 'Afficher'}
-              </span>
-            </button>
-            {isOverviewExpanded && (
-              <button
-                onClick={() => setShowAdvancedStats(!showAdvancedStats)}
-                className="flex items-center space-x-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-sm"
-              >
-                {showAdvancedStats ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                <span className="font-medium">
-                  {showAdvancedStats ? 'Vue simple' : 'Vue détaillée'}
-                </span>
-              </button>
-            )}
-          </div>
-          {isOverviewExpanded && (
-            <div className="text-sm text-gray-600">
-              Dernière mise à jour: {lastSync ? new Date(lastSync).toLocaleTimeString() : 'Jamais'}
+      {/* Composant principal - Gestion des données */}
+      <section className="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          {/* En-tête professionnel */}
+          <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 px-8 py-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                  <Activity className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-white">Tableau de bord administrateur</h1>
+                  <p className="text-indigo-100 text-lg mt-2">Gestion centralisée des missions, techniciens et facturations</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-4">
+                {/* Indicateur de statut */}
+                <div className="flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3">
+                  <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-red-400'} animate-pulse`}></div>
+                  <span className="text-white text-sm font-semibold">
+                    {isConnected ? 'Connecté' : 'Déconnecté'}
+                  </span>
+                </div>
+                
+                {/* Actions rapides */}
+                <div className="flex items-center space-x-3">
+                  <button className="flex items-center space-x-2 px-4 py-2 bg-white/10 backdrop-blur-sm text-white rounded-xl hover:bg-white/20 transition-all duration-200 text-sm font-medium border border-white/20">
+                    <Activity className="h-4 w-4" />
+                    <span>Exporter</span>
+                  </button>
+                  <button className="flex items-center space-x-2 px-4 py-2 bg-white/10 backdrop-blur-sm text-white rounded-xl hover:bg-white/20 transition-all duration-200 text-sm font-medium border border-white/20">
+                    <Users className="h-4 w-4" />
+                    <span>Importer</span>
+                  </button>
+                  <button className="p-3 text-white hover:bg-white/10 rounded-xl transition-all duration-200 border border-white/20">
+                    <CheckCircle className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
-
-        {/* Contenu de la vue d'ensemble - déployable */}
-        <div className={`
-          overflow-hidden transition-all duration-300 ease-in-out
-          ${isOverviewExpanded ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}
-        `}>
-          {isOverviewExpanded && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                {/* KPI Missions compact */}
-                <div className="group bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all duration-200">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-sm">
-                      <Activity className="h-5 w-5 text-white" />
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      {kpiTrends.missions === 'up' ? (
-                        <ArrowUp className="h-3 w-3 text-emerald-500" />
-                      ) : (
-                        <ArrowDown className="h-3 w-3 text-red-500" />
-                      )}
-                      <span className={cn(
-                        "text-xs font-semibold",
-                        kpiTrends.missions === 'up' ? "text-emerald-600" : "text-red-600"
-                      )}>
-                        12%
-                      </span>
-                    </div>
+            
+            {/* Statistiques rapides */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-indigo-100 text-sm font-medium mb-1">Missions</p>
+                    <p className="text-white text-3xl font-bold">{stats.missions.total}</p>
+                    <p className="text-indigo-200 text-xs mt-1">Total actif</p>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-gray-600">Missions totales</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.missions.total.toLocaleString()}</p>
-                    {showAdvancedStats && (
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-xs text-gray-500">
-                          <span>Taux de réussite</span>
-                          <span>{completionRate}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-1">
-                          <div 
-                            className="bg-indigo-500 h-1 rounded-full transition-all duration-1000"
-                            style={{ width: `${completionRate}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                    <Activity className="h-6 w-6 text-white" />
                   </div>
                 </div>
-
-                {/* KPI Techniciens compact */}
-                <div className="group bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all duration-200">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm">
-                      <Users className="h-5 w-5 text-white" />
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      {kpiTrends.technicians === 'up' ? (
-                        <ArrowUp className="h-3 w-3 text-emerald-500" />
-                      ) : (
-                        <ArrowDown className="h-3 w-3 text-red-500" />
-                      )}
-                      <span className={cn(
-                        "text-xs font-semibold",
-                        kpiTrends.technicians === 'up' ? "text-emerald-600" : "text-red-600"
-                      )}>
-                        5%
-                      </span>
-                    </div>
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-indigo-100 text-sm font-medium mb-1">Assignations</p>
+                    <p className="text-white text-3xl font-bold">{stats.missions.assignedCount}</p>
+                    <p className="text-indigo-200 text-xs mt-1">En cours</p>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-gray-600">Techniciens</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.technicians.total.toLocaleString()}</p>
-                    {showAdvancedStats && (
-                      <div className="flex justify-between text-xs">
-                        <span className="text-emerald-600">Disponibles: {stats.technicians.available.toLocaleString()}</span>
-                        <span className="text-amber-600">Occupés: {(stats.technicians.total - stats.technicians.available).toLocaleString()}</span>
-                      </div>
-                    )}
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                    <Users className="h-6 w-6 text-white" />
                   </div>
                 </div>
-
-                {/* KPI Facturations compact */}
-                <div className="group bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all duration-200">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg flex items-center justify-center shadow-sm">
-                      <CreditCard className="h-5 w-5 text-white" />
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      {kpiTrends.billing === 'up' ? (
-                        <ArrowUp className="h-3 w-3 text-emerald-500" />
-                      ) : (
-                        <ArrowDown className="h-3 w-3 text-red-500" />
-                      )}
-                      <span className={cn(
-                        "text-xs font-semibold",
-                        kpiTrends.billing === 'up' ? "text-emerald-600" : "text-red-600"
-                      )}>
-                        3%
-                      </span>
-                    </div>
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-indigo-100 text-sm font-medium mb-1">Techniciens</p>
+                    <p className="text-white text-3xl font-bold">{stats.technicians.available}</p>
+                    <p className="text-indigo-200 text-xs mt-1">Disponibles</p>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-gray-600">Facturations</p>
-                    <p className="text-2xl font-bold text-gray-900">
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                    <CheckCircle className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-indigo-100 text-sm font-medium mb-1">Chiffre d'affaires</p>
+                    <p className="text-white text-3xl font-bold">
                       {stats.billings.totalAmount > 0 ? `${(stats.billings.totalAmount / 1000).toFixed(1)}k€` : '0€'}
                     </p>
-                    {showAdvancedStats && (
-                      <div className="flex justify-between text-xs">
-                        <span className="text-amber-600">En attente: {`${(stats.billings.pendingAmount / 1000).toFixed(1)}k€`}</span>
-                        <span className="text-emerald-600">Payées: 87%</span>
-                      </div>
-                    )}
+                    <p className="text-indigo-200 text-xs mt-1">Total</p>
+                  </div>
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                    <CreditCard className="h-6 w-6 text-white" />
                   </div>
                 </div>
-              </div>
-
-              {/* Métriques de performance compactes */}
-              {showAdvancedStats && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-semibold text-gray-900">Efficacité</h3>
-                      <CheckCircle className="h-4 w-4 text-emerald-500" />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-xs text-gray-600">Performance</span>
-                        <span className="text-xs font-semibold text-gray-900">{efficiency}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-1.5">
-                        <div 
-                          className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-1.5 rounded-full transition-all duration-1000"
-                          style={{ width: `${efficiency}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-semibold text-gray-900">Temps moyen</h3>
-                      <Clock className="h-4 w-4 text-blue-500" />
-                    </div>
-                    <div className="space-y-1">
-                      <div className="text-xl font-bold text-gray-900">2.4h</div>
-                      <div className="text-xs text-gray-600">par mission</div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-semibold text-gray-900">Satisfaction</h3>
-                      <div className="flex space-x-0.5">
-                        {[1,2,3,4,5].map((star) => (
-                          <div key={star} className="w-3 h-3 bg-yellow-400 rounded-sm" />
-                        ))}
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="text-xl font-bold text-gray-900">4.8/5</div>
-                      <div className="text-xs text-gray-600">Note client moyenne</div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Composant principal - Gestion des données */}
-      <section className="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          {/* En-tête compact */}
-          <div className="bg-gradient-to-r from-gray-50 to-white px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-bold text-gray-900">Gestion des données</h2>
-                <p className="text-sm text-gray-600">Administrez vos ressources et suivez l'activité</p>
-              </div>
-              <div className="flex items-center space-x-3">
-                {/* Actions rapides compactes */}
-                <button className="flex items-center space-x-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors text-sm">
-                  <Activity className="h-3 w-3" />
-                  <span className="font-medium">Exporter</span>
-                </button>
-                <button className="flex items-center space-x-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors text-sm">
-                  <Users className="h-3 w-3" />
-                  <span className="font-medium">Importer</span>
-                </button>
-                <button className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-                  <CheckCircle className="h-4 w-4" />
-                </button>
               </div>
             </div>
           </div>
           
-          {/* Onglets simplifiés */}
-          <div className="p-4">
-            <ResponsiveTabs
-              items={tabItems}
-              defaultValue="missions"
-              className="w-full"
-            />
+          {/* Menu de navigation amélioré */}
+          <div className="px-8 py-6">
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Gestion des données</h2>
+              <p className="text-gray-600 text-lg">Sélectionnez une section pour gérer vos ressources</p>
+            </div>
+            
+            {/* Menu de navigation avec design moderne */}
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+              <button 
+                onClick={() => setActiveSection('missions')}
+                className={`group relative rounded-2xl p-6 border transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
+                  activeSection === 'missions' 
+                    ? 'bg-gradient-to-br from-indigo-100 to-indigo-200 border-indigo-300 shadow-lg' 
+                    : 'bg-gradient-to-br from-indigo-50 to-indigo-100 hover:from-indigo-100 hover:to-indigo-200 border-indigo-200 hover:border-indigo-300'
+                }`}
+              >
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 ${
+                    activeSection === 'missions' 
+                      ? 'bg-gradient-to-br from-indigo-600 to-indigo-700' 
+                      : 'bg-gradient-to-br from-indigo-500 to-indigo-600'
+                  }`}>
+                    <Activity className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <h3 className={`text-lg font-bold transition-colors ${
+                      activeSection === 'missions' ? 'text-indigo-700' : 'text-gray-900 group-hover:text-indigo-700'
+                    }`}>Missions</h3>
+                    <p className="text-sm text-gray-600 mt-1">Gestion des missions actives</p>
+                    <div className="mt-2 text-xs font-semibold text-indigo-600 bg-indigo-100 px-2 py-1 rounded-full">
+                      {stats.missions.total} missions
+                    </div>
+                  </div>
+                </div>
+              </button>
+
+              <button 
+                onClick={() => setActiveSection('assignations')}
+                className={`group relative rounded-2xl p-6 border transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
+                  activeSection === 'assignations' 
+                    ? 'bg-gradient-to-br from-blue-100 to-blue-200 border-blue-300 shadow-lg' 
+                    : 'bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border-blue-200 hover:border-blue-300'
+                }`}
+              >
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 ${
+                    activeSection === 'assignations' 
+                      ? 'bg-gradient-to-br from-blue-600 to-blue-700' 
+                      : 'bg-gradient-to-br from-blue-500 to-blue-600'
+                  }`}>
+                    <Users className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <h3 className={`text-lg font-bold transition-colors ${
+                      activeSection === 'assignations' ? 'text-blue-700' : 'text-gray-900 group-hover:text-blue-700'
+                    }`}>Assignations</h3>
+                    <p className="text-sm text-gray-600 mt-1">Gestion des assignations</p>
+                    <div className="mt-2 text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                      {stats.missions.assignedCount} assignées
+                    </div>
+                  </div>
+                </div>
+              </button>
+
+              <button 
+                onClick={() => setActiveSection('technicians')}
+                className={`group relative rounded-2xl p-6 border transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
+                  activeSection === 'technicians' 
+                    ? 'bg-gradient-to-br from-emerald-100 to-emerald-200 border-emerald-300 shadow-lg' 
+                    : 'bg-gradient-to-br from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 border-emerald-200 hover:border-emerald-300'
+                }`}
+              >
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 ${
+                    activeSection === 'technicians' 
+                      ? 'bg-gradient-to-br from-emerald-600 to-emerald-700' 
+                      : 'bg-gradient-to-br from-emerald-500 to-emerald-600'
+                  }`}>
+                    <Users className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <h3 className={`text-lg font-bold transition-colors ${
+                      activeSection === 'technicians' ? 'text-emerald-700' : 'text-gray-900 group-hover:text-emerald-700'
+                    }`}>Techniciens</h3>
+                    <p className="text-sm text-gray-600 mt-1">Équipe et ressources</p>
+                    <div className="mt-2 text-xs font-semibold text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full">
+                      {stats.technicians.available} disponibles
+                    </div>
+                  </div>
+                </div>
+              </button>
+
+              <button 
+                onClick={() => setActiveSection('agenda')}
+                className={`group relative rounded-2xl p-6 border transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
+                  activeSection === 'agenda' 
+                    ? 'bg-gradient-to-br from-purple-100 to-purple-200 border-purple-300 shadow-lg' 
+                    : 'bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border-purple-200 hover:border-purple-300'
+                }`}
+              >
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 ${
+                    activeSection === 'agenda' 
+                      ? 'bg-gradient-to-br from-purple-600 to-purple-700' 
+                      : 'bg-gradient-to-br from-purple-500 to-purple-600'
+                  }`}>
+                    <Calendar className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <h3 className={`text-lg font-bold transition-colors ${
+                      activeSection === 'agenda' ? 'text-purple-700' : 'text-gray-900 group-hover:text-purple-700'
+                    }`}>Agenda</h3>
+                    <p className="text-sm text-gray-600 mt-1">Planning et rendez-vous</p>
+                    <div className="mt-2 text-xs font-semibold text-purple-600 bg-purple-100 px-2 py-1 rounded-full">
+                      Planning
+                    </div>
+                  </div>
+                </div>
+              </button>
+
+              <button 
+                onClick={() => setActiveSection('billing')}
+                className={`group relative rounded-2xl p-6 border transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
+                  activeSection === 'billing' 
+                    ? 'bg-gradient-to-br from-amber-100 to-amber-200 border-amber-300 shadow-lg' 
+                    : 'bg-gradient-to-br from-amber-50 to-amber-100 hover:from-amber-100 hover:to-amber-200 border-amber-200 hover:border-amber-300'
+                }`}
+              >
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 ${
+                    activeSection === 'billing' 
+                      ? 'bg-gradient-to-br from-amber-600 to-amber-700' 
+                      : 'bg-gradient-to-br from-amber-500 to-amber-600'
+                  }`}>
+                    <CreditCard className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <h3 className={`text-lg font-bold transition-colors ${
+                      activeSection === 'billing' ? 'text-amber-700' : 'text-gray-900 group-hover:text-amber-700'
+                    }`}>Facturation</h3>
+                    <p className="text-sm text-gray-600 mt-1">Gestion financière</p>
+                    <div className="mt-2 text-xs font-semibold text-amber-600 bg-amber-100 px-2 py-1 rounded-full">
+                      {stats.billings.totalAmount > 0 ? `${(stats.billings.totalAmount / 1000).toFixed(1)}k€` : '0€'}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            </div>
+            
+            {/* Contenu de la section active */}
+            <div className="bg-gray-50 rounded-2xl p-6">
+              {renderActiveSection()}
+            </div>
           </div>
         </div>
       </section>
-
-      
 
       {/* Espacement pour la barre de navigation mobile */}
       <div className="md:hidden h-20"></div>

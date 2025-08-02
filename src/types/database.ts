@@ -240,7 +240,6 @@ export type TechnicianStats = {
   pendingAssignments: number
   rejectedAssignments: number
   totalRevenue: number
-  averageRating: number
   totalHours: number
   availabilityCount: number
 }

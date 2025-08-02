@@ -255,9 +255,6 @@ export const useAdminStore = create<AdminState>((set, get) => ({
             return sum + 4 // Valeur par défaut de 4 heures si pas de dates
           }, 0)
 
-        // Calculer la note moyenne (pour l'instant, valeur par défaut)
-        const averageRating = 4.2 // À améliorer quand on aura un système de notation
-
         return {
           ...tech,
           stats: {
@@ -266,7 +263,6 @@ export const useAdminStore = create<AdminState>((set, get) => ({
             pendingAssignments,
             rejectedAssignments,
             totalRevenue,
-            averageRating,
             totalHours: Math.round(totalHours),
             availabilityCount: techAvailabilities.length
           },

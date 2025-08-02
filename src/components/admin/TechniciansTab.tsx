@@ -181,8 +181,9 @@ export function TechniciansTab() {
         bValue = b.stats?.totalRevenue || 0
         break
       case 'rating':
-        aValue = a.stats?.averageRating || 0
-        bValue = b.stats?.averageRating || 0
+        // Note moyenne temporairement désactivée
+        aValue = 0
+        bValue = 0
         break
       default:
         aValue = a.name
@@ -196,19 +197,7 @@ export function TechniciansTab() {
     }
   })
 
-  const getPerformanceColor = (rating: number) => {
-    if (rating >= 4.5) return 'text-green-600'
-    if (rating >= 4.0) return 'text-blue-600'
-    if (rating >= 3.5) return 'text-yellow-600'
-    return 'text-red-600'
-  }
 
-  const getPerformanceBadge = (rating: number) => {
-    if (rating >= 4.5) return { text: 'Excellent', color: 'bg-green-100 text-green-800' }
-    if (rating >= 4.0) return { text: 'Bon', color: 'bg-blue-100 text-blue-800' }
-    if (rating >= 3.5) return { text: 'Moyen', color: 'bg-yellow-100 text-yellow-800' }
-    return { text: 'À améliorer', color: 'bg-red-100 text-red-800' }
-  }
 
 
 
@@ -387,7 +376,7 @@ export function TechniciansTab() {
       )}
 
       {/* Informations sur l'annulation automatique */}
-      <div className="px-6">
+      {/* <div className="px-6">
         <Card className="border-blue-200 bg-blue-50">
           <CardContent className="p-4">
             <div className="flex items-start space-x-3">
@@ -404,7 +393,7 @@ export function TechniciansTab() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       {/* Statistiques globales */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 px-6">
@@ -432,20 +421,7 @@ export function TechniciansTab() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-3 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-600">Note moyenne</p>
-              <p className="text-lg font-bold text-purple-600">
-                {technicians.length > 0 
-                  ? (technicians.reduce((sum, tech) => sum + (tech.stats?.averageRating || 0), 0) / technicians.length).toFixed(1)
-                  : '0.0'
-                }
-              </p>
-            </div>
-            <Star className="h-5 w-5 text-purple-600" />
-          </div>
-        </div>
+        
 
         <div className="bg-white rounded-lg p-3 border border-gray-200">
           <div className="flex items-center justify-between">
@@ -539,9 +515,7 @@ export function TechniciansTab() {
                               </Badge>
                             )
                           })()}
-                          <Badge className={getPerformanceBadge(technician.stats?.averageRating || 0).color}>
-                            {getPerformanceBadge(technician.stats?.averageRating || 0).text}
-                          </Badge>
+                          
                           <Button
                             variant="ghost"
                             size="sm"
@@ -611,10 +585,7 @@ export function TechniciansTab() {
                           <span>{technician.stats?.totalRevenue || 0}€</span>
                         </div>
                         
-                        <div className="flex items-center space-x-1">
-                          <Star className={`h-3 w-3 ${getPerformanceColor(technician.stats?.averageRating || 0)}`} />
-                          <span>{(technician.stats?.averageRating || 0).toFixed(1)}/5</span>
-                        </div>
+                        
                         
                         <div className="flex items-center space-x-1">
                           <Clock3 className="h-3 w-3 text-orange-500" />
@@ -790,12 +761,7 @@ export function TechniciansTab() {
                                 <span className="text-gray-500">Heures</span>
                                 <span className="font-medium text-blue-600">{technician.stats?.totalHours || 0}h</span>
                               </div>
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">Note</span>
-                                <span className={`font-medium ${getPerformanceColor(technician.stats?.averageRating || 0)}`}>
-                                  {(technician.stats?.averageRating || 0).toFixed(1)}/5
-                                </span>
-                              </div>
+                              
                             </div>
                           </div>
                         </div>

@@ -43,7 +43,7 @@ const AssignmentDetails = memo(({
   return (
     <div className="space-y-2">
       {/* Résumé des assignations */}
-      <div className="flex items-center justify-between">
+      {/* <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-gray-600">Assignations</span>
         <div className="flex items-center space-x-2">
           {acceptedAssignments.length > 0 && (
@@ -65,7 +65,7 @@ const AssignmentDetails = memo(({
             </Badge>
           )}
         </div>
-      </div>
+      </div> */}
 
       {/* Techniciens acceptés avec avatars et noms */}
       {acceptedAssignments.length > 0 && (
@@ -195,24 +195,28 @@ const MissionCard = memo(({
   const missionStatus = useMemo(() => {
     if (!mission.mission_assignments?.length) return { status: 'non_assigné', color: 'bg-gray-500', icon: AlertCircle }
     
-    const assignments = mission.mission_assignments
-    const acceptedCount = assignments.filter((a: any) => a.status === 'accepté').length
-    const refusedCount = assignments.filter((a: any) => a.status === 'refusé').length
-    const pendingCount = assignments.filter((a: any) => a.status === 'proposé').length
+    // Filtrer les assignations non annulées
+    const activeAssignments = mission.mission_assignments.filter((a: any) => !a.cancelled_by_admin)
+    
+    if (activeAssignments.length === 0) return { status: 'non_assigné', color: 'bg-gray-500', icon: AlertCircle }
+    
+    const acceptedCount = activeAssignments.filter((a: any) => a.status === 'accepté').length
+    const refusedCount = activeAssignments.filter((a: any) => a.status === 'refusé').length
+    const pendingCount = activeAssignments.filter((a: any) => a.status === 'proposé').length
     
     const requiredPeople = mission.required_people || 1
     const isComplete = acceptedCount >= requiredPeople
     
     if (isComplete) return { status: 'complet', color: 'bg-emerald-500', icon: CheckCircle }
     if (acceptedCount > 0) return { status: 'partiellement_assigné', color: 'bg-indigo-500', icon: Activity }
-    if (refusedCount === assignments.length) return { status: 'refusé', color: 'bg-red-500', icon: XCircle }
+    if (refusedCount === activeAssignments.length) return { status: 'refusé', color: 'bg-red-500', icon: XCircle }
     if (pendingCount > 0) return { status: 'en_attente', color: 'bg-amber-500', icon: Clock }
     
     return { status: 'mixte', color: 'bg-blue-500', icon: Activity }
   }, [mission])
 
   const StatusIcon = missionStatus.icon
-  const acceptedAssignments = mission.mission_assignments?.filter((a: any) => a.status === 'accepté') || []
+  const acceptedAssignments = mission.mission_assignments?.filter((a: any) => a.status === 'accepté' && !a.cancelled_by_admin) || []
   const requiredPeople = mission.required_people || 1
 
   return (
@@ -472,14 +476,16 @@ export function MissionsTab({
 
     filteredMissions.forEach(mission => {
       const assignments = mission.mission_assignments || []
-      const acceptedCount = assignments.filter((a: any) => a.status === 'accepté').length
+      // Filtrer les assignations non annulées
+      const activeAssignments = assignments.filter((a: any) => !a.cancelled_by_admin)
+      const acceptedCount = activeAssignments.filter((a: any) => a.status === 'accepté').length
       const requiredPeople = mission.required_people || 1
       
       if (acceptedCount >= requiredPeople) {
         groups.complet.push(mission as MissionWithAssignments)
       } else if (acceptedCount > 0) {
         groups.partiellement_assigné.push(mission as MissionWithAssignments)
-      } else if (assignments.length > 0) {
+      } else if (activeAssignments.length > 0) {
         groups.en_attente.push(mission as MissionWithAssignments)
       } else {
         groups.non_assigné.push(mission as MissionWithAssignments)

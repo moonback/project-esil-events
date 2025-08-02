@@ -13,6 +13,7 @@ import { formatDateTime, formatCurrency, getMissionTypeColor, getStatusColor } f
 import { MissionDialog } from './MissionDialog'
 import { AssignTechniciansDialog } from './AssignTechniciansDialog'
 import { TechnicianContactDialog } from './TechnicianContactDialog'
+import { GeocodingDialog } from './GeocodingDialog'
 import type { Mission, MissionWithAssignments } from '@/types/database'
 import { useAdminStore } from '@/store/adminStore'
 
@@ -190,6 +191,7 @@ const MissionCard = memo(({
   onDelete: (id: string) => void
   onQuickAssign: (mission: Mission) => void
   onViewTechnicianDetails: (mission: Mission) => void
+  onGeocoding: (mission: Mission) => void
   deleteLoading: string | null
 }) => {
   const missionStatus = useMemo(() => {
@@ -259,6 +261,15 @@ const MissionCard = memo(({
               title="Modifier"
             >
               <Edit className="h-3 w-3" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => onGeocoding(mission)}
+              className="h-7 w-7 p-0 hover:bg-blue-50 hover:text-blue-600"
+              title="Ajouter coordonnées"
+            >
+              <MapPin className="h-3 w-3" />
             </Button>
             <Button 
               variant="ghost" 
@@ -362,6 +373,8 @@ export function MissionsTab({
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
   const [deleteAllLoading, setDeleteAllLoading] = useState(false)
   const [createTestLoading, setCreateTestLoading] = useState(false)
+  const [geocodingDialogOpen, setGeocodingDialogOpen] = useState(false)
+  const [missionForGeocoding, setMissionForGeocoding] = useState<Mission | null>(null)
 
   // Utiliser les props du dashboard ou les états locaux
   const searchTerm = searchQuery || ''
@@ -444,14 +457,25 @@ export function MissionsTab({
     }
   }, [createTestMissions])
 
+  const handleGeocoding = useCallback((mission: Mission) => {
+    setMissionForGeocoding(mission)
+    setGeocodingDialogOpen(true)
+  }, [])
+
+  const handleCoordinatesUpdated = useCallback(() => {
+    // Rafraîchir les données après mise à jour des coordonnées
+    // Le store admin se chargera de rafraîchir automatiquement
+  }, [])
+
   // Optimisation : mémoriser les handlers pour éviter les re-rendus
   const handlers = useMemo(() => ({
     onEdit: handleEdit,
     onAssign: handleAssignTechnicians,
     onDelete: handleDelete,
     onQuickAssign: handleQuickAssign,
-    onViewTechnicianDetails: handleViewTechnicianDetails
-  }), [handleEdit, handleAssignTechnicians, handleDelete, handleQuickAssign, handleViewTechnicianDetails])
+    onViewTechnicianDetails: handleViewTechnicianDetails,
+    onGeocoding: handleGeocoding
+  }), [handleEdit, handleAssignTechnicians, handleDelete, handleQuickAssign, handleViewTechnicianDetails, handleGeocoding])
 
   const missionStats = stats.missions
 
@@ -745,6 +769,7 @@ export function MissionsTab({
                       onDelete={handlers.onDelete}
                       onQuickAssign={handlers.onQuickAssign}
                       onViewTechnicianDetails={handlers.onViewTechnicianDetails}
+                      onGeocoding={handlers.onGeocoding}
                       deleteLoading={deleteLoading}
                     />
                   ))}
@@ -764,6 +789,7 @@ export function MissionsTab({
                 onDelete={handlers.onDelete}
                 onQuickAssign={handlers.onQuickAssign}
                 onViewTechnicianDetails={handlers.onViewTechnicianDetails}
+                onGeocoding={handlers.onGeocoding}
                 deleteLoading={deleteLoading}
               />
             ))}
@@ -788,6 +814,13 @@ export function MissionsTab({
         open={technicianDetailsOpen}
         onOpenChange={setTechnicianDetailsOpen}
         onAssignTechnicians={handleAssignTechnicians}
+      />
+
+      <GeocodingDialog
+        mission={missionForGeocoding}
+        open={geocodingDialogOpen}
+        onOpenChange={setGeocodingDialogOpen}
+        onCoordinatesUpdated={handleCoordinatesUpdated}
       />
     </div>
   )

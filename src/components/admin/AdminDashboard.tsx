@@ -6,9 +6,10 @@ import { AdminAgendaTab } from './AdminAgendaTab'
 import { AdminBillingTab } from './AdminBillingTab'
 import { MissionsWithAssignmentsTab } from './MissionsWithAssignmentsTab'
 import { PaymentSummaryCard } from './PaymentSummaryCard'
+import { MissionsMap } from './MissionsMap'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
-  Users, Calendar, CreditCard, Activity, CheckCircle
+  Users, Calendar, CreditCard, Activity, CheckCircle, MapPin
 } from 'lucide-react'
 import { LoadingOverlay } from '@/components/ui/loading'
 import { useRealtimeSync } from '@/lib/useRealtimeSync'
@@ -47,6 +48,12 @@ export function AdminDashboard() {
       label: 'Missions',
       icon: Activity,
       color: 'indigo'
+    },
+    {
+      value: 'map',
+      label: 'Carte',
+      icon: MapPin,
+      color: 'red'
     },
     {
       value: 'assignations',
@@ -107,7 +114,7 @@ export function AdminDashboard() {
       {/* Tabs desktop */}
       <div className="hidden md:block">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white border border-gray-200 shadow-sm rounded-lg p-1">
+          <TabsList className="grid w-full grid-cols-6 bg-white border border-gray-200 shadow-sm rounded-lg p-1">
             {tabs.map((tab) => {
               const Icon = tab.icon
               return (
@@ -136,6 +143,10 @@ export function AdminDashboard() {
                 onViewModeChange={setViewMode}
               />
             </LoadingOverlay>
+          </TabsContent>
+
+          <TabsContent value="map" className="animate-slide-in-right">
+            <MissionsMap />
           </TabsContent>
 
           <TabsContent value="assignations" className="animate-slide-in-right">
@@ -186,6 +197,12 @@ export function AdminDashboard() {
                 onViewModeChange={setViewMode}
               />
             </LoadingOverlay>
+          </div>
+        )}
+        
+        {activeTab === 'map' && (
+          <div className="animate-slide-in-right">
+            <MissionsMap />
           </div>
         )}
         

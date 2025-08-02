@@ -27,6 +27,8 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
     date_start: '',
     date_end: '',
     location: '',
+    latitude: null as number | null,
+    longitude: null as number | null,
     forfeit: 0,
     required_people: 1
   })
@@ -42,6 +44,8 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
           date_start: mission.date_start.slice(0, 16),
           date_end: mission.date_end.slice(0, 16),
           location: mission.location,
+          latitude: mission.latitude,
+          longitude: mission.longitude,
           forfeit: mission.forfeit,
           required_people: mission.required_people || 1
         })
@@ -53,6 +57,8 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
           date_start: '',
           date_end: '',
           location: '',
+          latitude: null,
+          longitude: null,
           forfeit: 0,
           required_people: 1
         })
@@ -194,6 +200,8 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
         date_start: '',
         date_end: '',
         location: '',
+        latitude: null,
+        longitude: null,
         forfeit: 0,
         required_people: 1
       })
@@ -346,6 +354,36 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
               {errors.location && (
                 <p className="text-sm text-red-500">{errors.location}</p>
               )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="latitude">Latitude (optionnel)</Label>
+                <Input
+                  id="latitude"
+                  type="number"
+                  step="0.000001"
+                  min="-90"
+                  max="90"
+                  value={formData.latitude || ''}
+                  onChange={(e) => setFormData({ ...formData, latitude: e.target.value ? parseFloat(e.target.value) : null })}
+                  placeholder="48.8566"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="longitude">Longitude (optionnel)</Label>
+                <Input
+                  id="longitude"
+                  type="number"
+                  step="0.000001"
+                  min="-180"
+                  max="180"
+                  value={formData.longitude || ''}
+                  onChange={(e) => setFormData({ ...formData, longitude: e.target.value ? parseFloat(e.target.value) : null })}
+                  placeholder="2.3522"
+                />
+              </div>
             </div>
 
             {!mission && technicians.length > 0 && (

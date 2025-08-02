@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import { UserPlus, Users, Check, X, Clock, AlertTriangle, Calendar } from 'lucide-react'
 import { formatCurrency, getMissionTypeColor, getStatusColor } from '@/lib/utils'
 import type { Mission, User, MissionAssignment, Availability, Unavailability } from '@/types/database'
+import { EmailService } from '@/lib/emailService'
+import { useToast } from '@/lib/useToast'
 
 interface AssignTechniciansDialogProps {
   mission?: Mission | null
@@ -28,6 +30,7 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
   const [loading, setLoading] = useState(false)
   const [technicians, setTechnicians] = useState<TechnicianWithAssignment[]>([])
   const [selectedTechnicians, setSelectedTechnicians] = useState<string[]>([])
+  const toast = useToast()
 
   useEffect(() => {
     if (open && mission) {
@@ -209,6 +212,52 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
           .insert(assignments)
 
         if (error) throw error
+
+        // Envoyer les emails de notification aux techniciens assignés
+        const assignedTechnicians = technicians.filter(tech => 
+          selectedTechnicians.includes(tech.id)
+        )
+
+        if (assignedTechnicians.length > 0) {
+          const emailResult = await EmailService.sendBulkMissionAssignmentEmails(
+            assignedTechnicians.map(tech => ({
+              id: tech.id,
+              email: tech.email || '',
+              name: tech.name
+            })),
+            {
+              title: mission.title,
+              type: mission.type,
+              location: mission.location,
+              date_start: mission.date_start,
+              date_end: mission.date_end,
+              forfeit: mission.forfeit,
+              description: mission.description || undefined
+            }
+          )
+
+          // Afficher les résultats des emails
+          if (emailResult.success) {
+            if (emailResult.sent > 0) {
+              toast.showSuccess(
+                'Assignation réussie',
+                `${emailResult.sent} technicien(s) assigné(s) et notifié(s) par email`
+              )
+            }
+            
+            if (emailResult.failed > 0) {
+              toast.showWarning(
+                'Problème avec les emails',
+                `${emailResult.failed} email(s) n'ont pas pu être envoyé(s)`
+              )
+            }
+          } else {
+            toast.showError(
+              'Erreur d\'envoi d\'emails',
+              'Aucun email de notification n\'a pu être envoyé'
+            )
+          }
+        }
       }
 
       // Rafraîchir les données dans le store admin
@@ -216,6 +265,10 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
       onOpenChange(false)
     } catch (error) {
       console.error('Erreur lors de l\'assignation:', error)
+      toast.showError(
+        'Erreur d\'assignation',
+        'Une erreur est survenue lors de l\'assignation des techniciens'
+      )
     } finally {
       setLoading(false)
     }
@@ -498,8 +551,8 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }

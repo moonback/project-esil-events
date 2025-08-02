@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { GeocodingPreview } from '@/components/ui/geocoding-preview'
 import type { Mission, User, MissionType } from '@/types/database'
+import { EmailService } from '@/lib/emailService'
+import { useToast } from '@/lib/useToast'
 
 interface MissionDialogProps {
   mission?: Mission | null
@@ -164,10 +166,17 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
 
   const assignTechnicians = async (missionId: string, technicianIds: string[]) => {
     try {
+      // Récupérer les informations des techniciens pour les emails
+      const { data: techniciansData } = await supabase
+        .from('users')
+        .select('id, name, email')
+        .in('id', technicianIds)
+
+      // Créer les assignations
       const assignments = technicianIds.map(technicianId => ({
         mission_id: missionId,
         technician_id: technicianId,
-        status: 'proposé'
+        status: 'proposé' as const
       }))
 
       const { error } = await supabase
@@ -175,6 +184,43 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
         .insert(assignments)
 
       if (error) throw error
+
+      // Envoyer les emails de notification
+      if (techniciansData && techniciansData.length > 0) {
+        const emailResult = await EmailService.sendBulkMissionAssignmentEmails(
+          techniciansData.map(tech => ({
+            id: tech.id,
+            email: tech.email || '',
+            name: tech.name
+          })),
+          {
+            title: formData.title,
+            type: formData.type,
+            location: formData.location,
+            date_start: formData.date_start,
+            date_end: formData.date_end,
+            forfeit: formData.forfeit,
+            description: formData.description || undefined
+          }
+        )
+
+        // Afficher les résultats des emails
+        if (emailResult.success) {
+          if (emailResult.sent > 0) {
+            useToast().showSuccess(
+              'Mission créée',
+              `${emailResult.sent} technicien(s) notifié(s) par email`
+            )
+          }
+          
+          if (emailResult.failed > 0) {
+            useToast().showWarning(
+              'Problème avec les emails',
+              `${emailResult.failed} email(s) n'ont pas pu être envoyé(s)`
+            )
+          }
+        }
+      }
     } catch (error) {
       console.error('Erreur lors de l\'assignation des techniciens:', error)
       throw error

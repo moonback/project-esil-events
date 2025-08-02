@@ -3,6 +3,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import nodemailer from "nodemailer"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -38,8 +39,14 @@ serve(async (req) => {
       }
     }
 
-    // Utilisation de l'API fetch pour envoyer l'email via un service SMTP
-    const emailPayload = {
+    // Création du transporteur SMTP
+    const transporter = nodemailer.createTransporter(smtpConfig)
+
+    // Vérification de la connexion SMTP
+    await transporter.verify()
+
+    // Préparation de l'email
+    const mailOptions = {
       from: `${emailData.fromName || 'Esil-events'} <${emailData.from || smtpConfig.auth.user}>`,
       to: emailData.to,
       subject: emailData.subject,
@@ -47,18 +54,16 @@ serve(async (req) => {
       text: emailData.text
     }
 
-    // Envoi via un service SMTP externe (exemple avec Resend ou SendGrid)
-    // Pour l'instant, on simule l'envoi
-    console.log('📧 Email à envoyer:', emailPayload)
+    // Envoi de l'email
+    const info = await transporter.sendMail(mailOptions)
 
-    // Simulation d'un délai d'envoi
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    console.log('✅ Email envoyé avec succès:', info.messageId)
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: 'Email envoyé avec succès',
-        messageId: `msg_${Date.now()}`
+        messageId: info.messageId
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

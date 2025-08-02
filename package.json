@@ -12,6 +12,7 @@
     "test:email:real": "node scripts/test-email-service.js --real-data",
     "test:email:simulate": "node scripts/test-email-simple.js",
     "test:email:config": "node scripts/test-email-simple.js --config",
+    "test:email:final": "node scripts/test-email-final.js",
     "supabase:start": "npx supabase start",
     "supabase:stop": "npx supabase stop",
     "supabase:deploy": "npx supabase functions deploy email-service"
@@ -36,6 +37,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.2.1",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

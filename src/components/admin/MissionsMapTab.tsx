@@ -26,7 +26,8 @@ import {
   SortAsc,
   SortDesc,
   AlertTriangle,
-  TrendingUp
+  TrendingUp,
+  Warehouse
 } from 'lucide-react'
 
 // Import des styles Leaflet
@@ -40,23 +41,57 @@ Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 })
 
+// Définition des dépôts
+const DEPOTS = [
+  {
+    id: 'mantes-la-ville',
+    name: 'Dépôt Mantes-la-Ville',
+    address: '7 rue de la Cellophane, 78711 Mantes-la-Ville',
+    latitude: 48.9733,
+    longitude: 1.7075,
+    type: 'départ',
+    description: 'Dépôt principal pour les missions de livraison et prestations'
+  }
+]
+
+// Icône pour les dépôts
+const getDepotIcon = () => {
+  return new Icon({
+    iconUrl: `data:image/svg+xml;base64,${btoa(`
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="12" width="24" height="16" fill="#1F2937" stroke="white" stroke-width="2"/>
+        <rect x="8" y="16" width="4" height="8" fill="white"/>
+        <rect x="20" y="16" width="4" height="8" fill="white"/>
+        <path d="M4 12L16 4L28 12" stroke="white" stroke-width="2"/>
+        <circle cx="16" cy="8" r="2" fill="#F59E0B"/>
+      </svg>
+    `)}`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -16]
+  })
+}
+
 interface MissionsMapTabProps {
   onViewMission?: (mission: MissionWithAssignments) => void
   onEditMission?: (mission: MissionWithAssignments) => void
   isModalOpen?: boolean
 }
 
-// Composant pour centrer la carte sur les missions
+// Composant pour centrer la carte sur les missions et dépôts
 function MapCenter({ missions }: { missions: MissionWithAssignments[] }) {
   const map = useMap()
   
   useEffect(() => {
-    if (missions.length > 0) {
-      const missionsWithCoords = missions.filter(m => m.latitude && m.longitude)
-      if (missionsWithCoords.length > 0) {
-        const bounds = missionsWithCoords.map(m => [m.latitude!, m.longitude!])
-        map.fitBounds(bounds as any, { padding: [20, 20] })
-      }
+    const allPoints = [
+      // Missions avec coordonnées
+      ...missions.filter(m => m.latitude && m.longitude).map(m => [m.latitude!, m.longitude!]),
+      // Dépôts
+      ...DEPOTS.map(depot => [depot.latitude, depot.longitude])
+    ]
+    
+    if (allPoints.length > 0) {
+      map.fitBounds(allPoints as any, { padding: [20, 20] })
     }
   }, [missions, map])
   
@@ -185,7 +220,8 @@ export function MissionsMapTab({ onViewMission, onEditMission, isModalOpen = fal
       const missionDate = new Date(m.date_start)
       const daysDiff = Math.ceil((missionDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
       return daysDiff <= 3 && daysDiff >= 0
-    }).length
+    }).length,
+    depots: DEPOTS.length
   }
 
   if (loading.missions) {
@@ -215,7 +251,7 @@ export function MissionsMapTab({ onViewMission, onEditMission, isModalOpen = fal
       {/* Panneau de gauche - Liste des missions */}
       <div className="lg:w-1/2 flex flex-col space-y-4">
         {/* En-tête avec statistiques */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-3">
               <div className="flex items-center space-x-2">
@@ -247,6 +283,18 @@ export function MissionsMapTab({ onViewMission, onEditMission, isModalOpen = fal
                 <div>
                   <p className="text-xs font-medium text-gray-600">Urgentes</p>
                   <p className="text-lg font-bold text-gray-900">{stats.urgent}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-3">
+              <div className="flex items-center space-x-2">
+                <Warehouse className="h-4 w-4 text-gray-600" />
+                <div>
+                  <p className="text-xs font-medium text-gray-600">Dépôts</p>
+                  <p className="text-lg font-bold text-gray-900">{stats.depots}</p>
                 </div>
               </div>
             </CardContent>
@@ -457,7 +505,7 @@ export function MissionsMapTab({ onViewMission, onEditMission, isModalOpen = fal
             <CardTitle className="flex items-center justify-between">
               <span className="flex items-center space-x-2">
                 <Map className="h-5 w-5" />
-                <span>Carte des Missions</span>
+                <span>Carte des Missions et Dépôts</span>
               </span>
               <Button
                 variant="outline"
@@ -469,7 +517,38 @@ export function MissionsMapTab({ onViewMission, onEditMission, isModalOpen = fal
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="h-96 w-full">
+            <div className="h-96 w-full relative">
+              {/* Légende de la carte */}
+              <div className="absolute top-2 left-2 z-[1000] bg-white rounded-lg shadow-lg p-3 text-xs">
+                <div className="font-semibold mb-2">Légende</div>
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-full bg-gray-600 border-2 border-white"></div>
+                    <span>Dépôts</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-full bg-green-500 border-2 border-white"></div>
+                    <span>Livraison jeux</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-full bg-blue-500 border-2 border-white"></div>
+                    <span>Presta sono</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-full bg-purple-500 border-2 border-white"></div>
+                    <span>DJ</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-full bg-orange-500 border-2 border-white"></div>
+                    <span>Manutention</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-full bg-red-500 border-2 border-white"></div>
+                    <span>Déplacement</span>
+                  </div>
+                </div>
+              </div>
+              
               <MapContainer
                 key={mapKey}
                 center={[48.8566, 2.3522]} // Paris
@@ -483,6 +562,43 @@ export function MissionsMapTab({ onViewMission, onEditMission, isModalOpen = fal
                 
                 <MapCenter missions={filteredAndSortedMissions} />
                 
+                {/* Marqueurs des dépôts */}
+                {DEPOTS.map((depot) => (
+                  <Marker
+                    key={depot.id}
+                    position={[depot.latitude, depot.longitude]}
+                    icon={getDepotIcon()}
+                  >
+                    <Popup>
+                      <div className="space-y-3 min-w-64">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900">{depot.name}</h3>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <Badge variant="secondary" className="bg-gray-600 text-white">
+                                {depot.type}
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <Warehouse className="h-6 w-6 text-gray-600" />
+                          </div>
+                        </div>
+
+                        <p className="text-sm text-gray-600">{depot.description}</p>
+
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2 text-sm">
+                            <MapPin className="h-4 w-4 text-gray-500" />
+                            <span className="text-gray-700">{depot.address}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </Popup>
+                  </Marker>
+                ))}
+                
+                {/* Marqueurs des missions */}
                 {filteredAndSortedMissions.map((mission) => {
                   const assignmentStatus = getAssignmentStatus(mission)
                   const today = new Date()

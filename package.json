@@ -7,7 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:email": "node scripts/test-email-service.js",
+    "test:email:real": "node scripts/test-email-service.js --real-data",
+    "supabase:start": "npx supabase start",
+    "supabase:stop": "npx supabase stop",
+    "supabase:deploy": "npx supabase functions deploy email-service"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.18",

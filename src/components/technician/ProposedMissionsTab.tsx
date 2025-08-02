@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useMissionsStore } from '@/store/missionsStore'
 import { supabase } from '@/lib/supabase'
+import { EmailService } from '@/lib/emailService'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -132,6 +133,22 @@ export function ProposedMissionsTab() {
               amount: assignment.missions.forfeit,
               status: 'en_attente'
             }])
+        }
+      }
+
+      // Envoyer une notification email à l'admin
+      const assignment = proposedMissions.find(m => m.id === assignmentId)
+      if (assignment && profile) {
+        try {
+          if (status === 'accepté') {
+            await EmailService.sendMissionAcceptedNotification(profile.id, assignment.mission_id)
+          } else {
+            await EmailService.sendMissionRejectedNotification(profile.id, assignment.mission_id)
+          }
+          console.log('Notification email envoyée avec succès')
+        } catch (emailError) {
+          console.error('Erreur lors de l\'envoi de la notification email:', emailError)
+          // Ne pas bloquer le processus si l'email échoue
         }
       }
 

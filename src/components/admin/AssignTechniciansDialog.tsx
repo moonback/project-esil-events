@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { useAdminStore } from '@/store/adminStore'
 import { supabase } from '@/lib/supabase'
+import { EmailService } from '@/lib/emailService'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { EmailNotification, EmailStatus } from '@/components/ui/email-notification'
 import { UserPlus, Users, Check, X, Clock, AlertTriangle, Calendar } from 'lucide-react'
 import { formatCurrency, getMissionTypeColor, getStatusColor } from '@/lib/utils'
 import type { Mission, User, MissionAssignment, Availability, Unavailability } from '@/types/database'
@@ -28,6 +30,16 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
   const [loading, setLoading] = useState(false)
   const [technicians, setTechnicians] = useState<TechnicianWithAssignment[]>([])
   const [selectedTechnicians, setSelectedTechnicians] = useState<string[]>([])
+  const [emailStatus, setEmailStatus] = useState<{
+    sent: number
+    failed: number
+    total: number
+    isLoading: boolean
+  }>({ sent: 0, failed: 0, total: 0, isLoading: false })
+  const [emailNotification, setEmailNotification] = useState<{
+    type: 'success' | 'error' | 'info'
+    message: string
+  } | null>(null)
 
   useEffect(() => {
     if (open && mission) {
@@ -209,6 +221,44 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
           .insert(assignments)
 
         if (error) throw error
+
+        // Envoyer les notifications email aux techniciens assignés
+        setEmailStatus({ sent: 0, failed: 0, total: selectedTechnicians.length, isLoading: true })
+        
+        const emailPromises = selectedTechnicians.map(technicianId =>
+          EmailService.sendMissionAssignmentNotification(technicianId, mission.id)
+        )
+
+        try {
+          const results = await Promise.allSettled(emailPromises)
+          const sent = results.filter(r => r.status === 'fulfilled' && r.value.success).length
+          const failed = results.length - sent
+          
+          setEmailStatus({ sent, failed, total: selectedTechnicians.length, isLoading: false })
+          
+          if (sent > 0) {
+            setEmailNotification({
+              type: 'success',
+              message: `${sent} notification${sent > 1 ? 's' : ''} email envoyée${sent > 1 ? 's' : ''} avec succès`
+            })
+          }
+          
+          if (failed > 0) {
+            setEmailNotification({
+              type: 'error',
+              message: `${failed} notification${failed > 1 ? 's' : ''} email échouée${failed > 1 ? 's' : ''}`
+            })
+          }
+          
+          console.log('Notifications email traitées:', { sent, failed })
+        } catch (emailError) {
+          console.error('Erreur lors de l\'envoi des notifications email:', emailError)
+          setEmailStatus({ sent: 0, failed: selectedTechnicians.length, total: selectedTechnicians.length, isLoading: false })
+          setEmailNotification({
+            type: 'error',
+            message: 'Erreur lors de l\'envoi des notifications email'
+          })
+        }
       }
 
       // Rafraîchir les données dans le store admin
@@ -480,6 +530,23 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
                 </p>
               </div>
             )}
+
+            {/* Notifications email */}
+            {emailNotification && (
+              <EmailNotification
+                type={emailNotification.type}
+                message={emailNotification.message}
+                onDismiss={() => setEmailNotification(null)}
+              />
+            )}
+
+            {/* Statut des emails */}
+            <EmailStatus
+              sent={emailStatus.sent}
+              failed={emailStatus.failed}
+              total={emailStatus.total}
+              isLoading={emailStatus.isLoading}
+            />
 
             <div className="flex justify-end space-x-2 pt-4 border-t">
               <Button

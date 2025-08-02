@@ -53,6 +53,7 @@ interface AdminState {
   setConnectionStatus: (isConnected: boolean) => void
   validateTechnician: (technicianId: string, isValidated: boolean) => Promise<void>
   cancelPendingAssignments: (missionId: string) => Promise<void>
+  deleteTechnician: (technicianId: string) => Promise<void>
 }
 
 export const useAdminStore = create<AdminState>((set, get) => ({
@@ -638,6 +639,26 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       console.log(`Demandes en attente annulées pour la mission ${missionId}`)
     } catch (error) {
       console.error('Erreur lors de l\'annulation des demandes en attente:', error)
+      throw error
+    }
+  },
+
+  deleteTechnician: async (technicianId: string) => {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', technicianId)
+        .eq('role', 'technicien')
+
+      if (error) throw error
+
+      // Rafraîchir la liste des techniciens
+      await get().fetchTechnicians()
+      
+      console.log(`Technicien ${technicianId} supprimé avec succès`)
+    } catch (error) {
+      console.error('Erreur lors de la suppression du technicien:', error)
       throw error
     }
   }

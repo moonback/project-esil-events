@@ -40,14 +40,15 @@ import {
   Ban,
   CheckCircle2,
   Clock4,
-  Plus
+  Plus,
+  Trash2
 } from 'lucide-react'
 import { format, parseISO, isValid } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import type { User, MissionAssignment, Mission, Availability, Unavailability, Billing, TechnicianWithStats } from '@/types/database'
 
 export function TechniciansTab() {
-  const { technicians, loading, stats, validateTechnician, fetchTechnicians } = useAdminStore()
+  const { technicians, loading, stats, validateTechnician, fetchTechnicians, deleteTechnician } = useAdminStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [showDetailedView, setShowDetailedView] = useState(false)
   const [selectedTechnician, setSelectedTechnician] = useState<TechnicianWithStats | null>(null)
@@ -61,6 +62,7 @@ export function TechniciansTab() {
   const [createPaymentDialogOpen, setCreatePaymentDialogOpen] = useState(false)
   const [selectedTechnicianForPayment, setSelectedTechnicianForPayment] = useState<User | null>(null)
   const [validationLoading, setValidationLoading] = useState<string | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
   const { showSuccess, showError } = useToast()
 
   // Charger les données des techniciens au montage du composant
@@ -244,6 +246,30 @@ export function TechniciansTab() {
       )
     } finally {
       setValidationLoading(null)
+    }
+  }
+
+  const handleDeleteTechnician = async (technicianId: string, technicianName: string) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer le technicien "${technicianName}" ? Cette action est irréversible.`)) {
+      return
+    }
+
+    try {
+      setDeleteLoading(technicianId)
+      await deleteTechnician(technicianId)
+      
+      showSuccess(
+        'Technicien supprimé',
+        `Le technicien "${technicianName}" a été supprimé avec succès.`
+      )
+    } catch (error) {
+      console.error('Erreur lors de la suppression du technicien:', error)
+      showError(
+        'Erreur',
+        'Une erreur est survenue lors de la suppression du technicien.'
+      )
+    } finally {
+      setDeleteLoading(null)
     }
   }
 
@@ -547,6 +573,20 @@ export function TechniciansTab() {
                               <UserX className="h-4 w-4" />
                             ) : (
                               <UserCheck className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteTechnician(technician.id, technician.name)}
+                            title="Supprimer le technicien"
+                            disabled={deleteLoading === technician.id}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            {deleteLoading === technician.id ? (
+                              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
                             )}
                           </Button>
                           <Button

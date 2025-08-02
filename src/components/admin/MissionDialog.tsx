@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { useAdminStore } from '@/store/adminStore'
 import { supabase } from '@/lib/supabase'
+import { useGeocoding } from '@/lib/useGeocoding'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { GeocodingPreview } from '@/components/ui/geocoding-preview'
 import type { Mission, User, MissionType } from '@/types/database'
 
 interface MissionDialogProps {
@@ -19,6 +21,24 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
   const [technicians, setTechnicians] = useState<User[]>([])
   const [selectedTechnicians, setSelectedTechnicians] = useState<string[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Hook de géocodage
+  const {
+    address: geocodedAddress,
+    latitude: geocodedLatitude,
+    longitude: geocodedLongitude,
+    loading: geocodingLoading,
+    error: geocodingError,
+    displayName: geocodedDisplayName,
+    updateAddress,
+    geocodeManually,
+    hasCoordinates,
+    isValidCoordinates
+  } = useGeocoding({
+    debounceMs: 1000,
+    autoGeocode: true,
+    maxRetries: 3
+  })
   
   const [formData, setFormData] = useState({
     type: 'Livraison jeux' as MissionType,
@@ -81,6 +101,22 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
       console.error('Erreur lors du chargement des techniciens:', error)
     }
   }
+
+  // Synchroniser l'adresse avec le hook de géocodage
+  useEffect(() => {
+    updateAddress(formData.location)
+  }, [formData.location, updateAddress])
+
+  // Mettre à jour les coordonnées quand le géocodage réussit
+  useEffect(() => {
+    if (hasCoordinates && isValidCoordinates) {
+      setFormData(prev => ({
+        ...prev,
+        latitude: geocodedLatitude,
+        longitude: geocodedLongitude
+      }))
+    }
+  }, [hasCoordinates, isValidCoordinates, geocodedLatitude, geocodedLongitude])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -343,17 +379,31 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
 
             <div className="space-y-2">
               <Label htmlFor="location">Lieu</Label>
-              <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                placeholder="Adresse ou lieu de la mission"
-                className={errors.location ? 'border-red-500' : ''}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="location"
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  placeholder="Adresse ou lieu de la mission"
+                  className={errors.location ? 'border-red-500' : ''}
+                  required
+                />
+                {geocodingLoading && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  </div>
+                )}
+              </div>
               {errors.location && (
                 <p className="text-sm text-red-500">{errors.location}</p>
               )}
+              <GeocodingPreview
+                latitude={geocodedLatitude}
+                longitude={geocodedLongitude}
+                loading={geocodingLoading}
+                error={geocodingError}
+                displayName={geocodedDisplayName}
+              />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -384,6 +434,38 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
                   placeholder="2.3522"
                 />
               </div>
+            </div>
+
+            <div className="flex justify-between items-center">
+              <div className="text-sm text-gray-600">
+                {formData.latitude && formData.longitude ? (
+                  <span className="text-green-600">
+                    ✓ Coordonnées définies
+                  </span>
+                ) : (
+                  <span className="text-gray-500">
+                    Les coordonnées seront automatiquement récupérées depuis l'adresse
+                  </span>
+                )}
+              </div>
+              
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={geocodeManually}
+                disabled={geocodingLoading || !formData.location?.trim()}
+                className="text-xs"
+              >
+                {geocodingLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
+                    Géocodage...
+                  </>
+                ) : (
+                  'Géocoder manuellement'
+                )}
+              </Button>
             </div>
 
             {!mission && technicians.length > 0 && (

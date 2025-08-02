@@ -51,6 +51,8 @@ interface AdminState {
   deleteAllMissions: () => Promise<void>
   createTestMissions: () => Promise<void>
   setConnectionStatus: (isConnected: boolean) => void
+  validateTechnician: (technicianId: string, isValidated: boolean) => Promise<void>
+  cancelPendingAssignments: (missionId: string) => Promise<void>
 }
 
 export const useAdminStore = create<AdminState>((set, get) => ({
@@ -537,5 +539,47 @@ export const useAdminStore = create<AdminState>((set, get) => ({
 
   setConnectionStatus: (isConnected: boolean) => {
     set({ isConnected })
+  },
+
+  validateTechnician: async (technicianId: string, isValidated: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ is_validated: isValidated })
+        .eq('id', technicianId)
+
+      if (error) throw error
+
+      // Rafraîchir la liste des techniciens
+      await get().fetchTechnicians()
+      
+      console.log(`Technicien ${technicianId} ${isValidated ? 'validé' : 'dévalidé'} avec succès`)
+    } catch (error) {
+      console.error('Erreur lors de la validation du technicien:', error)
+      throw error
+    }
+  },
+
+  cancelPendingAssignments: async (missionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('mission_assignments')
+        .update({ 
+          status: 'refusé',
+          responded_at: new Date().toISOString()
+        })
+        .eq('mission_id', missionId)
+        .eq('status', 'proposé')
+
+      if (error) throw error
+
+      // Rafraîchir les données
+      await get().fetchMissions()
+      
+      console.log(`Demandes en attente annulées pour la mission ${missionId}`)
+    } catch (error) {
+      console.error('Erreur lors de l\'annulation des demandes en attente:', error)
+      throw error
+    }
   }
 })) 

@@ -18,6 +18,7 @@ export interface Database {
           email: string | null
           address: string | null
           notes: string | null
+          is_validated: boolean
           created_at: string
           updated_at: string
         }
@@ -29,6 +30,7 @@ export interface Database {
           email?: string | null
           address?: string | null
           notes?: string | null
+          is_validated?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -40,6 +42,7 @@ export interface Database {
           email?: string | null
           address?: string | null
           notes?: string | null
+          is_validated?: boolean
           created_at?: string
           updated_at?: string
         }

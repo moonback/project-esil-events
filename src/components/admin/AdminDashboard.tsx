@@ -4,6 +4,7 @@ import { MissionsTab } from './MissionsTab'
 import { TechniciansTab } from './TechniciansTab'
 import { AdminAgendaTab } from './AdminAgendaTab'
 import { AdminBillingTab } from './AdminBillingTab'
+import { MissionsWithAssignmentsTab } from './MissionsWithAssignmentsTab'
 import { PaymentSummaryCard } from './PaymentSummaryCard'
 import { ResponsiveTabs } from '@/components/ui/responsive-tabs'
 import { 
@@ -87,6 +88,18 @@ export function AdminDashboard() {
             onSortChange={setSortBy}
             onViewModeChange={setViewMode}
           />
+        </LoadingOverlay>
+      )
+    },
+    {
+      value: 'missions-assignments',
+      label: 'Assignations',
+      icon: <Users className="h-4 w-4" />,
+      badge: null,
+      description: 'Gestion des assignations et annulation automatique',
+      content: (
+        <LoadingOverlay loading={loading.missions} text="Chargement des assignations...">
+          <MissionsWithAssignmentsTab />
         </LoadingOverlay>
       )
     },

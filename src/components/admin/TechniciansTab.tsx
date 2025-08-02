@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAdminStore } from '@/store/adminStore'
+import { useToast } from '@/lib/useToast'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -46,7 +47,7 @@ import { fr } from 'date-fns/locale'
 import type { User, MissionAssignment, Mission, Availability, Unavailability, Billing, TechnicianWithStats } from '@/types/database'
 
 export function TechniciansTab() {
-  const { technicians, loading, stats } = useAdminStore()
+  const { technicians, loading, stats, validateTechnician } = useAdminStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [showDetailedView, setShowDetailedView] = useState(false)
   const [selectedTechnician, setSelectedTechnician] = useState<TechnicianWithStats | null>(null)
@@ -54,10 +55,13 @@ export function TechniciansTab() {
   const [sortBy, setSortBy] = useState<'name' | 'missions' | 'revenue' | 'rating'>('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable' | 'unknown'>('all')
+  const [validationFilter, setValidationFilter] = useState<'all' | 'validated' | 'not_validated'>('all')
   const [contactDialogOpen, setContactDialogOpen] = useState(false)
   const [selectedTechnicianForContact, setSelectedTechnicianForContact] = useState<User | null>(null)
   const [createPaymentDialogOpen, setCreatePaymentDialogOpen] = useState(false)
   const [selectedTechnicianForPayment, setSelectedTechnicianForPayment] = useState<User | null>(null)
+  const [validationLoading, setValidationLoading] = useState<string | null>(null)
+  const { toast } = useToast()
 
   // Fonction pour déterminer le statut de disponibilité d'un technicien
   const getAvailabilityStatus = (technician: TechnicianWithStats) => {
@@ -138,6 +142,12 @@ export function TechniciansTab() {
       if (availabilityFilter === 'unknown' && availabilityStatus.status !== 'unknown') return false
     }
     
+    // Filtre par validation
+    if (validationFilter !== 'all') {
+      if (validationFilter === 'validated' && !tech.is_validated) return false
+      if (validationFilter === 'not_validated' && tech.is_validated) return false
+    }
+    
     return true
   })
 
@@ -202,6 +212,30 @@ export function TechniciansTab() {
   const handleCreatePayment = (technician: User) => {
     setSelectedTechnicianForPayment(technician)
     setCreatePaymentDialogOpen(true)
+  }
+
+  const handleValidateTechnician = async (technicianId: string, isValidated: boolean) => {
+    try {
+      setValidationLoading(technicianId)
+      await validateTechnician(technicianId, isValidated)
+      
+      toast({
+        title: isValidated ? 'Technicien validé' : 'Technicien dévalidé',
+        description: isValidated 
+          ? 'Le technicien a été validé avec succès. Les demandes en attente peuvent être automatiquement annulées.'
+          : 'Le technicien a été dévalidé avec succès.',
+        type: 'success'
+      })
+    } catch (error) {
+      console.error('Erreur lors de la validation du technicien:', error)
+      toast({
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de la validation du technicien.',
+        type: 'error'
+      })
+    } finally {
+      setValidationLoading(null)
+    }
   }
 
   if (loading.technicians) {
@@ -299,11 +333,43 @@ export function TechniciansTab() {
                     <option value="unknown">Statut inconnu</option>
                   </select>
                 </div>
+                <div>
+                  <Label className="text-xs font-medium mb-2 block">Validation</Label>
+                  <select
+                    value={validationFilter}
+                    onChange={(e) => setValidationFilter(e.target.value as any)}
+                    className="w-full text-sm border border-gray-300 rounded-md px-3 py-2"
+                  >
+                    <option value="all">Tous</option>
+                    <option value="validated">Validés</option>
+                    <option value="not_validated">Non validés</option>
+                  </select>
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
       )}
+
+      {/* Informations sur l'annulation automatique */}
+      <div className="px-6">
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="p-4">
+            <div className="flex items-start space-x-3">
+              <AlertTriangle className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-blue-900 mb-1">
+                  Annulation automatique des demandes
+                </h3>
+                <p className="text-xs text-blue-700">
+                  Lorsqu'un technicien validé accepte une mission, les demandes en attente pour cette mission sont automatiquement annulées 
+                  si le nombre de techniciens validés requis est atteint.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Statistiques globales */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 px-6">
@@ -369,6 +435,18 @@ export function TechniciansTab() {
             <CheckCircle2 className="h-5 w-5 text-green-600" />
           </div>
         </div>
+
+        <div className="bg-white rounded-lg p-3 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-gray-600">Validés</p>
+              <p className="text-lg font-bold text-blue-600">
+                {technicians.filter(tech => tech.is_validated).length}
+              </p>
+            </div>
+            <UserCheck className="h-5 w-5 text-blue-600" />
+          </div>
+        </div>
       </div>
 
       {/* Liste des techniciens */}
@@ -395,6 +473,12 @@ export function TechniciansTab() {
                             <h3 className="text-base font-semibold text-gray-900">{technician.name}</h3>
                             <div className="flex items-center space-x-2 text-xs text-gray-500">
                               <Badge variant="secondary" className="text-xs">Technicien</Badge>
+                              {technician.is_validated && (
+                                <Badge variant="default" className="text-xs bg-blue-100 text-blue-800">
+                                  <UserCheck className="h-3 w-3 mr-1" />
+                                  Validé
+                                </Badge>
+                              )}
                               {technician.phone && (
                                 <div className="flex items-center space-x-1">
                                   <Phone className="h-3 w-3" />
@@ -435,6 +519,22 @@ export function TechniciansTab() {
                             className="text-green-600 hover:text-green-700"
                           >
                             <Plus className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleValidateTechnician(technician.id, !technician.is_validated)}
+                            title={technician.is_validated ? 'Dévalider le technicien' : 'Valider le technicien'}
+                            disabled={validationLoading === technician.id}
+                            className={technician.is_validated ? 'text-red-600 hover:text-red-700' : 'text-blue-600 hover:text-blue-700'}
+                          >
+                            {validationLoading === technician.id ? (
+                              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            ) : technician.is_validated ? (
+                              <UserX className="h-4 w-4" />
+                            ) : (
+                              <UserCheck className="h-4 w-4" />
+                            )}
                           </Button>
                           <Button
                             variant="ghost"

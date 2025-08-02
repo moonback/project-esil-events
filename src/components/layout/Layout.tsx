@@ -26,7 +26,7 @@ export function Layout() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
       <Header />
-      <main className="container mx-auto px-4 py-8">
+      <main className="mx-auto px-4 py-8">
         {profile.role === 'admin' ? <AdminDashboard /> : <TechnicianDashboard />}
       </main>
       

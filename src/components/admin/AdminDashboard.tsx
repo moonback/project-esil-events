@@ -8,6 +8,7 @@ import { MissionsWithAssignmentsTab } from './MissionsWithAssignmentsTab'
 import { MissionsMapTab } from './MissionsMapTab'
 import { PaymentSummaryCard } from './PaymentSummaryCard'
 import { MissionDialog } from './MissionDialog'
+import { MissionViewDialog } from './MissionViewDialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
   Users, Calendar, CreditCard, Activity, CheckCircle, MapPin
@@ -28,6 +29,8 @@ export function AdminDashboard() {
   // États pour les dialogues de mission
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [viewDialogOpen, setViewDialogOpen] = useState(false)
+  const [missionToView, setMissionToView] = useState<MissionWithAssignments | null>(null)
   
   // Activer la synchronisation en temps réel
   useRealtimeSync()
@@ -50,11 +53,17 @@ export function AdminDashboard() {
 
   // Gestionnaires pour les missions
   const handleViewMission = (mission: MissionWithAssignments) => {
+    setMissionToView(mission)
+    setViewDialogOpen(true)
+  }
+
+  const handleEditMission = (mission: MissionWithAssignments) => {
     setSelectedMission(mission)
     setDialogOpen(true)
   }
 
-  const handleEditMission = (mission: MissionWithAssignments) => {
+  const handleEditFromView = (mission: MissionWithAssignments) => {
+    setViewDialogOpen(false)
     setSelectedMission(mission)
     setDialogOpen(true)
   }
@@ -299,6 +308,14 @@ export function AdminDashboard() {
         mission={selectedMission}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
+      />
+
+      {/* Dialogue de visualisation */}
+      <MissionViewDialog
+        mission={missionToView}
+        open={viewDialogOpen}
+        onOpenChange={setViewDialogOpen}
+        onEdit={handleEditFromView}
       />
     </div>
   )

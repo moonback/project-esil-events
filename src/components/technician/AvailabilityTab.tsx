@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useEmailNotifications } from '@/lib/useEmailNotifications'
 import { 
   Plus, 
   Trash2, 
@@ -29,6 +30,7 @@ import type { Availability, Unavailability } from '@/types/database'
 
 export function AvailabilityTab() {
   const profile = useAuthStore(state => state.profile)
+  const { sendAvailabilityUpdatedEmail, sendUnavailabilityCreatedEmail } = useEmailNotifications()
   const [availabilities, setAvailabilities] = useState<Availability[]>([])
   const [unavailabilities, setUnavailabilities] = useState<Unavailability[]>([])
   const [loading, setLoading] = useState(false)
@@ -112,6 +114,10 @@ export function AvailabilityTab() {
 
       if (error) throw error
 
+      // Envoyer l'email de notification
+      const newAvailabilities = availabilities.length + 1
+      await sendAvailabilityUpdatedEmail(profile, newAvailabilities)
+
       setAvailabilityFormData({ start_time: '', end_time: '' })
       setShowAvailabilityForm(false)
       fetchData()
@@ -150,6 +156,10 @@ export function AvailabilityTab() {
         }])
 
       if (error) throw error
+
+      // Envoyer l'email de notification
+      const newUnavailabilities = unavailabilities.length + 1
+      await sendUnavailabilityCreatedEmail(profile, newUnavailabilities)
 
       setUnavailabilityFormData({ start_time: '', end_time: '', reason: '' })
       setShowUnavailabilityForm(false)

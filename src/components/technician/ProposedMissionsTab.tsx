@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Check, X, Clock, MapPin, Calendar, DollarSign, AlertTriangle } from 'lucide-react'
 import { formatDateTime, formatCurrency, getMissionTypeColor } from '@/lib/utils'
+import { useEmailNotifications } from '@/lib/useEmailNotifications'
 import type { MissionAssignment, Mission } from '@/types/database'
 
 interface ProposedMission extends MissionAssignment {
@@ -16,6 +17,7 @@ interface ProposedMission extends MissionAssignment {
 export function ProposedMissionsTab() {
   const profile = useAuthStore(state => state.profile)
   const { updateAssignmentStatus } = useMissionsStore()
+  const { sendMissionAcceptedEmail, sendMissionRejectedEmail } = useEmailNotifications()
   const [proposedMissions, setProposedMissions] = useState<ProposedMission[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
@@ -132,6 +134,16 @@ export function ProposedMissionsTab() {
               amount: assignment.missions.forfeit,
               status: 'en_attente'
             }])
+        }
+      }
+
+      // Envoyer l'email de notification
+      const assignment = proposedMissions.find(m => m.id === assignmentId)
+      if (assignment && profile) {
+        if (status === 'accepté') {
+          await sendMissionAcceptedEmail(assignment.missions, profile)
+        } else {
+          await sendMissionRejectedEmail(assignment.missions, profile)
         }
       }
 

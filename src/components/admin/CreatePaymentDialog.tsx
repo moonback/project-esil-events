@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Calendar, DollarSign, Clock, MapPin, Plus, X, User as UserIcon, AlertCircle, CheckCircle, Eye } from 'lucide-react'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { useEmailNotifications } from '@/lib/useEmailNotifications'
 import type { User, Mission, MissionAssignment, Billing } from '@/types/database'
 
 interface CreatePaymentDialogProps {
@@ -27,6 +28,7 @@ interface BillingWithDetails extends Billing {
 }
 
 export function CreatePaymentDialog({ open, onOpenChange, technician: initialTechnician }: CreatePaymentDialogProps) {
+  const { sendPaymentCreatedEmail } = useEmailNotifications()
   const [loading, setLoading] = useState(false)
   const [loadingTechnicians, setLoadingTechnicians] = useState(false)
   const [technicians, setTechnicians] = useState<User[]>([])
@@ -200,13 +202,13 @@ export function CreatePaymentDialog({ open, onOpenChange, technician: initialTec
       setLoading(true)
 
       // Créer une facturation pour chaque mission sélectionnée
-      const billingPromises = selectedMissions.map(missionId => {
+      const billingPromises = selectedMissions.map(async (missionId) => {
         const mission = acceptedMissions.find(m => m.id === missionId)
         if (!mission) return null
 
         const amount = customAmount !== null ? customAmount / selectedMissions.length : mission.forfeit
 
-        return supabase
+        const { data: billing, error } = await supabase
           .from('billing')
           .insert({
             mission_id: missionId,
@@ -215,6 +217,21 @@ export function CreatePaymentDialog({ open, onOpenChange, technician: initialTec
             status: 'en_attente',
             notes: notes || null
           })
+          .select('*')
+          .single()
+
+        if (error) throw error
+
+        // Envoyer l'email de notification
+        if (billing && selectedTechnician) {
+          const billingWithMission = {
+            ...billing,
+            missions: mission
+          }
+          await sendPaymentCreatedEmail(billingWithMission, selectedTechnician)
+        }
+
+        return billing
       }).filter(Boolean)
 
       await Promise.all(billingPromises)

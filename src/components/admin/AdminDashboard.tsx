@@ -5,10 +5,12 @@ import { TechniciansTab } from './TechniciansTab'
 import { AdminAgendaTab } from './AdminAgendaTab'
 import { AdminBillingTab } from './AdminBillingTab'
 import { PaymentSummaryCard } from './PaymentSummaryCard'
+import { SMTPConfigDialog } from './SMTPConfigDialog'
 import { ResponsiveTabs } from '@/components/ui/responsive-tabs'
+import { Button } from '@/components/ui/button'
 import { 
   Users, Calendar, CreditCard, Activity, CheckCircle, 
-  Clock, ArrowUp, ArrowDown, Eye, EyeOff, Filter, Search, Download
+  Clock, ArrowUp, ArrowDown, Eye, EyeOff, Filter, Search, Download, Mail
 } from 'lucide-react'
 import { LoadingOverlay } from '@/components/ui/loading'
 import { useRealtimeSync } from '@/lib/useRealtimeSync'
@@ -22,6 +24,7 @@ export function AdminDashboard() {
   const [sortBy, setSortBy] = useState('date')
   const [viewMode, setViewMode] = useState<'kanban' | 'list' | 'grid'>('kanban')
   const [isOverviewExpanded, setIsOverviewExpanded] = useState(false)
+  const [showSMTPConfig, setShowSMTPConfig] = useState(false)
   
   // Activer la synchronisation en temps réel
   useRealtimeSync()
@@ -359,6 +362,13 @@ export function AdminDashboard() {
                   <Users className="h-3 w-3" />
                   <span className="font-medium">Importer</span>
                 </button>
+                <Button
+                  onClick={() => setShowSMTPConfig(true)}
+                  className="flex items-center space-x-2 px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors text-sm"
+                >
+                  <Mail className="h-3 w-3" />
+                  <span className="font-medium">SMTP</span>
+                </Button>
                 <button className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
                   <CheckCircle className="h-4 w-4" />
                 </button>
@@ -470,6 +480,12 @@ export function AdminDashboard() {
 
       {/* Espacement pour la barre de navigation mobile */}
       <div className="md:hidden h-20"></div>
+
+      {/* Dialogue de configuration SMTP */}
+      <SMTPConfigDialog 
+        open={showSMTPConfig} 
+        onOpenChange={setShowSMTPConfig} 
+      />
     </div>
   )
 }

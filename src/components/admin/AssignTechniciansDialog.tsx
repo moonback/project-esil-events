@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { UserPlus, Users, Check, X, Clock, AlertTriangle, Calendar } from 'lucide-react'
 import { formatCurrency, getMissionTypeColor, getStatusColor } from '@/lib/utils'
+import { useEmailNotifications } from '@/lib/useEmailNotifications'
 import type { Mission, User, MissionAssignment, Availability, Unavailability } from '@/types/database'
 
 interface AssignTechniciansDialogProps {
@@ -25,6 +26,7 @@ interface TechnicianWithAssignment extends User {
 
 export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignTechniciansDialogProps) {
   const { fetchMissions } = useAdminStore()
+  const { sendMissionAssignedEmail } = useEmailNotifications()
   const [loading, setLoading] = useState(false)
   const [technicians, setTechnicians] = useState<TechnicianWithAssignment[]>([])
   const [selectedTechnicians, setSelectedTechnicians] = useState<string[]>([])
@@ -209,6 +211,14 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
           .insert(assignments)
 
         if (error) throw error
+
+        // Envoyer les emails de notification aux techniciens assignés
+        for (const technicianId of selectedTechnicians) {
+          const technician = technicians.find(t => t.id === technicianId)
+          if (technician && technician.email) {
+            await sendMissionAssignedEmail(mission, technician)
+          }
+        }
       }
 
       // Rafraîchir les données dans le store admin

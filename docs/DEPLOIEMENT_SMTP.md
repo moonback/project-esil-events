@@ -1,107 +1,149 @@
-# Guide de déploiement du service SMTP
+# Guide de Configuration et Dépannage SMTP
 
-## 1. Installation de Supabase CLI
+## Problème actuel
+Les emails ne s'envoient pas car la fonction Supabase `send-email` utilise actuellement une simulation au lieu d'un vrai service SMTP.
 
-### Windows (PowerShell)
-```powershell
-# Installer via npm
-npm install -g supabase
+## Solution
 
-# Ou via winget
-winget install Supabase.CLI
+### 1. Configuration des variables d'environnement
+
+Créez un fichier `.env.local` à la racine du projet avec les variables suivantes :
+
+```env
+# Configuration Supabase
+VITE_SUPABASE_URL=votre_url_supabase
+VITE_SUPABASE_ANON_KEY=votre_clé_anonyme_supabase
+
+# Configuration SMTP
+VITE_SMTP_HOST=mail.dresscodeia.fr
+VITE_SMTP_PORT=465
+VITE_SMTP_USER=client@dresscodeia.fr
+VITE_SMTP_PASSWORD=votre_mot_de_passe_smtp
+VITE_SMTP_FROM=client@dresscodeia.fr
+VITE_SMTP_FROM_NAME=Esil-events
 ```
 
-### macOS
-```bash
-# Installer via Homebrew
-brew install supabase/tap/supabase
+### 2. Configuration des variables d'environnement Supabase
 
-# Ou via npm
-npm install -g supabase
-```
+Dans votre projet Supabase, allez dans **Settings > Environment variables** et ajoutez :
 
-### Linux
-```bash
-# Installer via npm
-npm install -g supabase
-```
-
-## 2. Configuration du projet
-
-### Connexion à Supabase
-```bash
-supabase login
-```
-
-### Lier le projet
-```bash
-# Remplacer YOUR_PROJECT_ID par l'ID de votre projet Supabase
-supabase link --project-ref YOUR_PROJECT_ID
-```
-
-## 3. Configuration des variables d'environnement
-
-### Dans le dashboard Supabase :
-1. Allez dans **Settings** > **Edge Functions**
-2. Ajoutez les variables suivantes :
-
-```bash
+```env
 SMTP_HOST=mail.dresscodeia.fr
 SMTP_PORT=465
 SMTP_USER=client@dresscodeia.fr
 SMTP_PASSWORD=votre_mot_de_passe_smtp
-SMTP_FROM=client@dresscodeia.fr
-SMTP_FROM_NAME=Esil-events
 ```
 
-## 4. Déploiement de la fonction
+### 3. Déploiement de la fonction Supabase
 
 ```bash
-# Déployer la fonction send-email
-supabase functions deploy send-email
-
-# Vérifier que la fonction est déployée
-supabase functions list
-```
-
-## 5. Test de la fonction
-
-Une fois déployée, vous pouvez tester la fonction via l'interface d'administration de l'application.
-
-## 6. Vérification des logs
-
-```bash
-# Voir les logs de la fonction
-supabase functions logs send-email
-
-# Voir les logs en temps réel
-supabase functions logs send-email --follow
-```
-
-## 7. Mise à jour de la fonction
-
-Après modification du code de la fonction :
-
-```bash
+# Dans le dossier du projet
+cd supabase/functions/send-email
 supabase functions deploy send-email
 ```
+
+### 4. Test de la configuration
+
+1. Connectez-vous à l'interface admin
+2. Cliquez sur l'icône d'email dans la barre de navigation
+3. Utilisez le dialogue de test SMTP pour envoyer un email de test
 
 ## Dépannage
 
-### Erreur CORS
-Si vous obtenez une erreur CORS, vérifiez que :
-1. La fonction est bien déployée
-2. Les variables d'environnement sont configurées
-3. L'URL de votre projet Supabase est correcte
+### Erreur "SMTP déconnecté"
 
-### Erreur de connexion SMTP
-Vérifiez que :
-1. Les identifiants SMTP sont corrects
-2. Le port 465 est ouvert
-3. L'authentification SSL est activée
+**Causes possibles :**
+- Variables d'environnement manquantes
+- Identifiants SMTP incorrects
+- Port SMTP bloqué
+- Serveur SMTP indisponible
+
+**Solutions :**
+1. Vérifiez que toutes les variables d'environnement sont définies
+2. Testez la connexion SMTP avec un client email
+3. Vérifiez les logs de la fonction Supabase
+
+### Erreur "Email non envoyé"
+
+**Causes possibles :**
+- Fonction Supabase non déployée
+- Erreur dans la configuration nodemailer
+- Problème de CORS
+
+**Solutions :**
+1. Redéployez la fonction Supabase
+2. Vérifiez les logs dans Supabase Dashboard
+3. Testez avec un service SMTP alternatif
+
+### Configuration alternative avec Gmail
+
+Si vous préférez utiliser Gmail :
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=votre-email@gmail.com
+SMTP_PASSWORD=votre_mot_de_passe_d_application
+```
+
+**Note :** Pour Gmail, utilisez un "mot de passe d'application" généré dans les paramètres de sécurité.
+
+### Configuration avec SendGrid
+
+```env
+SMTP_HOST=smtp.sendgrid.net
+SMTP_PORT=587
+SMTP_USER=apikey
+SMTP_PASSWORD=votre_clé_api_sendgrid
+```
+
+## Vérification des logs
+
+Pour voir les logs de la fonction Supabase :
+
+1. Allez dans Supabase Dashboard
+2. Cliquez sur **Functions**
+3. Sélectionnez la fonction `send-email`
+4. Vérifiez les logs dans l'onglet **Logs**
+
+## Test manuel de la fonction
+
+Vous pouvez tester la fonction directement via l'API Supabase :
+
+```javascript
+const { data, error } = await supabase.functions.invoke('send-email', {
+  body: {
+    emailData: {
+      to: 'test@example.com',
+      subject: 'Test SMTP',
+      html: '<p>Test email</p>',
+      text: 'Test email'
+    }
+  }
+})
+
+console.log('Résultat:', data, error)
+```
+
+## Problèmes courants
+
+### 1. Erreur "Cannot find module 'nodemailer'"
+- Assurez-vous que le fichier `deno.json` contient l'import nodemailer
+- Redéployez la fonction après modification
+
+### 2. Erreur "SMTP connection failed"
+- Vérifiez les identifiants SMTP
+- Testez la connexion avec un client email
+- Vérifiez que le port n'est pas bloqué
+
+### 3. Emails non reçus
+- Vérifiez le dossier spam
+- Testez avec une adresse email différente
+- Vérifiez les logs de la fonction
 
 ## Support
 
-Pour plus d'informations, consultez la documentation Supabase :
-- [Edge Functions](https://supabase.com/docs/guides/functions)
-- [Variables d'environnement](https://supabase.com/docs/guides/functions/config) 
+Si les problèmes persistent :
+1. Vérifiez les logs Supabase
+2. Testez avec un service SMTP différent
+3. Contactez l'équipe de support 

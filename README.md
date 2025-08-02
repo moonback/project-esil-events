@@ -1,156 +1,105 @@
 
-# 🎉 Esil-events – Plateforme de Gestion Événementielle Moderne
+# Esil-events - Application de gestion d'événements
 
-Esil-events est une plateforme **tout-en-un** pour les agences événementielles, offrant une **interface d’administration** et une **interface technicien** dans un design moderne, fluide et responsive.  
-Elle permet de **planifier, gérer et suivre** facilement les missions et disponibilités des techniciens avec un système de facturation intégré.
+Application React/TypeScript pour la gestion d'événements avec interface admin et technicien.
 
-## ✨ Points Forts
-
-- 🎨 **Design contemporain** avec **gradients dynamiques**, **glassmorphism**, **animations fluides** et **mode sombre/clair**.  
-- 📅 **Gestion intelligente des missions et disponibilités** avec détection automatique des conflits.  
-- 💼 **Facturation complète** pour administrateurs et techniciens.  
-- 📱 **Interface responsive** optimisée pour mobile, tablette et desktop.  
-- 🔐 **Sécurité avancée** grâce à Supabase et Row Level Security.  
-- 🚀 **Performance optimisée** avec lazy loading, cache intelligent et calculs en temps réel.  
-
-## 🖌️ Design & Expérience Utilisateur
-
-### 🎨 Caractéristiques Visuelles
-- Dégradés modernes et dynamiques  
-- Effets **glassmorphism** et **neon glow**  
-- Particules animées en arrière-plan  
-- Composants UI avec **soft shadows** et transitions douces  
-- Mode sombre/clair personnalisable  
-
-### 🧩 Composants UI Améliorés
-- Boutons et badges avec gradients  
-- Cartes modernes avec hover effects  
-- Formulaires élégants avec animations  
-- Calendrier interactif et responsive  
-- Notifications toast pour un feedback instantané  
-
-## 🚀 Fonctionnalités
-
-### 👑 Interface Administrateur
-- Création et gestion des missions  
-- Assignation et suivi des techniciens  
-- Visualisation du planning global avec calendrier  
-- Gestion des paiements et facturations  
-- Filtrage intelligent et badges de disponibilité  
-- Gestion des périodes d’indisponibilité  
-
-### 👷 Interface Technicien
-- Gestion des disponibilités et indisponibilités via onglets  
-- Acceptation/refus de missions avec détection des conflits  
-- Agenda personnel avec planning clair  
-- Consultation des rémunérations  
-- Statut de disponibilité calculé en temps réel  
-
-## 🛠️ Stack Technique
-
-- **Frontend** : React 18 + TypeScript + TailwindCSS  
-- **UI** : Radix UI + composants custom avec gradients  
-- **État global** : Zustand  
-- **Calendrier** : FullCalendar (personnalisé)  
-- **Backend** : Supabase (PostgreSQL + Auth + API REST)  
-- **Sécurité** : RLS + Policies SQL  
-- **Validation** : Zod  
-- **Dates** : date-fns (support français)  
-
-## 🎨 Palette de Couleurs
-
-- **Primaire** → `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`  
-- **Secondaire** → `linear-gradient(135deg, #f093fb 0%, #f5576c 100%)`  
-- **Succès** → `linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)`  
-- **Avertissement** → `linear-gradient(135deg, #fa709a 0%, #fee140 100%)`  
-- **Danger** → `linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)`  
-
-## 📋 Prérequis
-
-- Node.js 18+  
-- Compte Supabase  
-- npm ou yarn installé  
-
-## ⚙️ Installation
+## 🚀 Installation
 
 ```bash
-git clone <repository-url>
-cd Esil-events
 npm install
 ```
 
-Configurer Supabase :
-1. Créer un projet Supabase  
-2. Exécuter `supabase/migrations/init_schema.sql`  
-3. Copier `.env.example` → `.env` et remplir les clés :  
+## 🔧 Configuration
+
+### Variables d'environnement
+
+Créez un fichier `.env.local` à la racine du projet :
 
 ```env
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_anon_key
+# Configuration Supabase
+VITE_SUPABASE_URL=votre_url_supabase
+VITE_SUPABASE_ANON_KEY=votre_clé_anonyme_supabase
+
+# Configuration SMTP
+VITE_SMTP_HOST=mail.dresscodeia.fr
+VITE_SMTP_PORT=465
+VITE_SMTP_USER=client@dresscodeia.fr
+VITE_SMTP_PASSWORD=votre_mot_de_passe_smtp
+VITE_SMTP_FROM=client@dresscodeia.fr
+VITE_SMTP_FROM_NAME=Esil-events
 ```
 
-## 🏗️ Architecture du Projet
+## 📧 Configuration SMTP
 
-```
-src/
-├── components/    # UI et pages
-│   ├── admin/
-│   ├── technician/
-│   ├── auth/
-│   └── ui/
-├── lib/           # Supabase, utils, hooks
-├── store/         # État global
-├── types/         # Types TS
-└── App.tsx
-```
+### Problème : Les emails ne s'envoient pas
 
-## 🔐 Sécurité
+**Solution :**
 
-- Row Level Security activé  
-- Policies SQL par rôle (admin, technicien)  
-- Authentification Supabase + gestion des sessions  
-- Validation Zod côté client et serveur  
-- Conflits de planning détectés automatiquement  
+1. **Configurez les variables d'environnement Supabase :**
+   - Allez dans votre projet Supabase Dashboard
+   - Settings > Environment variables
+   - Ajoutez les variables SMTP :
+   ```env
+   SMTP_HOST=mail.dresscodeia.fr
+   SMTP_PORT=465
+   SMTP_USER=client@dresscodeia.fr
+   SMTP_PASSWORD=votre_mot_de_passe_smtp
+   ```
 
-## 🛠️ Tests
+2. **Déployez la fonction Supabase :**
+   ```bash
+   cd supabase/functions/send-email
+   supabase functions deploy send-email
+   ```
+
+3. **Testez la configuration :**
+   ```bash
+   npm run test:smtp
+   ```
+
+4. **Testez via l'interface :**
+   - Connectez-vous en tant qu'admin
+   - Cliquez sur l'icône email dans la barre de navigation
+   - Utilisez le dialogue de test SMTP
+
+### Test de la configuration SMTP
 
 ```bash
-npm run test       # Tests unitaires
-npm run test:e2e   # Tests end-to-end
+# Test local
+npm run test:smtp
+
+# Test avec une adresse email spécifique
+TEST_EMAIL=votre-email@example.com npm run test:smtp
 ```
 
-## 📆 Roadmap
+## 🛠️ Développement
 
-✅ Déjà en place :
-- Gestion des indisponibilités  
-- Détection automatique des conflits  
-- Visualisation de la disponibilité  
-- Système de notifications  
-- Filtrage avancé  
+```bash
+npm run dev
+```
 
-🚧 En développement :
-- Mode sombre/clair  
-- Notifications push animées  
-- Export PDF des factures  
-- API mobile + intégration calendrier externe  
-- Chat intégré & analytics avancées  
-- Animations 3D (Three.js)  
-- PWA avec cache intelligent  
+## 📚 Documentation
 
-## 🤝 Contribution
+- [Guide de configuration SMTP](docs/DEPLOIEMENT_SMTP.md)
+- [Améliorations de l'application](docs/AMELIORATIONS.md)
+- [Fonctionnalités](docs/NOUVELLES_FONCTIONNALITES.md)
 
-1. Fork le projet  
-2. `git checkout -b feature/NouvelleFeature`  
-3. Commit (`git commit -m 'Add: NouvelleFeature'`)  
-4. Push (`git push origin feature/NouvelleFeature`)  
-5. Créer une Pull Request  
+## 🐛 Dépannage
 
-## 📄 Licence
+### Erreur "toast is not a function"
+- ✅ **Corrigé** : Le problème était dans l'utilisation du hook `useToast`
+- Les notifications toast fonctionnent maintenant correctement
 
-Projet sous licence MIT – voir [LICENSE](LICENSE).  
+### Emails non envoyés
+- Vérifiez la configuration SMTP dans Supabase Dashboard
+- Testez avec le script de test SMTP
+- Consultez le guide de dépannage SMTP
 
-## 🆘 Support
+## 📝 Fonctionnalités
 
-- [📚 Documentation](#)  
-- [🐛 Issues](#)  
-- ✉️ support@esil-events.com  
+- Interface admin et technicien
+- Gestion des missions et disponibilités
+- Système de paiements
+- Notifications par email
+- Interface responsive
+- Calendrier interactif

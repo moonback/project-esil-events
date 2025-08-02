@@ -89,10 +89,10 @@ export function AdminDashboard() {
     <div className="space-y-6 animate-fade-in-up p-4">
       {/* Header responsive */}
       <div className="flex items-center justify-between">
-        <div className="hidden md:block">
+        {/* <div className="hidden md:block">
           <h1 className="text-2xl font-bold text-gray-900">Dashboard ESIL</h1>
           <p className="text-gray-600 mt-1">Administration & Monitoring</p>
-        </div>
+        </div> */}
         
         {/* Menu mobile */}
         <div className="md:hidden">

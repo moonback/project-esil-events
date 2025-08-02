@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useAdminStore } from '@/store/adminStore'
 import { MissionsTab } from './MissionsTab'
 import { TechniciansTab } from './TechniciansTab'
@@ -8,8 +8,7 @@ import { PaymentSummaryCard } from './PaymentSummaryCard'
 import { ResponsiveTabs } from '@/components/ui/responsive-tabs'
 import { 
   Users, Calendar, CreditCard, Activity, CheckCircle, 
-  Clock, ArrowUp, ArrowDown, Eye, EyeOff, Filter, Search, Download
-} from 'lucide-react'
+  Clock, ArrowUp, ArrowDown, Eye, EyeOff} from 'lucide-react'
 import { LoadingOverlay } from '@/components/ui/loading'
 import { useRealtimeSync } from '@/lib/useRealtimeSync'
 import { cn } from '@/lib/utils'
@@ -377,96 +376,7 @@ export function AdminDashboard() {
         </div>
       </section>
 
-      {/* Footer compact avec informations essentielles */}
-      <footer className="bg-white border-t border-gray-200 mt-8">
-        <div className="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Statut système compact */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-gray-900">Statut système</h3>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className={cn(
-                      "w-2 h-2 rounded-full",
-                      isConnected ? "bg-emerald-500" : "bg-red-500"
-                    )} />
-                    <span className="text-xs text-gray-600">Base de données</span>
-                  </div>
-                  <span className="text-xs font-medium text-gray-900">
-                    {isConnected ? "Opérationnelle" : "Indisponible"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <span className="text-xs text-gray-600">API Services</span>
-                  </div>
-                  <span className="text-xs font-medium text-gray-900">Actif</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                    <span className="text-xs text-gray-600">Synchronisation</span>
-                  </div>
-                  <span className="text-xs font-medium text-gray-900">
-                    {lastSync ? new Date(lastSync).toLocaleTimeString() : 'Jamais'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Liens rapides compact */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-gray-900">Liens rapides</h3>
-              <div className="space-y-1">
-                {[
-                  { label: 'Documentation', href: '#' },
-                  { label: 'Support technique', href: '#' },
-                  { label: 'Paramètres avancés', href: '#' },
-                  { label: 'Journal d\'activité', href: '#' }
-                ].map((link) => (
-                  <a
-                    key={link.label}
-                    href={link.href}
-                    className="flex items-center justify-between group py-0.5 hover:text-indigo-600 transition-colors"
-                  >
-                    <span className="text-xs text-gray-600 group-hover:text-indigo-600">
-                      {link.label}
-                    </span>
-                    <ArrowUp className="h-3 w-3 text-gray-400 group-hover:text-indigo-600 transition-colors" />
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            {/* Informations système compact */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-gray-900">Informations</h3>
-              <div className="space-y-1 text-xs text-gray-600">
-                <div className="flex justify-between">
-                  <span>Version</span>
-                  <span className="font-medium text-gray-900">v2.1.0</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Dernière mise à jour</span>
-                  <span className="font-medium text-gray-900">15/01/2024</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Environnement</span>
-                  <span className="font-medium text-gray-900">Production</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Support</span>
-                  <a href="#" className="text-indigo-600 hover:text-indigo-800 font-medium">
-                    Contact
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      
 
       {/* Espacement pour la barre de navigation mobile */}
       <div className="md:hidden h-20"></div>

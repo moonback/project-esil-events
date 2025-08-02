@@ -10,6 +10,8 @@
     "preview": "vite preview",
     "test:email": "node scripts/test-email-service.js",
     "test:email:real": "node scripts/test-email-service.js --real-data",
+    "test:email:simulate": "node scripts/test-email-simple.js",
+    "test:email:config": "node scripts/test-email-simple.js --config",
     "supabase:start": "npx supabase start",
     "supabase:stop": "npx supabase stop",
     "supabase:deploy": "npx supabase functions deploy email-service"

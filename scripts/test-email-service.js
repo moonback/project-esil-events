@@ -5,7 +5,7 @@
  * Usage: node scripts/test-email-service.js
  */
 
-const { createClient } = require('@supabase/supabase-js')
+import { createClient } from '@supabase/supabase-js'
 
 // Configuration (à adapter selon votre environnement)
 const SUPABASE_URL = process.env.SUPABASE_URL || 'http://localhost:54321'
@@ -164,8 +164,4 @@ async function main() {
 }
 
 // Exécuter le script
-if (require.main === module) {
-  main().catch(console.error)
-}
-
-module.exports = { testEmailService, testWithRealData } 
+main().catch(console.error) 

@@ -177,7 +177,7 @@ export function AdminDashboard() {
                <MissionsMapTab 
                  onViewMission={handleViewMission}
                  onEditMission={handleEditMission}
-                 isModalOpen={dialogOpen}
+                 isModalOpen={dialogOpen || viewDialogOpen}
                />
              </LoadingOverlay>
            </TabsContent>
@@ -239,7 +239,7 @@ export function AdminDashboard() {
                <MissionsMapTab 
                  onViewMission={handleViewMission}
                  onEditMission={handleEditMission}
-                 isModalOpen={dialogOpen}
+                 isModalOpen={dialogOpen || viewDialogOpen}
                />
              </LoadingOverlay>
            </div>

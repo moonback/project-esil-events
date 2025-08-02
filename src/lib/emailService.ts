@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import type { User, Mission, MissionAssignment, Billing } from '@/types/database'
+import nodemailer from 'nodemailer'
 
 // Configuration SMTP
 interface SMTPConfig {
@@ -10,6 +11,7 @@ interface SMTPConfig {
     user: string
     pass: string
   }
+  disableEdgeFunction?: boolean // Option pour désactiver l'Edge Function
 }
 
 // Types d'emails
@@ -332,13 +334,13 @@ export class EmailService {
       })
 
       if (error) {
-        console.error('Erreur envoi email:', error)
+        console.warn('Edge Function non disponible, utilisation du SMTP direct')
         return false
       }
 
       return true
     } catch (error) {
-      console.error('Erreur envoi email:', error)
+      console.warn('Edge Function non disponible, utilisation du SMTP direct')
       return false
     }
   }
@@ -351,9 +353,28 @@ export class EmailService {
     }
 
     try {
-      // Ici vous pouvez utiliser nodemailer ou une autre librairie SMTP
-      // Pour l'instant, on simule l'envoi
-      console.log('Envoi email via SMTP:', {
+      // Créer le transporteur SMTP
+      const transporter = nodemailer.createTransporter({
+        host: this.smtpConfig.host,
+        port: this.smtpConfig.port,
+        secure: this.smtpConfig.secure,
+        auth: {
+          user: this.smtpConfig.auth.user,
+          pass: this.smtpConfig.auth.pass
+        }
+      })
+
+      // Envoyer l'email
+      const info = await transporter.sendMail({
+        from: this.smtpConfig.auth.user,
+        to: emailData.to,
+        subject: emailData.subject,
+        html: emailData.html,
+        text: emailData.text
+      })
+
+      console.log('Email envoyé via SMTP:', {
+        messageId: info.messageId,
         to: emailData.to,
         subject: emailData.subject
       })
@@ -367,15 +388,18 @@ export class EmailService {
 
   // Méthode principale d'envoi
   async sendEmail(emailData: EmailData): Promise<boolean> {
-    // Essayer d'abord via Supabase Edge Function
-    const success = await this.sendEmailViaSupabase(emailData)
-    
-    if (!success && this.smtpConfig) {
-      // Fallback vers SMTP direct
+    // Utiliser directement SMTP si configuré
+    if (this.smtpConfig) {
       return await this.sendEmailDirect(emailData)
     }
     
-    return success
+    // Essayer via Supabase Edge Function seulement si pas désactivé
+    if (!this.smtpConfig?.disableEdgeFunction) {
+      return await this.sendEmailViaSupabase(emailData)
+    }
+    
+    console.warn('Aucune méthode d\'envoi d\'email configurée')
+    return false
   }
 
   // Envoi d'email basé sur le type

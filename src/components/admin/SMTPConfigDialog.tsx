@@ -21,7 +21,8 @@ export function SMTPConfigDialog({ open, onOpenChange }: SMTPConfigDialogProps) 
     auth: {
       user: '',
       pass: ''
-    }
+    },
+    disableEdgeFunction: true // Désactiver l'Edge Function par défaut
   })
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -90,18 +91,31 @@ export function SMTPConfigDialog({ open, onOpenChange }: SMTPConfigDialogProps) 
             />
           </div>
 
-          {/* Connexion sécurisée */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="secure"
-              checked={config.secure}
-              onCheckedChange={(checked) => setConfig({ ...config, secure: checked as boolean })}
-            />
-            <Label htmlFor="secure" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Connexion sécurisée (TLS/SSL)
-            </Label>
-          </div>
+                                {/* Connexion sécurisée */}
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="secure"
+                          checked={config.secure}
+                          onCheckedChange={(checked) => setConfig({ ...config, secure: checked as boolean })}
+                        />
+                        <Label htmlFor="secure" className="flex items-center gap-2">
+                          <Shield className="h-4 w-4" />
+                          Connexion sécurisée (TLS/SSL)
+                        </Label>
+                      </div>
+
+                      {/* Désactiver Edge Function */}
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="disableEdgeFunction"
+                          checked={config.disableEdgeFunction}
+                          onCheckedChange={(checked) => setConfig({ ...config, disableEdgeFunction: checked as boolean })}
+                        />
+                        <Label htmlFor="disableEdgeFunction" className="flex items-center gap-2">
+                          <Server className="h-4 w-4" />
+                          Utiliser uniquement SMTP direct (désactiver Edge Function)
+                        </Label>
+                      </div>
 
           {/* Nom d'utilisateur */}
           <div className="space-y-2">

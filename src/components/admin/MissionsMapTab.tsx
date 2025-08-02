@@ -43,6 +43,7 @@ Icon.Default.mergeOptions({
 interface MissionsMapTabProps {
   onViewMission?: (mission: MissionWithAssignments) => void
   onEditMission?: (mission: MissionWithAssignments) => void
+  isModalOpen?: boolean
 }
 
 // Composant pour centrer la carte sur les missions
@@ -87,7 +88,7 @@ const getMissionIcon = (type: string) => {
   })
 }
 
-export function MissionsMapTab({ onViewMission, onEditMission }: MissionsMapTabProps) {
+export function MissionsMapTab({ onViewMission, onEditMission, isModalOpen = false }: MissionsMapTabProps) {
   const { missions, loading } = useAdminStore()
   const [selectedMission, setSelectedMission] = useState<MissionWithAssignments | null>(null)
   const [mapKey, setMapKey] = useState(0)
@@ -99,6 +100,18 @@ export function MissionsMapTab({ onViewMission, onEditMission }: MissionsMapTabP
 
   // Filtrer les missions avec coordonnées
   const missionsWithCoords = missions.filter(m => m.latitude && m.longitude)
+
+  // Ajuster le z-index de la carte quand un modal est ouvert
+  useEffect(() => {
+    const mapContainer = document.querySelector('.leaflet-container') as HTMLElement
+    if (mapContainer) {
+      if (isModalOpen) {
+        mapContainer.style.zIndex = '1'
+      } else {
+        mapContainer.style.zIndex = '400'
+      }
+    }
+  }, [isModalOpen])
 
   const handleMissionClick = (mission: MissionWithAssignments) => {
     setSelectedMission(mission)

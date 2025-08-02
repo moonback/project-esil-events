@@ -7,6 +7,7 @@ import { AdminBillingTab } from './AdminBillingTab'
 import { MissionsWithAssignmentsTab } from './MissionsWithAssignmentsTab'
 import { MissionsMapTab } from './MissionsMapTab'
 import { PaymentSummaryCard } from './PaymentSummaryCard'
+import { MissionDialog } from './MissionDialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
   Users, Calendar, CreditCard, Activity, CheckCircle, MapPin
@@ -14,6 +15,7 @@ import {
 import { LoadingOverlay } from '@/components/ui/loading'
 import { useRealtimeSync } from '@/lib/useRealtimeSync'
 import { MobileMenu } from '@/components/ui/mobile-menu'
+import type { Mission, MissionWithAssignments } from '@/types/database'
 
 export function AdminDashboard() {
   const { fetchAllData, refreshData, loading, lastSync, isConnected, stats } = useAdminStore()
@@ -22,6 +24,10 @@ export function AdminDashboard() {
   const [sortBy, setSortBy] = useState('date')
   const [viewMode, setViewMode] = useState<'kanban' | 'list' | 'grid'>('kanban')
   const [activeTab, setActiveTab] = useState('missions')
+  
+  // États pour les dialogues de mission
+  const [selectedMission, setSelectedMission] = useState<Mission | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
   
   // Activer la synchronisation en temps réel
   useRealtimeSync()
@@ -41,6 +47,17 @@ export function AdminDashboard() {
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [refreshData])
+
+  // Gestionnaires pour les missions
+  const handleViewMission = (mission: MissionWithAssignments) => {
+    setSelectedMission(mission)
+    setDialogOpen(true)
+  }
+
+  const handleEditMission = (mission: MissionWithAssignments) => {
+    setSelectedMission(mission)
+    setDialogOpen(true)
+  }
 
   const tabs = [
     {
@@ -146,11 +163,15 @@ export function AdminDashboard() {
             </LoadingOverlay>
           </TabsContent>
 
-          <TabsContent value="map" className="animate-slide-in-right">
-            <LoadingOverlay loading={loading.missions} text="Chargement de la carte...">
-              <MissionsMapTab />
-            </LoadingOverlay>
-          </TabsContent>
+                     <TabsContent value="map" className="animate-slide-in-right">
+             <LoadingOverlay loading={loading.missions} text="Chargement de la carte...">
+               <MissionsMapTab 
+                 onViewMission={handleViewMission}
+                 onEditMission={handleEditMission}
+                 isModalOpen={dialogOpen}
+               />
+             </LoadingOverlay>
+           </TabsContent>
 
           <TabsContent value="assignations" className="animate-slide-in-right">
             <LoadingOverlay loading={loading.missions} text="Chargement des assignations...">
@@ -203,13 +224,17 @@ export function AdminDashboard() {
           </div>
         )}
         
-        {activeTab === 'map' && (
-          <div className="animate-slide-in-right">
-            <LoadingOverlay loading={loading.missions} text="Chargement de la carte...">
-              <MissionsMapTab />
-            </LoadingOverlay>
-          </div>
-        )}
+                 {activeTab === 'map' && (
+           <div className="animate-slide-in-right">
+             <LoadingOverlay loading={loading.missions} text="Chargement de la carte...">
+               <MissionsMapTab 
+                 onViewMission={handleViewMission}
+                 onEditMission={handleEditMission}
+                 isModalOpen={dialogOpen}
+               />
+             </LoadingOverlay>
+           </div>
+         )}
         
         {activeTab === 'assignations' && (
           <div className="animate-slide-in-right">
@@ -268,6 +293,13 @@ export function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Dialogue de mission */}
+      <MissionDialog
+        mission={selectedMission}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
     </div>
   )
 }

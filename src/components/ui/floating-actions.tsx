@@ -64,55 +64,75 @@ export function FloatingActions({ onTabChange, currentTab, userType = 'technicia
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200/50 shadow-lg">
-      <div className="flex items-center justify-around px-2 py-3 max-w-md mx-auto">
-        {actions.map((action) => {
-          const Icon = action.icon
-          const isActive = currentTab === action.tab && !action.fullscreen
-          
-          return (
-            <Button
-              key={action.id}
-              onClick={() => handleActionClick(action)}
-              variant="ghost"
-              size="sm"
-              className={`
-                flex flex-col items-center justify-center gap-1
-                w-12 h-12 rounded-xl transition-all duration-300
-                ${isActive 
-                  ? 'text-blue-600 bg-blue-50/50 shadow-sm' 
-                  : action.fullscreen 
-                    ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50/50' 
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50/50'
-                }
-                group relative
-              `}
-              aria-label={action.label}
-            >
-              <Icon className={`h-5 w-5 transition-all duration-300 ${
-                isActive ? 'scale-110' : 'group-hover:scale-110'
-              }`} />
-              
-              <span className={`text-xs font-medium hidden sm:block transition-colors ${
-                isActive ? 'text-blue-600' : action.fullscreen ? 'text-purple-600' : 'text-gray-500'
-              }`}>
-                {action.label}
-              </span>
-              
-              {isActive && (
-                <div className="absolute -top-1 w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
-              )}
-              
-              <div className="absolute bottom-full mb-2 px-2 py-1 bg-gray-900/90 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap sm:hidden backdrop-blur-sm">
-                {action.label}
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-900/90"></div>
-              </div>
-            </Button>
-          )
-        })}
-      </div>
+    <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+      {/* Gradient de fond moderne */}
+      <div className="absolute inset-0 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur-xl" />
       
-      <div className="h-0.5 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 sm:hidden" />
+      {/* Barre de navigation */}
+      <div className="relative">
+        {/* Indicateur de ligne décorative */}
+        <div className="h-1 bg-gradient-to-r from-blue-500/30 via-purple-500/30 to-pink-500/30 rounded-full mx-4" />
+        
+        <div className="flex items-center justify-around px-3 py-4 max-w-sm mx-auto">
+          {actions.map((action, index) => {
+            const Icon = action.icon
+            const isActive = currentTab === action.tab && !action.fullscreen
+            
+            return (
+              <Button
+                key={action.id}
+                onClick={() => handleActionClick(action)}
+                variant="ghost"
+                size="sm"
+                className={`
+                  flex flex-col items-center justify-center gap-1.5
+                  w-14 h-14 rounded-2xl transition-all duration-500
+                  ${isActive 
+                    ? 'text-white bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-200 transform scale-110' 
+                    : action.fullscreen 
+                      ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50 hover:scale-105' 
+                      : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100 hover:scale-105'
+                  }
+                  group relative overflow-hidden
+                `}
+                style={{
+                  animationDelay: `${index * 100}ms`
+                }}
+                aria-label={action.label}
+              >
+                {/* Effet de brillance pour l'onglet actif */}
+                {isActive && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-pulse" />
+                )}
+                
+                <Icon className={`h-5 w-5 transition-all duration-300 relative z-10 ${
+                  isActive ? 'scale-110 text-white' : 'group-hover:scale-110'
+                }`} />
+                
+                <span className={`text-xs font-semibold transition-all duration-300 relative z-10 ${
+                  isActive ? 'text-white' : action.fullscreen ? 'text-purple-600' : 'text-gray-600'
+                }`}>
+                  {action.label}
+                </span>
+                
+                {/* Indicateur d'état actif */}
+                {isActive && (
+                  <div className="absolute -top-1 w-2 h-2 bg-white rounded-full shadow-sm animate-bounce" />
+                )}
+                
+                {/* Tooltip amélioré */}
+                <div className="absolute bottom-full mb-3 px-3 py-2 bg-gray-900/95 text-white text-xs rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap backdrop-blur-sm shadow-lg transform -translate-y-1 group-hover:translate-y-0">
+                  {action.label}
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-900/95"></div>
+                </div>
+              </Button>
+            )
+          })}
+        </div>
+        
+        {/* Indicateur de sécurité pour l'iPhone */}
+        <div className="h-safe-area-inset-bottom bg-transparent" />
+      </div>
     </div>
   )
-} 
+}

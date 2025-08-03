@@ -776,14 +776,7 @@ export function MissionsTab({
             >
               Liste
             </Button>
-            <Button
-              onClick={() => onViewModeChange?.('grid')}
-              variant={currentViewMode === 'grid' ? 'default' : 'outline'}
-              size="sm"
-              className="h-8 px-3"
-            >
-              Grille
-            </Button>
+            
           </div>
         </div>
       </div>

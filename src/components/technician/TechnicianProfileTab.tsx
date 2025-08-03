@@ -244,30 +244,30 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
   }
 
   return (
-    <div className="space-y-6">
-      {/* En-tête avec statut */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
+    <div className="space-y-4 md:space-y-6 pb-20 md:pb-0">
+      {/* En-tête avec statut - Responsive */}
+      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+        <div className="text-center md:text-left">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900">Mon Profil</h2>
           <p className="text-sm md:text-base text-gray-600">Gérez vos informations et suivez vos performances</p>
         </div>
-        <div className="flex items-center gap-3">
-          <Badge variant="secondary" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
+        <div className="flex items-center justify-center gap-2 md:gap-3 md:justify-end">
+          <Badge variant="secondary" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+            <Shield className="h-3 w-3 md:h-4 md:w-4" />
             Technicien
           </Badge>
           <Badge 
             variant={profile.is_validated ? "default" : "destructive"}
-            className="flex items-center gap-2"
+            className="flex items-center gap-1 md:gap-2 text-xs md:text-sm"
           >
             {profile.is_validated ? (
               <>
-                <CheckCircle className="h-4 w-4" />
+                <CheckCircle className="h-3 w-3 md:h-4 md:w-4" />
                 Validé
               </>
             ) : (
               <>
-                <AlertCircle className="h-4 w-4" />
+                <AlertCircle className="h-3 w-3 md:h-4 md:w-4" />
                 En attente
               </>
             )}
@@ -275,40 +275,40 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
         </div>
       </div>
 
-      {/* Statistiques personnelles */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-          <CardContent className="p-4">
+      {/* Statistiques personnelles - Responsive */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:shadow-md transition-shadow">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-600">Missions Total</p>
-                <p className="text-2xl font-bold text-blue-900">{stats.totalMissions}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs md:text-sm font-medium text-blue-600 truncate">Missions Total</p>
+                <p className="text-lg md:text-2xl font-bold text-blue-900">{stats.totalMissions}</p>
               </div>
-              <Briefcase className="h-8 w-8 text-blue-600" />
+              <Briefcase className="h-6 w-6 md:h-8 md:w-8 text-blue-600 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-          <CardContent className="p-4">
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 hover:shadow-md transition-shadow">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-green-600">Missions Acceptées</p>
-                <p className="text-2xl font-bold text-green-900">{stats.acceptedMissions}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs md:text-sm font-medium text-green-600 truncate">Missions Acceptées</p>
+                <p className="text-lg md:text-2xl font-bold text-green-900">{stats.acceptedMissions}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <CheckCircle className="h-6 w-6 md:h-8 md:w-8 text-green-600 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
-          <CardContent className="p-4">
+        <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200 hover:shadow-md transition-shadow md:col-span-2 lg:col-span-1">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-amber-600">Revenus Total</p>
-                <p className="text-2xl font-bold text-amber-900">{formatAmount(stats.totalRevenue)}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs md:text-sm font-medium text-amber-600 truncate">Revenus Total</p>
+                <p className="text-lg md:text-2xl font-bold text-amber-900 truncate">{formatAmount(stats.totalRevenue)}</p>
               </div>
-              <DollarSign className="h-8 w-8 text-amber-600" />
+              <DollarSign className="h-6 w-6 md:h-8 md:w-8 text-amber-600 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
@@ -330,118 +330,149 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Informations personnelles */}
+        {/* Informations personnelles - Responsive */}
         <div className="lg:col-span-2 space-y-6">
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <UserIcon className="h-5 w-5" />
+            <CardHeader className="space-y-4 md:space-y-0">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                <CardTitle className="flex items-center justify-center md:justify-start gap-2 text-base md:text-lg">
+                  <UserIcon className="h-4 w-4 md:h-5 md:w-5" />
                   Informations personnelles
                 </CardTitle>
-                {!isEditing ? (
-                  <Button 
-                    onClick={() => setIsEditing(true)} 
-                    variant="outline" 
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <Edit className="h-4 w-4" />
-                    Modifier
-                  </Button>
-                ) : (
-                  <div className="flex gap-2">
+                <div className="flex gap-2 justify-center md:justify-end">
+                  {!isEditing ? (
                     <Button 
-                      onClick={handleCancel} 
+                      onClick={() => setIsEditing(true)} 
                       variant="outline" 
                       size="sm"
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-1 md:gap-2 text-xs md:text-sm"
                     >
-                      <X className="h-4 w-4" />
-                      Annuler
+                      <Edit className="h-3 w-3 md:h-4 md:w-4" />
+                      <span className="hidden sm:inline">Modifier</span>
+                      <span className="sm:hidden">✏️</span>
                     </Button>
-                    <Button 
-                      onClick={handleSave} 
-                      disabled={loading}
-                      size="sm"
-                      className="flex items-center gap-2"
-                    >
-                      <Save className="h-4 w-4" />
-                      {loading ? 'Sauvegarde...' : 'Sauvegarder'}
-                    </Button>
-                  </div>
-                )}
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={handleCancel} 
+                        variant="outline" 
+                        size="sm"
+                        className="flex items-center gap-1 md:gap-2 text-xs md:text-sm"
+                      >
+                        <X className="h-3 w-3 md:h-4 md:w-4" />
+                        <span className="hidden sm:inline">Annuler</span>
+                        <span className="sm:hidden">✕</span>
+                      </Button>
+                      <Button 
+                        onClick={handleSave} 
+                        disabled={loading}
+                        size="sm"
+                        className="flex items-center gap-1 md:gap-2 text-xs md:text-sm"
+                      >
+                        <Save className="h-3 w-3 md:h-4 md:w-4" />
+                        <span className="hidden sm:inline">{loading ? 'Sauvegarde...' : 'Sauvegarder'}</span>
+                        <span className="sm:hidden">💾</span>
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 md:p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nom complet *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    disabled={!isEditing}
-                    className={!isEditing ? "bg-gray-50" : ""}
-                  />
+                  <Label htmlFor="name" className="text-sm font-medium">Nom complet *</Label>
+                  {isEditing ? (
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Votre nom complet"
+                      className="text-sm"
+                    />
+                  ) : (
+                    <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded border min-h-[40px] flex items-center">
+                      {formData.name || 'Non renseigné'}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Téléphone</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    disabled={!isEditing}
-                    placeholder="06 12 34 56 78"
-                    className={!isEditing ? "bg-gray-50" : ""}
-                  />
+                  <Label htmlFor="phone" className="text-sm font-medium">Téléphone</Label>
+                  {isEditing ? (
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="06 12 34 56 78"
+                      className="text-sm"
+                    />
+                  ) : (
+                    <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded border min-h-[40px] flex items-center">
+                      {formData.phone || 'Non renseigné'}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  disabled={!isEditing}
-                  placeholder="technicien@example.com"
-                  className={!isEditing ? "bg-gray-50" : ""}
-                />
+                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                {isEditing ? (
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="technicien@example.com"
+                    className="text-sm"
+                  />
+                ) : (
+                  <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded border min-h-[40px] flex items-center truncate">
+                    {formData.email || 'Non renseigné'}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="address">Adresse</Label>
-                <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  disabled={!isEditing}
-                  placeholder="123 Rue de la Paix, 75001 Paris"
-                  className={!isEditing ? "bg-gray-50" : ""}
-                />
+                <Label htmlFor="address" className="text-sm font-medium">Adresse</Label>
+                {isEditing ? (
+                  <Input
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    placeholder="123 Rue de la Paix, 75001 Paris"
+                    className="text-sm"
+                  />
+                ) : (
+                  <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded border min-h-[40px] flex items-center">
+                    {formData.address || 'Non renseigné'}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="notes">Notes additionnelles</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  disabled={!isEditing}
-                  placeholder="Allergies, préférences, informations spéciales..."
-                  rows={3}
-                  className={!isEditing ? "bg-gray-50" : ""}
-                />
+                <Label htmlFor="notes" className="text-sm font-medium">Notes additionnelles</Label>
+                {isEditing ? (
+                  <Textarea
+                    id="notes"
+                    value={formData.notes}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    placeholder="Allergies, préférences, informations spéciales..."
+                    rows={3}
+                    className="text-sm resize-none"
+                  />
+                ) : (
+                  <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded border min-h-[80px]">
+                    {formData.notes || 'Aucune note'}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
 
-                     {/* Missions récentes */}
+                     {/* Missions récentes - Responsive */}
            <Card className="transition-all duration-200 hover:shadow-md">
-             <CardHeader className="pb-3">
-               <div className="flex items-center justify-between">
-                 <CardTitle className="flex items-center gap-2 text-lg">
+             <CardHeader className="pb-3 p-4 md:p-6">
+               <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+                 <CardTitle className="flex items-center justify-center md:justify-start gap-2 text-base md:text-lg">
                    <div className="p-2 bg-blue-100 rounded-lg">
-                     <Calendar className="h-5 w-5 text-blue-600" />
+                     <Calendar className="h-4 w-4 md:h-5 md:w-5 text-blue-600" />
                    </div>
                    Missions récentes
                  </CardTitle>
@@ -449,7 +480,7 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
                    <Button 
                      variant="ghost" 
                      size="sm" 
-                     className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                     className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 self-center md:self-auto"
                      onClick={() => onTabChange?.('missions')}
                    >
                      Voir tout
@@ -457,7 +488,7 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
                  )}
                </div>
              </CardHeader>
-             <CardContent>
+             <CardContent className="p-4 md:p-6">
                {recentMissions.length > 0 ? (
                  <div className="space-y-3">
                    {recentMissions.map((mission, index) => {
@@ -488,7 +519,7 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
                      return (
                        <div 
                          key={mission.id} 
-                         className="group flex items-center justify-between p-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-all duration-200 hover:shadow-sm"
+                         className="group flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-all duration-200 hover:shadow-sm space-y-3 sm:space-y-0"
                          style={{ animationDelay: `${index * 100}ms` }}
                        >
                          <div className="flex-1 min-w-0">
@@ -502,9 +533,9 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
                                <p className="font-semibold text-sm text-gray-900 truncate">
                                  {mission.title}
                                </p>
-                               <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                                 <MapPin className="h-3 w-3" />
-                                 {mission.location}
+                               <p className="text-xs text-gray-500 flex items-center gap-1 mt-1 truncate">
+                                 <MapPin className="h-3 w-3 flex-shrink-0" />
+                                 <span className="truncate">{mission.location}</span>
                                </p>
                                <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
                                  <Calendar className="h-3 w-3" />
@@ -519,7 +550,7 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
                              </div>
                            </div>
                          </div>
-                         <div className="flex-shrink-0 ml-3">
+                         <div className="flex-shrink-0 sm:ml-3 self-start sm:self-center">
                            <Badge 
                              variant={config.variant}
                              className={`text-xs px-3 py-1 flex items-center gap-1 ${config.className}`}
@@ -548,18 +579,18 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
                  {/* Panneau latéral */}
          <div className="space-y-6">
 
-          {/* Statut de validation */}
+          {/* Statut de validation - Responsive */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
+            <CardHeader className="p-4 md:p-6">
+              <CardTitle className="flex items-center justify-center md:justify-start gap-2 text-base md:text-lg">
+                <Shield className="h-4 w-4 md:h-5 md:w-5" />
                 Statut du compte
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Validation</span>
-                <Badge variant={profile.is_validated ? "default" : "destructive"}>
+                <Badge variant={profile.is_validated ? "default" : "destructive"} className="text-xs">
                   {profile.is_validated ? 'Validé' : 'En attente'}
                 </Badge>
               </div>
@@ -578,29 +609,29 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
             </CardContent>
           </Card>
 
-          {/* Mes Rémunérations */}
+          {/* Mes Rémunérations - Responsive */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
+            <CardHeader className="p-4 md:p-6">
+              <CardTitle className="flex items-center justify-center md:justify-start gap-2 text-base md:text-lg">
+                <CreditCard className="h-4 w-4 md:h-5 md:w-5" />
                 Mes Rémunérations
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 md:p-6">
               {paymentNotifications.length > 0 ? (
                 <div className="space-y-3">
                   {paymentNotifications.map((notification) => (
                     <div key={notification.id} className="p-3 rounded-lg border border-green-200 bg-green-50">
                       <div className="flex items-start gap-3">
-                        <div className="p-1.5 rounded-md bg-green-100">
+                        <div className="p-1.5 rounded-md bg-green-100 flex-shrink-0">
                           <Bell className="h-4 w-4 text-green-600" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
                             <h4 className="font-medium text-sm text-green-900 truncate">
                               {notification.title}
                             </h4>
-                            <Badge variant="default" className="bg-green-600 text-white text-xs">
+                            <Badge variant="default" className="bg-green-600 text-white text-xs self-start sm:self-center flex-shrink-0">
                               Paiement
                             </Badge>
                           </div>
@@ -733,4 +764,4 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
       </div>
     </div>
   )
-} 
+}

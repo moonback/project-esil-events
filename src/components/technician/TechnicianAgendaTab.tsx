@@ -263,101 +263,101 @@ export function TechnicianAgendaTab() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* En-tête avec statistiques */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Mes Missions</h2>
-          <p className="text-gray-600">Gérez vos missions acceptées et votre planning</p>
+    <div className="space-y-4 md:space-y-6 pb-20 md:pb-0">
+      {/* En-tête avec statistiques - Responsive */}
+      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+        <div className="text-center md:text-left">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900">Mes Missions</h2>
+          <p className="text-sm md:text-base text-gray-600">Gérez vos missions acceptées et votre planning</p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-center space-x-2 md:justify-end">
           <Button
             variant={viewMode === 'calendar' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setViewMode('calendar')}
-            className={viewMode === 'calendar' ? 'bg-blue-600 hover:bg-blue-700' : 'border-blue-200 text-blue-600 hover:bg-blue-50'}
+            className={`flex-1 md:flex-none ${viewMode === 'calendar' ? 'bg-blue-600 hover:bg-blue-700' : 'border-blue-200 text-blue-600 hover:bg-blue-50'}`}
           >
-            <CalendarDays className="h-4 w-4 mr-2" />
-            Calendrier
+            <CalendarDays className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Calendrier</span>
           </Button>
           <Button
             variant={viewMode === 'list' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setViewMode('list')}
-            className={viewMode === 'list' ? 'bg-indigo-600 hover:bg-indigo-700' : 'border-indigo-200 text-indigo-600 hover:bg-indigo-50'}
+            className={`flex-1 md:flex-none ${viewMode === 'list' ? 'bg-indigo-600 hover:bg-indigo-700' : 'border-indigo-200 text-indigo-600 hover:bg-indigo-50'}`}
           >
-            <List className="h-4 w-4 mr-2" />
-            Liste
+            <List className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Liste</span>
           </Button>
         </div>
       </div>
 
-      {/* Statistiques rapides */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
-          <CardContent className="p-4">
+      {/* Statistiques rapides - Responsive */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200 hover:shadow-md transition-shadow">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-blue-600 font-medium">Missions acceptées</p>
-                <p className="text-2xl font-bold text-blue-800">{acceptedMissions.length}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs md:text-sm text-blue-600 font-medium truncate">Missions acceptées</p>
+                <p className="text-lg md:text-2xl font-bold text-blue-800">{acceptedMissions.length}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-blue-600" />
+              <CheckCircle className="h-6 w-6 md:h-8 md:w-8 text-blue-600 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
-          <CardContent className="p-4">
+        <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 hover:shadow-md transition-shadow">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-green-600 font-medium">Missions à venir</p>
-                <p className="text-2xl font-bold text-green-800">{upcomingMissions.length}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs md:text-sm text-green-600 font-medium truncate">Missions à venir</p>
+                <p className="text-lg md:text-2xl font-bold text-green-800">{upcomingMissions.length}</p>
               </div>
-              <CalendarIcon className="h-8 w-8 text-green-600" />
+              <CalendarIcon className="h-6 w-6 md:h-8 md:w-8 text-green-600 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200">
-          <CardContent className="p-4">
+        <Card className="bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200 hover:shadow-md transition-shadow">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-purple-600 font-medium">Revenus totaux</p>
-                <p className="text-2xl font-bold text-purple-800">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs md:text-sm text-purple-600 font-medium truncate">Revenus totaux</p>
+                <p className="text-lg md:text-2xl font-bold text-purple-800 truncate">
                   {formatCurrency(totalRevenue)}
                 </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-purple-600" />
+              <TrendingUp className="h-6 w-6 md:h-8 md:w-8 text-purple-600 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200">
-          <CardContent className="p-4">
+        <Card className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200 hover:shadow-md transition-shadow">
+          <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-orange-600 font-medium">Disponibilités</p>
-                <p className="text-2xl font-bold text-orange-800">{availabilities.length}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs md:text-sm text-orange-600 font-medium truncate">Disponibilités</p>
+                <p className="text-lg md:text-2xl font-bold text-orange-800">{availabilities.length}</p>
               </div>
-              <Clock className="h-8 w-8 text-orange-600" />
+              <Clock className="h-6 w-6 md:h-8 md:w-8 text-orange-600 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       {viewMode === 'calendar' ? (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
           <div className="lg:col-span-3">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Mon planning</span>
-                  <div className="flex items-center space-x-2">
+              <CardHeader className="pb-3 md:pb-6">
+                <CardTitle className="flex flex-col space-y-3 md:flex-row md:items-center md:justify-between md:space-y-0">
+                  <span className="text-lg md:text-xl">Mon planning</span>
+                  <div className="flex items-center space-x-1 md:space-x-2 overflow-x-auto">
                     <Button
                       variant={calendarView === 'dayGridMonth' ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => setCalendarView('dayGridMonth')}
-                      className={calendarView === 'dayGridMonth' ? 'bg-blue-600 hover:bg-blue-700' : 'border-blue-200 text-blue-600 hover:bg-blue-50'}
+                      className={`flex-shrink-0 text-xs md:text-sm ${calendarView === 'dayGridMonth' ? 'bg-blue-600 hover:bg-blue-700' : 'border-blue-200 text-blue-600 hover:bg-blue-50'}`}
                     >
                       Mois
                     </Button>
@@ -365,7 +365,7 @@ export function TechnicianAgendaTab() {
                       variant={calendarView === 'timeGridWeek' ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => setCalendarView('timeGridWeek')}
-                      className={calendarView === 'timeGridWeek' ? 'bg-indigo-600 hover:bg-indigo-700' : 'border-indigo-200 text-indigo-600 hover:bg-indigo-50'}
+                      className={`flex-shrink-0 text-xs md:text-sm ${calendarView === 'timeGridWeek' ? 'bg-indigo-600 hover:bg-indigo-700' : 'border-indigo-200 text-indigo-600 hover:bg-indigo-50'}`}
                     >
                       Semaine
                     </Button>
@@ -373,15 +373,15 @@ export function TechnicianAgendaTab() {
                       variant={calendarView === 'listWeek' ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => setCalendarView('listWeek')}
-                      className={calendarView === 'listWeek' ? 'bg-purple-600 hover:bg-purple-700' : 'border-purple-200 text-purple-600 hover:bg-purple-50'}
+                      className={`flex-shrink-0 text-xs md:text-sm ${calendarView === 'listWeek' ? 'bg-purple-600 hover:bg-purple-700' : 'border-purple-200 text-purple-600 hover:bg-purple-50'}`}
                     >
                       Liste
                     </Button>
                   </div>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div style={{ height: '600px' }}>
+              <CardContent className="p-3 md:p-6">
+                <div style={{ height: window.innerWidth < 768 ? '400px' : '600px' }}>
                   <FullCalendar
                     key={calendarView}
                     ref={calendarRef}
@@ -612,30 +612,30 @@ export function TechnicianAgendaTab() {
                             )}
                           </div>
                           
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 text-sm text-gray-600">
                             <div className="flex items-center space-x-2">
-                              <MapPin className="h-4 w-4" />
-                              <span>{assignment.missions.location}</span>
+                              <MapPin className="h-4 w-4 flex-shrink-0" />
+                              <span className="truncate">{assignment.missions.location}</span>
                             </div>
                             
                             <div className="flex items-center space-x-2">
-                              <Clock className="h-4 w-4" />
-                              <span>
+                              <Clock className="h-4 w-4 flex-shrink-0" />
+                              <span className="truncate">
                                 {format(missionDate, 'dd/MM/yyyy HH:mm', { locale: fr })}
                               </span>
                             </div>
                             
                             <div className="flex items-center space-x-2">
-                              <Euro className="h-4 w-4" />
+                              <Euro className="h-4 w-4 flex-shrink-0" />
                               <span className="font-medium">{assignment.missions.forfeit}€</span>
                             </div>
                           </div>
                         </div>
                         
-                        <div className="flex items-center space-x-2">
-                          <Button size="sm" variant="outline" className="border-blue-200 text-blue-600 hover:bg-blue-50" onClick={() => handleMissionClick(assignment)}>
-                            <Eye className="h-4 w-4 mr-1" />
-                            Voir
+                        <div className="flex items-center space-x-2 mt-3 md:mt-0">
+                          <Button size="sm" variant="outline" className="border-blue-200 text-blue-600 hover:bg-blue-50 w-full md:w-auto" onClick={() => handleMissionClick(assignment)}>
+                            <Eye className="h-4 w-4 md:mr-1" />
+                            <span className="hidden md:inline">Voir</span>
                           </Button>
                         </div>
                       </div>

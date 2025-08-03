@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { formatDateTime, formatCurrency, getMissionTypeColor } from '@/lib/utils'
 import { 
   Calendar as CalendarIcon, 
@@ -28,9 +29,24 @@ import {
   Grid3X3,
   CalendarDays,
   TrendingUp,
-  Award
+  Award,
+  Phone,
+  Mail,
+  User,
+  FileText,
+  Calendar,
+  Navigation,
+  Route,
+  Car,
+  Bike,
+  Train,
+  Bus
 } from 'lucide-react'
 import type { Mission, MissionAssignment, Availability, Unavailability } from '@/types/database'
+import { lazy, Suspense } from 'react'
+
+// Import dynamique de la carte pour éviter les erreurs SSR
+const MapComponent = lazy(() => import('./MapComponent'))
 
 interface AcceptedMission extends MissionAssignment {
   missions: Mission
@@ -44,7 +60,10 @@ export function TechnicianAgendaTab() {
   const [selectedEvent, setSelectedEvent] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [calendarView, setCalendarView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek'>('dayGridMonth')
-  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar')
+  const [viewMode, setViewMode] = useState<'calendar' | 'list' | 'map'>('calendar')
+  const [showMissionDetailsModal, setShowMissionDetailsModal] = useState(false)
+  const [selectedMissionDetails, setSelectedMissionDetails] = useState<AcceptedMission | null>(null)
+  const [mapView, setMapView] = useState<'missions' | 'route'>('missions')
   const calendarRef = useRef<any>(null)
 
   useEffect(() => {
@@ -245,6 +264,56 @@ export function TechnicianAgendaTab() {
     // Ici vous pouvez ouvrir un modal pour créer une nouvelle disponibilité
   }, [])
 
+  const handleViewMissionDetails = useCallback((mission: AcceptedMission) => {
+    setSelectedMissionDetails(mission)
+    setShowMissionDetailsModal(true)
+  }, [])
+
+  const handleViewOnMap = useCallback(() => {
+    if (selectedMissionDetails) {
+      const { latitude, longitude, location } = selectedMissionDetails.missions
+      if (latitude && longitude) {
+        // Ouvrir Google Maps avec les coordonnées
+        const url = `https://www.google.com/maps?q=${latitude},${longitude}`
+        window.open(url, '_blank')
+      } else {
+        // Rechercher par adresse si pas de coordonnées
+        const encodedAddress = encodeURIComponent(location)
+        const url = `https://www.google.com/maps/search/${encodedAddress}`
+        window.open(url, '_blank')
+      }
+    }
+  }, [selectedMissionDetails])
+
+  const handleContactClient = useCallback(() => {
+    if (selectedMissionDetails) {
+      // Ici vous pouvez implémenter la logique pour contacter le client
+      // Par exemple, ouvrir une modal de contact ou rediriger vers une page de contact
+      console.log('Contacter le client pour la mission:', selectedMissionDetails.missions.id)
+      
+      // Exemple : ouvrir une modal de contact
+      // setShowContactModal(true)
+      // setSelectedMissionForContact(selectedMissionDetails)
+      
+      // Ou afficher les informations de contact si disponibles
+      alert(`Contact pour la mission "${selectedMissionDetails.missions.title}"\n\nAdresse: ${selectedMissionDetails.missions.location}\n\nPour contacter le client, utilisez les informations fournies lors de l'assignation de la mission.`)
+    }
+  }, [selectedMissionDetails])
+
+  const handleEditMission = useCallback(() => {
+    if (selectedMissionDetails) {
+      // Ici vous pouvez implémenter la logique pour modifier la mission
+      console.log('Modifier la mission:', selectedMissionDetails.missions.id)
+      
+      // Exemple : ouvrir une modal d'édition
+      // setShowEditModal(true)
+      // setSelectedMissionForEdit(selectedMissionDetails)
+      
+      // Ou rediriger vers une page d'édition
+      alert(`Modification de la mission "${selectedMissionDetails.missions.title}"\n\nCette fonctionnalité sera bientôt disponible.\n\nPour le moment, contactez l'administrateur pour toute modification.`)
+    }
+  }, [selectedMissionDetails])
+
   const totalRevenue = acceptedMissions.reduce((sum, assignment) => sum + assignment.missions.forfeit, 0)
   const upcomingMissions = acceptedMissions.filter(assignment => {
     const missionDate = parseISO(assignment.missions.date_start)
@@ -288,6 +357,15 @@ export function TechnicianAgendaTab() {
           >
             <List className="h-4 w-4 mr-2" />
             Liste
+          </Button>
+          <Button
+            variant={viewMode === 'map' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('map')}
+            className={viewMode === 'map' ? 'bg-green-600 hover:bg-green-700' : 'border-green-200 text-green-600 hover:bg-green-50'}
+          >
+            <MapPin className="h-4 w-4 mr-2" />
+            Carte
           </Button>
         </div>
       </div>
@@ -345,7 +423,7 @@ export function TechnicianAgendaTab() {
         </Card>
       </div>
 
-      {viewMode === 'calendar' ? (
+      {viewMode === 'calendar' && (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-3">
             <Card>
@@ -535,7 +613,11 @@ export function TechnicianAgendaTab() {
                       )}
 
                       <div className="flex gap-2 pt-2 border-t">
-                        <Button size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700">
+                        <Button 
+                          size="sm" 
+                          className="flex-1 bg-blue-600 hover:bg-blue-700"
+                          onClick={() => handleViewMissionDetails(selectedEvent.resource)}
+                        >
                           <Eye className="h-3 w-3 mr-1" />
                           Voir détails
                         </Button>
@@ -572,7 +654,9 @@ export function TechnicianAgendaTab() {
             )}
           </div>
         </div>
-      ) : (
+      )}
+
+      {viewMode === 'list' && (
         /* Vue liste des missions */
         <div className="space-y-4">
           <Card>
@@ -696,7 +780,11 @@ export function TechnicianAgendaTab() {
                 )}
 
                 <div className="flex gap-2 pt-2 border-t">
-                  <Button size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700">
+                  <Button 
+                    size="sm" 
+                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    onClick={() => handleViewMissionDetails(selectedEvent.resource)}
+                  >
                     <Eye className="h-3 w-3 mr-1" />
                     Voir détails complets
                   </Button>
@@ -706,6 +794,185 @@ export function TechnicianAgendaTab() {
           )}
         </div>
       )}
+
+              {viewMode === 'map' && (
+          <Suspense fallback={
+            <div className="flex items-center justify-center h-64 bg-gray-100 rounded-lg">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Chargement de la carte...</p>
+              </div>
+            </div>
+          }>
+            <MapComponent missions={acceptedMissions} />
+          </Suspense>
+        )}
+
+      {/* Modal des détails complets de la mission */}
+      <Dialog open={showMissionDetailsModal} onOpenChange={setShowMissionDetailsModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <FileText className="h-5 w-5" />
+              <span>Détails complets de la mission</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedMissionDetails && (
+            <div className="space-y-6">
+              {/* En-tête de la mission */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                      {selectedMissionDetails.missions.title}
+                    </h2>
+                    <div className="flex items-center space-x-3 mb-4">
+                      <Badge className={getMissionTypeColor(selectedMissionDetails.missions.type)}>
+                        {selectedMissionDetails.missions.type}
+                      </Badge>
+                      <Badge className="bg-green-100 text-green-800">
+                        Acceptée
+                      </Badge>
+                    </div>
+                    <p className="text-gray-600 text-lg">
+                      {selectedMissionDetails.missions.description || 'Aucune description disponible'}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-3xl font-bold text-blue-600">
+                      {selectedMissionDetails.missions.forfeit}€
+                    </div>
+                    <p className="text-sm text-gray-500">Rémunération</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Informations principales */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Détails temporels */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Calendar className="h-5 w-5" />
+                      <span>Planning</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <Clock className="h-5 w-5 text-blue-500" />
+                      <div>
+                        <p className="font-medium">Début</p>
+                        <p className="text-sm text-gray-600">
+                          {format(parseISO(selectedMissionDetails.missions.date_start), 'dd/MM/yyyy à HH:mm', { locale: fr })}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3">
+                      <Clock className="h-5 w-5 text-red-500" />
+                      <div>
+                        <p className="font-medium">Fin</p>
+                        <p className="text-sm text-gray-600">
+                          {format(parseISO(selectedMissionDetails.missions.date_end), 'dd/MM/yyyy à HH:mm', { locale: fr })}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="pt-3 border-t">
+                      <p className="text-sm text-gray-500">
+                        Durée estimée: {Math.round((parseISO(selectedMissionDetails.missions.date_end).getTime() - parseISO(selectedMissionDetails.missions.date_start).getTime()) / (1000 * 60 * 60))}h
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Localisation */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <MapPin className="h-5 w-5" />
+                      <span>Localisation</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center space-x-3">
+                      <Navigation className="h-5 w-5 text-green-500" />
+                      <div>
+                        <p className="font-medium">Adresse</p>
+                        <p className="text-sm text-gray-600">
+                          {selectedMissionDetails.missions.location}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Informations supplémentaires */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Statut</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Badge className="bg-green-100 text-green-800">
+                      Mission acceptée
+                    </Badge>
+                                         <p className="text-sm text-gray-600 mt-2">
+                       Vous avez accepté cette mission le {format(parseISO(selectedMissionDetails.assigned_at), 'dd/MM/yyyy', { locale: fr })}
+                     </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Rémunération</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-600">
+                      {selectedMissionDetails.missions.forfeit}€
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Montant fixe pour cette mission
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Type de mission</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Badge className={getMissionTypeColor(selectedMissionDetails.missions.type)}>
+                      {selectedMissionDetails.missions.type}
+                    </Badge>
+                    <p className="text-sm text-gray-600 mt-2">
+                      Catégorie de service
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-4 border-t">
+                <Button className="flex-1 bg-blue-600 hover:bg-blue-700" onClick={handleViewOnMap}>
+                  <MapPin className="h-4 w-4 mr-2" />
+                  Voir sur la carte
+                </Button>
+                <Button variant="outline" className="flex-1" onClick={handleContactClient}>
+                  <Phone className="h-4 w-4 mr-2" />
+                  Contacter le client
+                </Button>
+                <Button variant="outline" className="flex-1" onClick={handleEditMission}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Modifier
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

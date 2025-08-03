@@ -1,0 +1,633 @@
+import React, { useState, useEffect, useMemo } from 'react'
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { format, parseISO, isValid } from 'date-fns'
+import { fr } from 'date-fns/locale'
+import { 
+  MapPin, 
+  Clock, 
+  Euro, 
+  Eye, 
+  Navigation, 
+  Route, 
+  Car, 
+  Bike, 
+  Train, 
+  Bus,
+  Calendar,
+  AlertTriangle,
+  CheckCircle,
+  Home,
+  Building
+} from 'lucide-react'
+import { getMissionTypeColor } from '@/lib/utils'
+
+// Fix pour les icônes Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+})
+
+interface AcceptedMission {
+  id: string
+  missions: {
+    id: string
+    title: string
+    type: string
+    location: string
+    date_start: string
+    date_end: string
+    forfeit: number
+    latitude: number | null
+    longitude: number | null
+  }
+}
+
+interface MapComponentProps {
+  missions: AcceptedMission[]
+}
+
+// Point de départ par défaut (peut être configuré)
+const DEFAULT_DEPOT = {
+  name: "Dépôt Mantes-la-Ville",
+  latitude: 48.9777,
+  longitude: 1.7113, 
+  address: "7 rue de la Celophane, 78711 Mantes-la-Ville"
+}
+
+// Composant pour centrer la carte sur les missions et le dépôt
+function MapController({ missions, depot }: { missions: AcceptedMission[], depot: typeof DEFAULT_DEPOT }) {
+  const map = useMap()
+  
+  useEffect(() => {
+    const allPoints = [
+      [depot.latitude, depot.longitude] as [number, number],
+             ...missions
+         .filter(m => m.missions.latitude !== null && m.missions.longitude !== null)
+         .map(m => [m.missions.latitude!, m.missions.longitude!] as [number, number])
+    ]
+    
+    if (allPoints.length > 0) {
+      const bounds = L.latLngBounds(allPoints)
+      
+      if (bounds.isValid()) {
+        map.fitBounds(bounds, { padding: [20, 20] })
+      }
+    }
+  }, [missions, depot, map])
+  
+  return null
+}
+
+// Fonction pour calculer la distance entre deux points (formule de Haversine)
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371 // Rayon de la Terre en km
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLon = (lon2 - lon1) * Math.PI / 180
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+  return R * c
+}
+
+// Composant pour afficher les statistiques de route avec dépôt
+function RouteStats({ missions, routeType, depot }: { 
+  missions: AcceptedMission[], 
+  routeType: string,
+  depot: typeof DEFAULT_DEPOT 
+}) {
+  const missionsWithCoords = missions.filter(m => m.missions.latitude !== null && m.missions.longitude !== null)
+  
+  if (missionsWithCoords.length === 0) {
+    return (
+      <div className="text-center py-4">
+        <AlertTriangle className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
+        <p className="text-sm text-gray-600">Aucune mission avec coordonnées GPS</p>
+      </div>
+    )
+  }
+
+  // Calcul réaliste des distances
+  let totalDistance = 0
+  let currentLat = depot.latitude
+  let currentLon = depot.longitude
+
+  // Calculer la distance du dépôt à chaque mission
+  for (const mission of missionsWithCoords) {
+    const missionLat = mission.missions.latitude!
+    const missionLon = mission.missions.longitude!
+    totalDistance += calculateDistance(currentLat, currentLon, missionLat, missionLon)
+    currentLat = missionLat
+    currentLon = missionLon
+  }
+
+  // Ajouter le retour au dépôt
+  if (missionsWithCoords.length > 0) {
+    const lastMission = missionsWithCoords[missionsWithCoords.length - 1]
+    totalDistance += calculateDistance(
+      lastMission.missions.latitude!, 
+      lastMission.missions.longitude!, 
+      depot.latitude, 
+      depot.longitude
+    )
+  }
+
+  // Calcul du temps estimé selon le mode de transport
+  let averageSpeed = 0
+  switch (routeType) {
+    case 'driving':
+      averageSpeed = 50 // km/h en ville
+      break
+    case 'walking':
+      averageSpeed = 5 // km/h à pied
+      break
+    case 'bicycling':
+      averageSpeed = 15 // km/h à vélo
+      break
+    case 'transit':
+      averageSpeed = 25 // km/h en transport
+      break
+    default:
+      averageSpeed = 50
+  }
+
+  const estimatedTime = Math.round((totalDistance / averageSpeed) * 60) // en minutes
+  const fuelCost = routeType === 'driving' ? totalDistance * 0.15 : 0 // € pour voiture seulement
+
+  return (
+    <div className="space-y-4">
+      {/* Informations du dépôt */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-center space-x-2 mb-2">
+          <Building className="h-4 w-4 text-blue-600" />
+          <h4 className="font-medium text-blue-800">Point de départ</h4>
+        </div>
+        <p className="text-sm text-blue-700">{depot.name}</p>
+        <p className="text-xs text-blue-600">{depot.address}</p>
+      </div>
+
+             {/* Statistiques de route */}
+       <div className="grid grid-cols-3 gap-4 text-center">
+         <div className="bg-blue-50 p-3 rounded-lg">
+           <div className="text-lg font-bold text-blue-600">{totalDistance.toFixed(1)} km</div>
+           <div className="text-xs text-blue-500">Distance totale</div>
+         </div>
+         <div className="bg-green-50 p-3 rounded-lg">
+           <div className="text-lg font-bold text-green-600">
+             {estimatedTime >= 60 ? `${Math.floor(estimatedTime / 60)}h${estimatedTime % 60 > 0 ? ` ${estimatedTime % 60}min` : ''}` : `${estimatedTime} min`}
+           </div>
+           <div className="text-xs text-green-500">
+             {routeType === 'driving' ? 'En voiture' : 
+              routeType === 'walking' ? 'À pied' : 
+              routeType === 'bicycling' ? 'À vélo' : 'En transport'}
+           </div>
+         </div>
+         <div className="bg-purple-50 p-3 rounded-lg">
+           <div className="text-lg font-bold text-purple-600">
+             {fuelCost > 0 ? `${fuelCost.toFixed(2)}€` : 'Gratuit'}
+           </div>
+           <div className="text-xs text-purple-500">
+             {routeType === 'driving' ? 'Coût carburant' : 'Pas de frais'}
+           </div>
+         </div>
+       </div>
+
+      {/* Itinéraire détaillé */}
+      <div className="bg-gray-50 rounded-lg p-4">
+        <h5 className="font-medium text-gray-800 mb-3">Itinéraire suggéré</h5>
+        <div className="space-y-2">
+          <div className="flex items-center space-x-2 text-sm">
+            <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">D</span>
+            <span className="text-gray-700">Départ du dépôt</span>
+          </div>
+          {missionsWithCoords.map((mission, index) => (
+            <div key={mission.id} className="flex items-center space-x-2 text-sm">
+              <span className="w-5 h-5 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                {index + 1}
+              </span>
+              <span className="text-gray-700">{mission.missions.title}</span>
+              <span className="text-gray-500 text-xs">({mission.missions.location})</span>
+            </div>
+          ))}
+          <div className="flex items-center space-x-2 text-sm">
+            <span className="w-5 h-5 bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold">F</span>
+            <span className="text-gray-700">Retour au dépôt</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Composant de fallback si la carte ne se charge pas
+function MapFallback({ missions, depot }: { missions: AcceptedMission[], depot: typeof DEFAULT_DEPOT }) {
+  const missionsWithCoords = missions.filter(m => m.missions.latitude !== null && m.missions.longitude !== null)
+  
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Carte de mes missions</span>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (missionsWithCoords.length > 0) {
+                    const coords = [
+                      `${depot.latitude},${depot.longitude}`,
+                      ...missionsWithCoords.map(m => `${m.missions.latitude},${m.missions.longitude}`),
+                      `${depot.latitude},${depot.longitude}`
+                    ].join('|')
+                    const url = `https://www.google.com/maps/dir/${coords}`
+                    window.open(url, '_blank')
+                  }
+                }}
+                disabled={missionsWithCoords.length === 0}
+              >
+                <Navigation className="h-4 w-4 mr-1" />
+                Ouvrir dans Google Maps
+              </Button>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-gray-100 rounded-lg p-8 text-center">
+            <MapPin className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-700 mb-2">
+              Carte interactive
+            </h3>
+            <p className="text-gray-500 mb-4">
+              {missions.length} mission{missions.length > 1 ? 's' : ''} à afficher
+            </p>
+            <p className="text-sm text-gray-400">
+              Utilisez le bouton "Ouvrir dans Google Maps" pour voir vos missions
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+function MapComponent({ missions }: MapComponentProps) {
+  const [mapView, setMapView] = useState<'missions' | 'route'>('missions')
+  const [routeType, setRouteType] = useState<'driving' | 'walking' | 'bicycling' | 'transit'>('driving')
+  const [selectedMission, setSelectedMission] = useState<AcceptedMission | null>(null)
+  const [showRoute, setShowRoute] = useState(false)
+  const [mapError, setMapError] = useState(false)
+  const [depot, setDepot] = useState(DEFAULT_DEPOT)
+
+  const missionsWithCoords = useMemo(() => 
+    missions.filter(m => m.missions.latitude !== null && m.missions.longitude !== null),
+    [missions]
+  )
+
+  const missionsWithoutCoords = useMemo(() => 
+    missions.filter(m => m.missions.latitude === null || m.missions.longitude === null),
+    [missions]
+  )
+
+  const handleCreateRoute = () => {
+    if (missionsWithCoords.length > 0) {
+      setShowRoute(true)
+      console.log('Création d\'itinéraire depuis le dépôt:', depot)
+    }
+  }
+
+  const handleOpenInGoogleMaps = () => {
+    if (missionsWithCoords.length > 0) {
+      const coords = [
+        `${depot.latitude},${depot.longitude}`,
+        ...missionsWithCoords.map(m => `${m.missions.latitude},${m.missions.longitude}`),
+        `${depot.latitude},${depot.longitude}`
+      ].join('|')
+      const url = `https://www.google.com/maps/dir/${coords}`
+      window.open(url, '_blank')
+    }
+  }
+
+  // Gestion d'erreur pour la carte
+  useEffect(() => {
+    const handleMapError = () => setMapError(true)
+    window.addEventListener('error', handleMapError)
+    return () => window.removeEventListener('error', handleMapError)
+  }, [])
+
+  if (mapError) {
+    return <MapFallback missions={missions} depot={depot} />
+  }
+
+  if (missions.length === 0) {
+    return (
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>Carte de mes missions</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8">
+              <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500">Aucune mission à afficher sur la carte</p>
+              <p className="text-sm text-gray-400 mt-2">Acceptez des missions pour les voir apparaître ici</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Carte interactive de mes missions</span>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant={mapView === 'missions' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setMapView('missions')}
+                className={mapView === 'missions' ? 'bg-blue-600 hover:bg-blue-700' : 'border-blue-200 text-blue-600 hover:bg-blue-50'}
+              >
+                <MapPin className="h-4 w-4 mr-1" />
+                Missions
+              </Button>
+              <Button
+                variant={mapView === 'route' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setMapView('route')}
+                className={mapView === 'route' ? 'bg-green-600 hover:bg-green-700' : 'border-green-200 text-green-600 hover:bg-green-50'}
+              >
+                <Route className="h-4 w-4 mr-1" />
+                Itinéraire
+              </Button>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Carte interactive */}
+            <div className="h-96 rounded-lg overflow-hidden border border-gray-200">
+              <MapContainer
+                center={[depot.latitude, depot.longitude]}
+                zoom={10}
+                style={{ height: '100%', width: '100%' }}
+              >
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                />
+                
+                <MapController missions={missions} depot={depot} />
+                
+                {/* Marqueur du dépôt */}
+                <Marker
+                  position={[depot.latitude, depot.longitude]}
+                  icon={L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">D</div>`,
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16]
+                  })}
+                >
+                  <Popup>
+                    <div className="p-2">
+                      <h3 className="font-medium text-sm">{depot.name}</h3>
+                      <p className="text-xs text-gray-600">{depot.address}</p>
+                      <p className="text-xs text-blue-600 font-medium">Point de départ</p>
+                    </div>
+                  </Popup>
+                </Marker>
+                
+                {/* Marqueurs des missions */}
+                {missionsWithCoords.map((mission, index) => (
+                  <Marker
+                    key={mission.id}
+                    position={[mission.missions.latitude!, mission.missions.longitude!]}
+                    icon={L.divIcon({
+                      className: 'custom-marker',
+                      html: `<div class="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">${index + 1}</div>`,
+                      iconSize: [32, 32],
+                      iconAnchor: [16, 16]
+                    })}
+                  >
+                    <Popup>
+                      <div className="p-2">
+                        <h3 className="font-medium text-sm">{mission.missions.title}</h3>
+                        <Badge className={getMissionTypeColor(mission.missions.type)}>
+                          {mission.missions.type}
+                        </Badge>
+                        <p className="text-xs text-gray-600 mt-1">
+                          {mission.missions.location}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          {format(parseISO(mission.missions.date_start), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                        </p>
+                        <p className="text-xs font-medium text-green-600">
+                          {mission.missions.forfeit}€
+                        </p>
+                      </div>
+                    </Popup>
+                  </Marker>
+                ))}
+                
+                {/* Ligne d'itinéraire si activée */}
+                {showRoute && missionsWithCoords.length > 0 && (
+                  <Polyline
+                    positions={[
+                      [depot.latitude, depot.longitude] as [number, number],
+                      ...missionsWithCoords.map(m => [m.missions.latitude!, m.missions.longitude!] as [number, number]),
+                      [depot.latitude, depot.longitude] as [number, number]
+                    ]}
+                    color="#3B82F6"
+                    weight={3}
+                    opacity={0.8}
+                  />
+                )}
+              </MapContainer>
+            </div>
+
+            {/* Contrôles de la carte */}
+            <div className="flex flex-wrap gap-2">
+              {mapView === 'route' && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setRouteType('driving')}
+                    className={routeType === 'driving' ? 'bg-blue-600 text-white' : ''}
+                  >
+                    <Car className="h-4 w-4 mr-1" />
+                    Voiture
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setRouteType('walking')}
+                    className={routeType === 'walking' ? 'bg-green-600 text-white' : ''}
+                  >
+                    <MapPin className="h-4 w-4 mr-1" />
+                    À pied
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setRouteType('bicycling')}
+                    className={routeType === 'bicycling' ? 'bg-purple-600 text-white' : ''}
+                  >
+                    <Bike className="h-4 w-4 mr-1" />
+                    Vélo
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setRouteType('transit')}
+                    className={routeType === 'transit' ? 'bg-orange-600 text-white' : ''}
+                  >
+                    <Bus className="h-4 w-4 mr-1" />
+                    Transport
+                  </Button>
+                </>
+              )}
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCreateRoute}
+                disabled={missionsWithCoords.length === 0}
+              >
+                <Route className="h-4 w-4 mr-1" />
+                Créer un itinéraire
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleOpenInGoogleMaps}
+                disabled={missionsWithCoords.length === 0}
+              >
+                <Navigation className="h-4 w-4 mr-1" />
+                Ouvrir dans Google Maps
+              </Button>
+            </div>
+
+            {/* Statistiques avec dépôt */}
+            {mapView === 'route' && (
+              <RouteStats missions={missions} routeType={routeType} depot={depot} />
+            )}
+
+            {/* Missions sans coordonnées */}
+            {missionsWithoutCoords.length > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                  <h4 className="font-medium text-yellow-800">Missions sans coordonnées GPS</h4>
+                </div>
+                <div className="space-y-2">
+                  {missionsWithoutCoords.map(mission => (
+                    <div key={mission.id} className="flex items-center justify-between text-sm">
+                      <span className="text-yellow-700">{mission.missions.title}</span>
+                      <span className="text-yellow-600">{mission.missions.location}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Liste des missions avec dépôt */}
+            <div className="space-y-4">
+              {/* Point de départ */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Building className="h-4 w-4 text-blue-600" />
+                  <h4 className="font-medium text-blue-800">Point de départ</h4>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-blue-700">{depot.name}</p>
+                    <p className="text-xs text-blue-600">{depot.address}</p>
+                  </div>
+                  <Badge className="bg-blue-100 text-blue-700">Dépôt</Badge>
+                </div>
+              </div>
+
+              {/* Missions */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-64 overflow-y-auto">
+                {missions.map((mission, index) => {
+                  const missionDate = parseISO(mission.missions.date_start)
+                  const isUpcoming = isValid(missionDate) && missionDate > new Date()
+                                     const hasCoordinates = mission.missions.latitude !== null && mission.missions.longitude !== null
+                  
+                  return (
+                    <div key={mission.id} className="bg-white p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <span className="text-xs font-bold bg-green-600 text-white rounded-full w-5 h-5 flex items-center justify-center">
+                              {index + 1}
+                            </span>
+                            <h4 className="font-medium text-gray-900 text-sm">
+                              {mission.missions.title}
+                            </h4>
+                            <Badge className={getMissionTypeColor(mission.missions.type)}>
+                              {mission.missions.type}
+                            </Badge>
+                            {isUpcoming && (
+                              <Badge className="bg-green-100 text-green-700">
+                                À venir
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="space-y-1 text-xs text-gray-600">
+                            <div className="flex items-center space-x-1">
+                              <MapPin className="h-3 w-3" />
+                              <span className="truncate">{mission.missions.location}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Clock className="h-3 w-3" />
+                              <span>{format(missionDate, 'dd/MM/yyyy HH:mm', { locale: fr })}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Euro className="h-3 w-3" />
+                              <span>{mission.missions.forfeit}€</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-col space-y-1 ml-2">
+                          {hasCoordinates ? (
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                          )}
+                        </div>
+                      </div>
+                      {!hasCoordinates && (
+                        <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-700">
+                          ⚠️ Coordonnées GPS non disponibles
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+export default MapComponent 

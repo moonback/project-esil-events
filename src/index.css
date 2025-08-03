@@ -492,3 +492,39 @@ body {
   transform: translateY(-4px);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }
+
+/* Styles pour Leaflet */
+.leaflet-container {
+  font-family: inherit;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.leaflet-popup-content {
+  margin: 8px;
+  min-width: 200px;
+}
+
+.leaflet-popup-tip {
+  background: white;
+}
+
+/* Marqueurs personnalisés */
+.custom-marker {
+  background: transparent;
+  border: none;
+}
+
+.custom-marker div {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: 2px solid white;
+}
+
+/* Animation pour les marqueurs */
+.custom-marker:hover div {
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+}

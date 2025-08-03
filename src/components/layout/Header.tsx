@@ -232,23 +232,7 @@ export function Header() {
                  
                </div>
               
-              {/* Titre avec statut */}
-              {/* <div className="hidden sm:block">
-                <div className="flex items-center space-x-2">
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                    ESIL-EVENTS 
-                  </h1>
-                  {isAdmin && (
-                    <span title="Mode Administrateur">
-                      <Shield className="h-4 w-4 text-amber-500" />
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center space-x-2">
-                  <p className="text-xs sm:text-sm text-gray-600">Gestion du Personnel</p>
-                  <ConnectionStatus isConnected={isConnected} lastSync={formattedLastSync} />
-                </div>
-              </div> */}
+              
               
               {/* Version mobile */}
               <div className="sm:hidden">
@@ -271,19 +255,14 @@ export function Header() {
                   <span className="text-sm font-semibold text-gray-700">{quickStats.missions}</span>
                   <span className="text-xs text-gray-500">missions</span>
                 </div>
-                <div className="w-px h-4 bg-gray-300" />
-                <div className="flex items-center space-x-1">
-                  <UsersIcon className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-semibold text-gray-700">{quickStats.technicians}</span>
-                  <span className="text-xs text-gray-500">techs</span>
-                </div>
+                
                 {quickStats.pending > 0 && (
                   <>
                     <div className="w-px h-4 bg-gray-300" />
                     <div className="flex items-center space-x-1">
                       <AlertCircle className="h-4 w-4 text-orange-600" />
-                      <span className="text-sm font-semibold text-orange-700">{quickStats.pending}</span>
-                      <span className="text-xs text-orange-600">en attente</span>
+                      <span className="text-sm font-semibold text-orange-700">{quickStats.pending} missions sans technicien</span>
+
                     </div>
                   </>
                 )}

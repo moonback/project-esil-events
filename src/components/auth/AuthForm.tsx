@@ -106,19 +106,23 @@ export function AuthForm() {
         <div className="absolute inset-0 bg-gradient-to-br from-white/90 to-white/70 rounded-lg"></div>
         
         <CardHeader className="text-center relative z-10">
-          <div className="flex items-center justify-center mb-6">
-            <div className="relative group">
-              <div className="w-20 h-20 sm:w-20 sm:h-20 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105 overflow-hidden bg-gradient-to-br from-indigo-500 via-blue-600 to-purple-600">
-                <img 
-                  src="/logo.png" 
-                  alt="ESIL-EVENTS Logo" 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse-slow"></div>
-              <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-purple-400 rounded-full animate-bounce-slow" style={{ animationDelay: '0.5s' }}></div>
-            </div>
-          </div>
+                     <div className="flex items-center justify-center mb-6">
+             <div className="relative group">
+               <button 
+                 onClick={() => window.location.reload()}
+                 className="w-20 h-20 sm:w-20 sm:h-20 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105 overflow-hidden bg-gradient-to-br from-indigo-500 via-blue-600 to-purple-600 cursor-pointer"
+                 title="Retour à l'accueil"
+               >
+                 <img 
+                   src="/logo.png" 
+                   alt="ESIL-EVENTS Logo" 
+                   className="w-full h-full object-cover"
+                 />
+               </button>
+               <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse-slow"></div>
+               <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-purple-400 rounded-full animate-bounce-slow" style={{ animationDelay: '0.5s' }}></div>
+             </div>
+           </div>
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
             {isSignUp ? 'Créer un compte' : 'Bienvenue'}
           </CardTitle>

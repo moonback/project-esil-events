@@ -213,13 +213,17 @@ export function Header() {
             <div className="flex items-center space-x-3">
                              {/* Logo avec animation */}
                <div className="relative group">
-                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105 overflow-hidden">
+                 <button 
+                   onClick={() => window.location.reload()}
+                   className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105 overflow-hidden cursor-pointer"
+                   title="Retour à l'accueil"
+                 >
                    <img 
                      src="/logo.png" 
                      alt="ESIL-EVENTS Logo" 
                      className="w-full h-full object-cover"
                    />
-                 </div>
+                 </button>
                  {/* Indicateur de connexion sur le logo */}
                  <div className={cn(
                    "absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white transition-colors",
@@ -287,7 +291,7 @@ export function Header() {
             )}
 
             {/* Notifications */}
-            <Button
+            {/* <Button
               variant="ghost"
               size="sm"
               className="relative p-2 rounded-xl text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-all duration-200"
@@ -303,7 +307,7 @@ export function Header() {
                   {notifications.count > 9 ? '9+' : notifications.count}
                 </span>
               )}
-            </Button>
+            </Button> */}
 
             {/* Bouton de rafraîchissement - Admin seulement */}
             {isAdmin && (
@@ -377,7 +381,7 @@ export function Header() {
                 </div>
                 
                 <div className="p-2">
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm hover:bg-gray-50 rounded-lg">
+                  {/* <Button variant="ghost" size="sm" className="w-full justify-start text-sm hover:bg-gray-50 rounded-lg">
                     <User className="h-4 w-4 mr-3" />
                     Mon profil
                   </Button>
@@ -393,7 +397,7 @@ export function Header() {
                         {notifications.count}
                       </Badge>
                     )}
-                  </Button>
+                  </Button> */}
                   <div className="border-t border-gray-100 my-2"></div>
                   <Button 
                     variant="ghost" 

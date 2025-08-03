@@ -22,7 +22,9 @@ import {
   AlertTriangle,
   CheckCircle,
   Home,
-  Building
+  Building,
+  Loader2,
+  Sparkles
 } from 'lucide-react'
 import { getMissionTypeColor } from '@/lib/utils'
 
@@ -61,28 +63,19 @@ const DEFAULT_DEPOT = {
   address: "7 rue de la Celophane, 78711 Mantes-la-Ville"
 }
 
-// Composant pour centrer la carte sur les missions et le dépôt
-function MapController({ missions, depot }: { missions: AcceptedMission[], depot: typeof DEFAULT_DEPOT }) {
-  const map = useMap()
-  
-  useEffect(() => {
-    const allPoints = [
-      [depot.latitude, depot.longitude] as [number, number],
-             ...missions
-         .filter(m => m.missions.latitude !== null && m.missions.longitude !== null)
-         .map(m => [m.missions.latitude!, m.missions.longitude!] as [number, number])
-    ]
-    
-    if (allPoints.length > 0) {
-      const bounds = L.latLngBounds(allPoints)
-      
-      if (bounds.isValid()) {
-        map.fitBounds(bounds, { padding: [20, 20] })
-      }
-    }
-  }, [missions, depot, map])
-  
-  return null
+// Interface pour les données d'itinéraire optimisé
+interface OptimizedRoute {
+  totalDistance: number
+  estimatedTime: number
+  fuelCost: number
+  route: {
+    from: string
+    to: string
+    distance: number
+    time: number
+    mode: string
+  }[]
+  optimizedOrder: string[]
 }
 
 // Fonction pour calculer la distance entre deux points (formule de Haversine)
@@ -98,11 +91,197 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * c
 }
 
-// Composant pour afficher les statistiques de route avec dépôt
-function RouteStats({ missions, routeType, depot }: { 
+import { callGeminiAPI } from '@/lib/gemini'
+
+// Fonction pour appeler l'API Gemini et optimiser l'itinéraire
+async function generateOptimizedRoute(
+  missions: AcceptedMission[], 
+  depot: typeof DEFAULT_DEPOT, 
+  routeType: string
+): Promise<OptimizedRoute> {
+  try {
+    // Préparer les données pour l'API
+    const missionsWithCoords = missions.filter(m => m.missions.latitude !== null && m.missions.longitude !== null)
+    
+    if (missionsWithCoords.length === 0) {
+      throw new Error('Aucune mission avec coordonnées GPS')
+    }
+
+    // Préparer le prompt pour Gemini
+    const prompt = `
+Tu es un expert en optimisation d'itinéraires. Analyse les missions suivantes et génère un itinéraire optimisé.
+
+Dépôt de départ: ${depot.name} (${depot.address})
+Mode de transport: ${routeType}
+
+Missions à effectuer:
+${missionsWithCoords.map((mission, index) => 
+  `${index + 1}. ${mission.missions.title} - ${mission.missions.location} (${mission.missions.latitude}, ${mission.missions.longitude})`
+).join('\n')}
+
+Calcule l'itinéraire optimal en considérant:
+1. La distance totale minimale
+2. L'ordre logique des missions
+3. Le temps de trajet estimé
+4. Les coûts de carburant (si applicable)
+
+Retourne UNIQUEMENT un JSON valide avec cette structure exacte:
+{
+  "totalDistance": number (en km),
+  "estimatedTime": number (en minutes),
+  "fuelCost": number (en euros),
+  "route": [
+    {
+      "from": string,
+      "to": string,
+      "distance": number,
+      "time": number,
+      "mode": string
+    }
+  ],
+  "optimizedOrder": [string] (noms des missions dans l'ordre optimal)
+}
+`
+
+    // Appel à l'API Gemini
+    const data = await callGeminiAPI(prompt)
+    
+    // Extraire la réponse de Gemini
+    const geminiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text
+    
+    if (!geminiResponse) {
+      throw new Error('Réponse invalide de l\'API Gemini')
+    }
+
+    // Parser la réponse JSON de Gemini
+    const jsonMatch = geminiResponse.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) {
+      throw new Error('Format de réponse invalide de Gemini')
+    }
+
+    const optimizedRoute = JSON.parse(jsonMatch[0])
+    return optimizedRoute
+
+  } catch (error) {
+    console.error('Erreur API Gemini:', error)
+    
+    // Fallback avec calculs locaux si l'API échoue
+    return generateFallbackRoute(missions, depot, routeType)
+  }
+}
+
+// Fonction de fallback avec calculs locaux
+function generateFallbackRoute(
+  missions: AcceptedMission[], 
+  depot: typeof DEFAULT_DEPOT, 
+  routeType: string
+): OptimizedRoute {
+  const missionsWithCoords = missions.filter(m => m.missions.latitude !== null && m.missions.longitude !== null)
+  
+  let totalDistance = 0
+  let currentLat = depot.latitude
+  let currentLon = depot.longitude
+  const route: OptimizedRoute['route'] = []
+
+  // Calculer la distance du dépôt à chaque mission
+  for (const mission of missionsWithCoords) {
+    const missionLat = mission.missions.latitude!
+    const missionLon = mission.missions.longitude!
+    const distance = calculateDistance(currentLat, currentLon, missionLat, missionLon)
+    totalDistance += distance
+    
+    route.push({
+      from: currentLat === depot.latitude ? depot.name : 'Mission précédente',
+      to: mission.missions.title,
+      distance: distance,
+      time: Math.round((distance / getAverageSpeed(routeType)) * 60),
+      mode: routeType
+    })
+    
+    currentLat = missionLat
+    currentLon = missionLon
+  }
+
+  // Ajouter le retour au dépôt
+  if (missionsWithCoords.length > 0) {
+    const lastMission = missionsWithCoords[missionsWithCoords.length - 1]
+    const returnDistance = calculateDistance(
+      lastMission.missions.latitude!, 
+      lastMission.missions.longitude!, 
+      depot.latitude, 
+      depot.longitude
+    )
+    totalDistance += returnDistance
+    
+    route.push({
+      from: lastMission.missions.title,
+      to: depot.name,
+      distance: returnDistance,
+      time: Math.round((returnDistance / getAverageSpeed(routeType)) * 60),
+      mode: routeType
+    })
+  }
+
+  const estimatedTime = Math.round((totalDistance / getAverageSpeed(routeType)) * 60)
+  const fuelCost = routeType === 'driving' ? totalDistance * 0.15 : 0
+
+  return {
+    totalDistance,
+    estimatedTime,
+    fuelCost,
+    route,
+    optimizedOrder: missionsWithCoords.map(m => m.missions.title)
+  }
+}
+
+// Fonction pour obtenir la vitesse moyenne selon le mode de transport
+function getAverageSpeed(routeType: string): number {
+  switch (routeType) {
+    case 'driving': return 50 // km/h en ville
+    case 'walking': return 5 // km/h à pied
+    case 'bicycling': return 15 // km/h à vélo
+    case 'transit': return 25 // km/h en transport
+    default: return 50
+  }
+}
+
+// Composant pour centrer la carte sur les missions et le dépôt
+function MapController({ missions, depot }: { missions: AcceptedMission[], depot: typeof DEFAULT_DEPOT }) {
+  const map = useMap()
+  
+  useEffect(() => {
+    const allPoints = [
+      [depot.latitude, depot.longitude] as [number, number],
+      ...missions
+        .filter(m => m.missions.latitude !== null && m.missions.longitude !== null)
+        .map(m => [m.missions.latitude!, m.missions.longitude!] as [number, number])
+    ]
+    
+    if (allPoints.length > 0) {
+      const bounds = L.latLngBounds(allPoints)
+      
+      if (bounds.isValid()) {
+        map.fitBounds(bounds, { padding: [20, 20] })
+      }
+    }
+  }, [missions, depot, map])
+  
+  return null
+}
+
+// Composant pour afficher les statistiques de route optimisée
+function RouteStats({ 
+  missions, 
+  routeType, 
+  depot, 
+  optimizedRoute, 
+  isLoading 
+}: { 
   missions: AcceptedMission[], 
   routeType: string,
-  depot: typeof DEFAULT_DEPOT 
+  depot: typeof DEFAULT_DEPOT,
+  optimizedRoute: OptimizedRoute | null,
+  isLoading: boolean
 }) {
   const missionsWithCoords = missions.filter(m => m.missions.latitude !== null && m.missions.longitude !== null)
   
@@ -115,52 +294,35 @@ function RouteStats({ missions, routeType, depot }: {
     )
   }
 
-  // Calcul réaliste des distances
-  let totalDistance = 0
-  let currentLat = depot.latitude
-  let currentLon = depot.longitude
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center space-x-2 mb-2">
+            <Building className="h-4 w-4 text-blue-600" />
+            <h4 className="font-medium text-blue-800">Point de départ</h4>
+          </div>
+          <p className="text-sm text-blue-700">{depot.name}</p>
+          <p className="text-xs text-blue-600">{depot.address}</p>
+        </div>
 
-  // Calculer la distance du dépôt à chaque mission
-  for (const mission of missionsWithCoords) {
-    const missionLat = mission.missions.latitude!
-    const missionLon = mission.missions.longitude!
-    totalDistance += calculateDistance(currentLat, currentLon, missionLat, missionLon)
-    currentLat = missionLat
-    currentLon = missionLon
-  }
-
-  // Ajouter le retour au dépôt
-  if (missionsWithCoords.length > 0) {
-    const lastMission = missionsWithCoords[missionsWithCoords.length - 1]
-    totalDistance += calculateDistance(
-      lastMission.missions.latitude!, 
-      lastMission.missions.longitude!, 
-      depot.latitude, 
-      depot.longitude
+        <div className="text-center py-8">
+          <Loader2 className="h-8 w-8 text-blue-600 animate-spin mx-auto mb-4" />
+          <p className="text-sm text-gray-600">Optimisation de l'itinéraire en cours...</p>
+          <p className="text-xs text-gray-500 mt-2">IA Gemini analyse vos missions</p>
+        </div>
+      </div>
     )
   }
 
-  // Calcul du temps estimé selon le mode de transport
-  let averageSpeed = 0
-  switch (routeType) {
-    case 'driving':
-      averageSpeed = 50 // km/h en ville
-      break
-    case 'walking':
-      averageSpeed = 5 // km/h à pied
-      break
-    case 'bicycling':
-      averageSpeed = 15 // km/h à vélo
-      break
-    case 'transit':
-      averageSpeed = 25 // km/h en transport
-      break
-    default:
-      averageSpeed = 50
+  if (!optimizedRoute) {
+    return (
+      <div className="text-center py-4">
+        <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+        <p className="text-sm text-gray-600">Erreur lors de l'optimisation</p>
+      </div>
+    )
   }
-
-  const estimatedTime = Math.round((totalDistance / averageSpeed) * 60) // en minutes
-  const fuelCost = routeType === 'driving' ? totalDistance * 0.15 : 0 // € pour voiture seulement
 
   return (
     <div className="space-y-4">
@@ -174,53 +336,68 @@ function RouteStats({ missions, routeType, depot }: {
         <p className="text-xs text-blue-600">{depot.address}</p>
       </div>
 
-             {/* Statistiques de route */}
-       <div className="grid grid-cols-3 gap-4 text-center">
-         <div className="bg-blue-50 p-3 rounded-lg">
-           <div className="text-lg font-bold text-blue-600">{totalDistance.toFixed(1)} km</div>
-           <div className="text-xs text-blue-500">Distance totale</div>
-         </div>
-         <div className="bg-green-50 p-3 rounded-lg">
-           <div className="text-lg font-bold text-green-600">
-             {estimatedTime >= 60 ? `${Math.floor(estimatedTime / 60)}h${estimatedTime % 60 > 0 ? ` ${estimatedTime % 60}min` : ''}` : `${estimatedTime} min`}
-           </div>
-           <div className="text-xs text-green-500">
-             {routeType === 'driving' ? 'En voiture' : 
-              routeType === 'walking' ? 'À pied' : 
-              routeType === 'bicycling' ? 'À vélo' : 'En transport'}
-           </div>
-         </div>
-         <div className="bg-purple-50 p-3 rounded-lg">
-           <div className="text-lg font-bold text-purple-600">
-             {fuelCost > 0 ? `${fuelCost.toFixed(2)}€` : 'Gratuit'}
-           </div>
-           <div className="text-xs text-purple-500">
-             {routeType === 'driving' ? 'Coût carburant' : 'Pas de frais'}
-           </div>
-         </div>
-       </div>
-
-      {/* Itinéraire détaillé */}
-      <div className="bg-gray-50 rounded-lg p-4">
-        <h5 className="font-medium text-gray-800 mb-3">Itinéraire suggéré</h5>
-        <div className="space-y-2">
-          <div className="flex items-center space-x-2 text-sm">
-            <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">D</span>
-            <span className="text-gray-700">Départ du dépôt</span>
+      {/* Statistiques de route optimisée */}
+      <div className="grid grid-cols-3 gap-4 text-center">
+        <div className="bg-blue-50 p-3 rounded-lg">
+          <div className="text-lg font-bold text-blue-600">{optimizedRoute.totalDistance.toFixed(1)} km</div>
+          <div className="text-xs text-blue-500">Distance totale</div>
+        </div>
+        <div className="bg-green-50 p-3 rounded-lg">
+          <div className="text-lg font-bold text-green-600">
+            {optimizedRoute.estimatedTime >= 60 ? `${Math.floor(optimizedRoute.estimatedTime / 60)}h${optimizedRoute.estimatedTime % 60 > 0 ? ` ${optimizedRoute.estimatedTime % 60}min` : ''}` : `${optimizedRoute.estimatedTime} min`}
           </div>
-          {missionsWithCoords.map((mission, index) => (
-            <div key={mission.id} className="flex items-center space-x-2 text-sm">
-              <span className="w-5 h-5 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+          <div className="text-xs text-green-500">
+            {routeType === 'driving' ? 'En voiture' : 
+             routeType === 'walking' ? 'À pied' : 
+             routeType === 'bicycling' ? 'À vélo' : 'En transport'}
+          </div>
+        </div>
+        <div className="bg-purple-50 p-3 rounded-lg">
+          <div className="text-lg font-bold text-purple-600">
+            {optimizedRoute.fuelCost > 0 ? `${optimizedRoute.fuelCost.toFixed(2)}€` : 'Gratuit'}
+          </div>
+          <div className="text-xs text-purple-500">
+            {routeType === 'driving' ? 'Coût carburant' : 'Pas de frais'}
+          </div>
+        </div>
+      </div>
+
+      {/* Itinéraire détaillé optimisé */}
+      <div className="bg-gray-50 rounded-lg p-4">
+        <div className="flex items-center space-x-2 mb-3">
+          <Sparkles className="h-4 w-4 text-purple-600" />
+          <h5 className="font-medium text-gray-800">Itinéraire optimisé par IA</h5>
+        </div>
+        <div className="space-y-2">
+          {optimizedRoute.route.map((segment, index) => (
+            <div key={index} className="flex items-center space-x-2 text-sm">
+              <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
                 {index + 1}
               </span>
-              <span className="text-gray-700">{mission.missions.title}</span>
-              <span className="text-gray-500 text-xs">({mission.missions.location})</span>
+              <div className="flex-1">
+                <span className="text-gray-700">{segment.from} → {segment.to}</span>
+                <div className="flex items-center space-x-4 text-xs text-gray-500">
+                  <span>{segment.distance.toFixed(1)} km</span>
+                  <span>{segment.time} min</span>
+                </div>
+              </div>
             </div>
           ))}
-          <div className="flex items-center space-x-2 text-sm">
-            <span className="w-5 h-5 bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold">F</span>
-            <span className="text-gray-700">Retour au dépôt</span>
-          </div>
+        </div>
+      </div>
+
+      {/* Ordre optimisé des missions */}
+      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+        <h5 className="font-medium text-purple-800 mb-3">Ordre recommandé par l'IA</h5>
+        <div className="space-y-2">
+          {optimizedRoute.optimizedOrder.map((missionTitle, index) => (
+            <div key={index} className="flex items-center space-x-2 text-sm">
+              <span className="w-5 h-5 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                {index + 1}
+              </span>
+              <span className="text-purple-700">{missionTitle}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -286,6 +463,8 @@ function MapComponent({ missions }: MapComponentProps) {
   const [showRoute, setShowRoute] = useState(false)
   const [mapError, setMapError] = useState(false)
   const [depot, setDepot] = useState(DEFAULT_DEPOT)
+  const [optimizedRoute, setOptimizedRoute] = useState<OptimizedRoute | null>(null)
+  const [isGeneratingRoute, setIsGeneratingRoute] = useState(false)
 
   const missionsWithCoords = useMemo(() => 
     missions.filter(m => m.missions.latitude !== null && m.missions.longitude !== null),
@@ -297,10 +476,23 @@ function MapComponent({ missions }: MapComponentProps) {
     [missions]
   )
 
-  const handleCreateRoute = () => {
+  const handleCreateRoute = async () => {
     if (missionsWithCoords.length > 0) {
+      setIsGeneratingRoute(true)
       setShowRoute(true)
-      console.log('Création d\'itinéraire depuis le dépôt:', depot)
+      
+      try {
+        const route = await generateOptimizedRoute(missions, depot, routeType)
+        setOptimizedRoute(route)
+        console.log('Itinéraire optimisé généré:', route)
+      } catch (error) {
+        console.error('Erreur lors de la génération de l\'itinéraire:', error)
+        // Utiliser le fallback
+        const fallbackRoute = generateFallbackRoute(missions, depot, routeType)
+        setOptimizedRoute(fallbackRoute)
+      } finally {
+        setIsGeneratingRoute(false)
+      }
     }
   }
 
@@ -371,7 +563,7 @@ function MapComponent({ missions }: MapComponentProps) {
                 className={mapView === 'route' ? 'bg-green-600 hover:bg-green-700' : 'border-green-200 text-green-600 hover:bg-green-50'}
               >
                 <Route className="h-4 w-4 mr-1" />
-                Itinéraire
+                Itinéraire IA
               </Button>
             </div>
           </CardTitle>
@@ -506,10 +698,19 @@ function MapComponent({ missions }: MapComponentProps) {
                 variant="outline"
                 size="sm"
                 onClick={handleCreateRoute}
-                disabled={missionsWithCoords.length === 0}
+                disabled={missionsWithCoords.length === 0 || isGeneratingRoute}
               >
-                <Route className="h-4 w-4 mr-1" />
-                Créer un itinéraire
+                {isGeneratingRoute ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    Génération...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-1" />
+                    Optimiser avec IA
+                  </>
+                )}
               </Button>
               
               <Button
@@ -523,9 +724,15 @@ function MapComponent({ missions }: MapComponentProps) {
               </Button>
             </div>
 
-            {/* Statistiques avec dépôt */}
+            {/* Statistiques avec IA */}
             {mapView === 'route' && (
-              <RouteStats missions={missions} routeType={routeType} depot={depot} />
+              <RouteStats 
+                missions={missions} 
+                routeType={routeType} 
+                depot={depot}
+                optimizedRoute={optimizedRoute}
+                isLoading={isGeneratingRoute}
+              />
             )}
 
             {/* Missions sans coordonnées */}
@@ -568,7 +775,7 @@ function MapComponent({ missions }: MapComponentProps) {
                 {missions.map((mission, index) => {
                   const missionDate = parseISO(mission.missions.date_start)
                   const isUpcoming = isValid(missionDate) && missionDate > new Date()
-                                     const hasCoordinates = mission.missions.latitude !== null && mission.missions.longitude !== null
+                  const hasCoordinates = mission.missions.latitude !== null && mission.missions.longitude !== null
                   
                   return (
                     <div key={mission.id} className="bg-white p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors">

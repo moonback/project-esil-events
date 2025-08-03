@@ -17,6 +17,7 @@ import type { BillingWithDetails, User } from '@/types/database'
 
 import { BillingCalendarView } from './BillingCalendarView'
 import { AdvancedBillingFilters, type BillingFilters } from './AdvancedBillingFilters'
+import { BulkPaymentDialog } from './BulkPaymentDialog'
 import { useToast } from '@/lib/useToast'
 
 export function AdminBillingTab() {
@@ -26,6 +27,7 @@ export function AdminBillingTab() {
   const [viewMode, setViewMode] = useState<'list' | 'calendar' | 'analytics'>('list')
   const [selectedBilling, setSelectedBilling] = useState<BillingWithDetails | null>(null)
   const [showFilters, setShowFilters] = useState(false)
+  const [bulkPaymentDialogOpen, setBulkPaymentDialogOpen] = useState(false)
   const [filters, setFilters] = useState<BillingFilters>({
     search: '',
     status: 'all',
@@ -242,6 +244,17 @@ export function AdminBillingTab() {
             >
               <Filter className="h-4 w-4" />
               Filtres
+            </Button>
+            
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => setBulkPaymentDialogOpen(true)}
+              className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+              disabled={filteredBillings.filter(b => b.status === 'validé').length === 0}
+            >
+              <CreditCard className="h-4 w-4" />
+              Paiement en Lot
             </Button>
             
             <div className="flex items-center border border-gray-200 rounded-lg">
@@ -599,6 +612,13 @@ export function AdminBillingTab() {
         </div>
       )}
 
+      {/* Dialogue de paiement en lot */}
+      <BulkPaymentDialog
+        open={bulkPaymentDialogOpen}
+        onOpenChange={setBulkPaymentDialogOpen}
+        billings={filteredBillings}
+        onSuccess={refreshData}
+      />
 
     </div>
   )

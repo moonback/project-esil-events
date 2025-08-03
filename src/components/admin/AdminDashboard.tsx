@@ -6,12 +6,14 @@ import { AdminAgendaTab } from './AdminAgendaTab'
 import { AdminBillingTab } from './AdminBillingTab'
 import { MissionsWithAssignmentsTab } from './MissionsWithAssignmentsTab'
 import { MissionsMapTab } from './MissionsMapTab'
+import { TestNotifications } from './TestNotifications'
+import { DebugNotifications } from './DebugNotifications'
 
 import { MissionDialog } from './MissionDialog'
 import { MissionViewDialog } from './MissionViewDialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
-  Users, Calendar, CreditCard, Activity, CheckCircle, MapPin
+  Users, Calendar, CreditCard, Activity, CheckCircle, MapPin, Bell
 } from 'lucide-react'
 import { LoadingOverlay } from '@/components/ui/loading'
 import { useRealtimeSync } from '@/lib/useRealtimeSync'
@@ -105,6 +107,12 @@ export function AdminDashboard() {
       label: 'Facturation',
       icon: CreditCard,
       color: 'orange'
+    },
+    {
+      value: 'test',
+      label: 'Test Notif',
+      icon: Bell,
+      color: 'yellow'
     }
   ]
 
@@ -115,7 +123,8 @@ export function AdminDashboard() {
       blue: isActive ? 'bg-blue-600 text-white' : 'hover:bg-blue-50 data-[state=active]:bg-blue-600 data-[state=active]:text-white',
       green: isActive ? 'bg-green-600 text-white' : 'hover:bg-green-50 data-[state=active]:bg-green-600 data-[state=active]:text-white',
       purple: isActive ? 'bg-purple-600 text-white' : 'hover:bg-purple-50 data-[state=active]:bg-purple-600 data-[state=active]:text-white',
-      orange: isActive ? 'bg-orange-600 text-white' : 'hover:bg-orange-50 data-[state=active]:bg-orange-600 data-[state=active]:text-white'
+      orange: isActive ? 'bg-orange-600 text-white' : 'hover:bg-orange-50 data-[state=active]:bg-orange-600 data-[state=active]:text-white',
+      yellow: isActive ? 'bg-yellow-600 text-white' : 'hover:bg-yellow-50 data-[state=active]:bg-yellow-600 data-[state=active]:text-white'
     }
     return colors[color as keyof typeof colors] || colors.indigo
   }
@@ -142,7 +151,7 @@ export function AdminDashboard() {
       {/* Tabs desktop */}
       <div className="hidden md:block">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 bg-white border border-gray-200 shadow-sm rounded-lg p-1">
+          <TabsList className="grid w-full grid-cols-7 bg-white border border-gray-200 shadow-sm rounded-lg p-1">
             {tabs.map((tab) => {
               const Icon = tab.icon
               return (
@@ -269,6 +278,13 @@ export function AdminDashboard() {
              <LoadingOverlay loading={loading.billings} text="Chargement des facturations...">
                <AdminBillingTab />
              </LoadingOverlay>
+           </div>
+         )}
+         
+         {activeTab === 'test' && (
+           <div className="animate-slide-in-right space-y-6">
+             <TestNotifications />
+             <DebugNotifications />
            </div>
          )}
       </div>

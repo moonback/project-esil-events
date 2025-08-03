@@ -7,9 +7,7 @@ import {
   User,
   Settings,
   Home,
-  Map,
-  Maximize2
-} from 'lucide-react'
+  Map} from 'lucide-react'
 import { useToast } from '@/lib/useToast'
 
 interface FloatingActionsProps {
@@ -43,7 +41,6 @@ const ACTIONS_CONFIG: Record<'admin' | 'technician', ActionItem[]> = {
     { id: 'technicians', label: 'Techniciens', icon: User, tab: 'technicians' },
     { id: 'agenda', label: 'Agenda', icon: Calendar, tab: 'agenda' },
     { id: 'billing', label: 'Facturation', icon: DollarSign, tab: 'billing' },
-    { id: 'fullscreen-kanban', label: 'Kanban Plein Écran', icon: Maximize2, tab: 'missions', fullscreen: true }
   ]
 }
 

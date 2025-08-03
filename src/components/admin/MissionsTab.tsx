@@ -3,6 +3,7 @@ import { useMissionsStore } from '@/store/missionsStore'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { DateFilter } from '@/components/ui/date-filter'
 import { 
   Plus, Edit, Trash2, Users, UserPlus, Calendar, MapPin, 
   Clock, Filter, Search, CheckCircle, XCircle, AlertCircle,
@@ -174,7 +175,7 @@ const AssignmentDetails = memo(({
 
 AssignmentDetails.displayName = 'AssignmentDetails'
 
-// Composant optimisé pour les cartes de missions en vue Kanban
+// Composant optimisé pour les cartes de missions en vue Kanban avec vue compacte par défaut
 const MissionCard = memo(({ 
   mission, 
   onEdit, 
@@ -192,6 +193,8 @@ const MissionCard = memo(({
   onViewTechnicianDetails: (mission: Mission) => void
   deleteLoading: string | null
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false)
+  
   const missionStatus = useMemo(() => {
     if (!mission.mission_assignments?.length) return { status: 'non_assigné', color: 'bg-gray-500', icon: AlertCircle }
     
@@ -221,109 +224,186 @@ const MissionCard = memo(({
 
   return (
     <Card className="border border-gray-200 hover:border-indigo-200 transition-all duration-200 hover:shadow-md group">
-      <CardContent className="p-4">
-        {/* En-tête avec statut et actions */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center space-x-2">
-            <div className={`w-3 h-3 rounded-full ${missionStatus.color}`} />
-            <Badge className={`${missionStatus.color} text-white text-xs px-2 py-1`}>
-              <StatusIcon className="h-3 w-3 mr-1" />
-              {missionStatus.status.replace('_', ' ')}
-            </Badge>
-          </div>
-          
-          <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => onViewTechnicianDetails(mission)}
-              className="h-7 w-7 p-0 hover:bg-blue-50 hover:text-blue-600"
-              title="Voir les techniciens assignés"
-            >
-              <Users className="h-3 w-3" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => onQuickAssign(mission)}
-              className="h-7 w-7 p-0 hover:bg-emerald-50 hover:text-emerald-600"
-              title="Assigner rapidement"
-            >
-              <UserPlus className="h-3 w-3" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => onEdit(mission)}
-              className="h-7 w-7 p-0 hover:bg-indigo-50 hover:text-indigo-600"
-              title="Modifier"
-            >
-              <Edit className="h-3 w-3" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => onDelete(mission.id)}
-              disabled={deleteLoading === mission.id}
-              className="h-7 w-7 p-0 hover:bg-red-50 hover:text-red-600"
-              title="Supprimer"
-            >
-              {deleteLoading === mission.id ? (
-                <div className="w-3 h-3 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <Trash2 className="h-3 w-3" />
-              )}
-            </Button>
-          </div>
-        </div>
+      <CardContent className="p-3">
+        {/* Vue compacte par défaut */}
+        {!isExpanded ? (
+          <div className="space-y-2">
+            {/* En-tête compacte avec statut et bouton d'expansion */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 rounded-full ${missionStatus.color}`} />
+                <Badge className={`${missionStatus.color} text-white text-xs px-2 py-0.5`}>
+                  <StatusIcon className="h-2.5 w-2.5 mr-1" />
+                  {missionStatus.status.replace('_', ' ')}
+                </Badge>
+              </div>
+              
+              <div className="flex items-center space-x-1">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setIsExpanded(true)}
+                  className="h-6 w-6 p-0 hover:bg-gray-100"
+                  title="Développer"
+                >
+                  <ArrowRight className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
 
-        {/* Titre et type */}
-        <div className="mb-3">
-          <h3 className="text-sm font-bold text-gray-900 mb-1 line-clamp-2">{mission.title}</h3>
-          <Badge className={`${getMissionTypeColor(mission.type)} text-xs`}>
-            {mission.type}
-          </Badge>
-        </div>
+            {/* Titre et type */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 line-clamp-1" title={mission.title}>
+                {mission.title}
+              </h3>
+              <div className="flex items-center justify-between mt-1">
+                <Badge className={`${getMissionTypeColor(mission.type)} text-xs`}>
+                  {mission.type}
+                </Badge>
+                <span className="text-xs font-bold text-emerald-600">{formatCurrency(mission.forfeit)}</span>
+              </div>
+            </div>
 
-        {/* Date et lieu mis en avant */}
-        <div className="space-y-2 mb-3">
-          <div className="flex items-center space-x-2 text-xs">
-            <Calendar className="h-3 w-3 text-indigo-500" />
-            <span className="font-medium text-gray-700">{formatDateTime(mission.date_start)}</span>
-          </div>
-          
-          <div className="flex items-center space-x-2 text-xs">
-            <MapPin className="h-3 w-3 text-emerald-500" />
-            <span className="font-medium text-gray-700 truncate" title={mission.location}>
-              {mission.location}
-            </span>
-          </div>
-        </div>
+            {/* Informations essentielles */}
+            <div className="flex items-center justify-between text-xs text-gray-600">
+              <div className="flex items-center space-x-1">
+                <Calendar className="h-3 w-3 text-indigo-500" />
+                <span>{formatDateTime(mission.date_start)}</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <Users className="h-3 w-3 text-blue-500" />
+                <span>{acceptedAssignments.length}/{requiredPeople}</span>
+              </div>
+            </div>
 
-        {/* Montant et techniciens */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-bold text-emerald-600">{formatCurrency(mission.forfeit)}</span>
+            {/* Barre de progression compacte */}
+            {mission.mission_assignments && mission.mission_assignments.length > 0 && (
+              <div className="w-full bg-gray-200 rounded-full h-1">
+                <div
+                  className="bg-emerald-500 h-1 rounded-full transition-all duration-300"
+                  style={{
+                    width: `${Math.min(100, (acceptedAssignments.length / requiredPeople) * 100)}%`
+                  }}
+                />
+              </div>
+            )}
           </div>
-          
-          <div className="flex items-center space-x-2">
-            <Users className="h-3 w-3 text-blue-500" />
-            <span className="text-xs text-gray-600">{requiredPeople} pers.</span>
-          </div>
-        </div>
+        ) : (
+          /* Vue développée */
+          <div className="space-y-3">
+            {/* En-tête avec statut et actions */}
+            <div className="flex items-start justify-between">
+              <div className="flex items-center space-x-2">
+                <div className={`w-3 h-3 rounded-full ${missionStatus.color}`} />
+                <Badge className={`${missionStatus.color} text-white text-xs px-2 py-1`}>
+                  <StatusIcon className="h-3 w-3 mr-1" />
+                  {missionStatus.status.replace('_', ' ')}
+                </Badge>
+              </div>
+              
+              <div className="flex items-center space-x-1">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setIsExpanded(false)}
+                  className="h-7 w-7 p-0 hover:bg-gray-100"
+                  title="Réduire"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => onViewTechnicianDetails(mission)}
+                  className="h-7 w-7 p-0 hover:bg-blue-50 hover:text-blue-600"
+                  title="Voir les techniciens assignés"
+                >
+                  <Users className="h-3 w-3" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => onQuickAssign(mission)}
+                  className="h-7 w-7 p-0 hover:bg-emerald-50 hover:text-emerald-600"
+                  title="Assigner rapidement"
+                >
+                  <UserPlus className="h-3 w-3" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => onEdit(mission)}
+                  className="h-7 w-7 p-0 hover:bg-indigo-50 hover:text-indigo-600"
+                  title="Modifier"
+                >
+                  <Edit className="h-3 w-3" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => onDelete(mission.id)}
+                  disabled={deleteLoading === mission.id}
+                  className="h-7 w-7 p-0 hover:bg-red-50 hover:text-red-600"
+                  title="Supprimer"
+                >
+                  {deleteLoading === mission.id ? (
+                    <div className="w-3 h-3 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Trash2 className="h-3 w-3" />
+                  )}
+                </Button>
+              </div>
+            </div>
 
-                 {/* Détails des assignations */}
-         <AssignmentDetails mission={mission} onViewTechnicianDetails={onViewTechnicianDetails} />
+            {/* Titre et type */}
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 mb-1">{mission.title}</h3>
+              <Badge className={`${getMissionTypeColor(mission.type)} text-xs`}>
+                {mission.type}
+              </Badge>
+            </div>
 
-        {/* Barre de progression */}
-        {mission.mission_assignments && mission.mission_assignments.length > 0 && (
-          <div className="w-full bg-gray-200 rounded-full h-1.5 mt-3">
-            <div
-              className="bg-emerald-500 h-1.5 rounded-full transition-all duration-300"
-              style={{
-                width: `${Math.min(100, (acceptedAssignments.length / requiredPeople) * 100)}%`
-              }}
-            />
+            {/* Date et lieu mis en avant */}
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2 text-xs">
+                <Calendar className="h-3 w-3 text-indigo-500" />
+                <span className="font-medium text-gray-700">{formatDateTime(mission.date_start)}</span>
+              </div>
+              
+              <div className="flex items-center space-x-2 text-xs">
+                <MapPin className="h-3 w-3 text-emerald-500" />
+                <span className="font-medium text-gray-700 truncate" title={mission.location}>
+                  {mission.location}
+                </span>
+              </div>
+            </div>
+
+            {/* Montant et techniciens */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-bold text-emerald-600">{formatCurrency(mission.forfeit)}</span>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Users className="h-3 w-3 text-blue-500" />
+                <span className="text-xs text-gray-600">{requiredPeople} pers.</span>
+              </div>
+            </div>
+
+            {/* Détails des assignations */}
+            <AssignmentDetails mission={mission} onViewTechnicianDetails={onViewTechnicianDetails} />
+
+            {/* Barre de progression */}
+            {mission.mission_assignments && mission.mission_assignments.length > 0 && (
+              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                <div
+                  className="bg-emerald-500 h-1.5 rounded-full transition-all duration-300"
+                  style={{
+                    width: `${Math.min(100, (acceptedAssignments.length / requiredPeople) * 100)}%`
+                  }}
+                />
+              </div>
+            )}
           </div>
         )}
       </CardContent>
@@ -352,6 +432,10 @@ export function MissionsTab({
   onSortChange?: (sort: string) => void
   onViewModeChange?: (mode: 'kanban' | 'list' | 'grid') => void
 } = {}) {
+  const [dateRange, setDateRange] = useState<{ start: string | null; end: string | null }>({
+    start: null,
+    end: null
+  })
   const { missions, loading, stats, deleteAllMissions, createTestMissions } = useAdminStore()
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -461,9 +545,27 @@ export function MissionsTab({
                            mission.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            mission.description?.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesType = filterType === 'all' || mission.type === filterType
-      return matchesSearch && matchesType
+      
+      // Filtrage par date
+      let matchesDate = true
+      if (dateRange.start || dateRange.end) {
+        const missionStartDate = new Date(mission.date_start)
+        const missionEndDate = new Date(mission.date_end)
+        
+        if (dateRange.start) {
+          const startFilterDate = new Date(dateRange.start)
+          matchesDate = matchesDate && missionStartDate >= startFilterDate
+        }
+        
+        if (dateRange.end) {
+          const endFilterDate = new Date(dateRange.end)
+          matchesDate = matchesDate && missionEndDate <= endFilterDate
+        }
+      }
+      
+      return matchesSearch && matchesType && matchesDate
     })
-  }, [missions, searchTerm, filterType])
+  }, [missions, searchTerm, filterType, dateRange])
 
   // Grouper les missions par statut pour la vue Kanban
   const groupedMissions = useMemo(() => {
@@ -594,6 +696,23 @@ export function MissionsTab({
       <div className="bg-gray-50 p-4 rounded-lg mx-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
+            {/* Indicateur de filtres actifs */}
+            {(dateRange.start || dateRange.end) && (
+              <div className="flex items-center space-x-2 bg-blue-50 border border-blue-200 rounded-md px-3 py-1">
+                <Calendar className="h-4 w-4 text-blue-600" />
+                <span className="text-sm text-blue-700 font-medium">
+                  Filtre par date actif
+                </span>
+                <Button
+                  onClick={() => setDateRange({ start: null, end: null })}
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 hover:bg-blue-100"
+                >
+                  <X className="h-3 w-3 text-blue-600" />
+                </Button>
+              </div>
+            )}
             {/* Recherche */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -618,6 +737,13 @@ export function MissionsTab({
               <option value="completed">Terminées</option>
               <option value="urgent">Urgentes</option>
             </select>
+            
+            {/* Filtre par date */}
+            <DateFilter
+              onDateRangeChange={(startDate, endDate) => {
+                setDateRange({ start: startDate, end: endDate })
+              }}
+            />
             
             {/* Tri */}
             <select 

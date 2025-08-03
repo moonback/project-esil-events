@@ -20,6 +20,15 @@ export function formatDate(date: string | Date): string {
   }).format(new Date(date))
 }
 
+export function formatDateLong(date: string | Date): string {
+  const d = new Date(date)
+  return d.toLocaleDateString('fr-FR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
 export function formatDateTime(date: string | Date): string {
   return new Intl.DateTimeFormat('fr-FR', {
     day: '2-digit',

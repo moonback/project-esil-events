@@ -34,7 +34,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
-import type { User, Mission, MissionAssignment, Billing, Notification } from '@/types/database'
+import type { User, Mission, MissionAssignment, Billing, Notification, BillingWithDetails } from '@/types/database'
 import { useToast } from '@/lib/useToast'
 
 interface TechnicianStats {
@@ -66,7 +66,7 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
     lastMissionDate: null
   })
   const [recentMissions, setRecentMissions] = useState<(Mission & { assignment: MissionAssignment })[]>([])
-  const [recentBillings, setRecentBillings] = useState<Billing[]>([])
+  const [recentBillings, setRecentBillings] = useState<BillingWithDetails[]>([])
   const [paymentNotifications, setPaymentNotifications] = useState<Notification[]>([])
   const [formData, setFormData] = useState({
     name: '',
@@ -435,50 +435,114 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
             </CardContent>
           </Card>
 
-          {/* Missions récentes */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Missions récentes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {recentMissions.length > 0 ? (
-                <div className="space-y-3">
-                  {recentMissions.map((mission) => (
-                    <div key={mission.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 bg-gray-50">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-md bg-blue-100">
-                          <Map className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm text-gray-900">{mission.title}</p>
-                          <p className="text-xs text-gray-500">{mission.location}</p>
-                          <p className="text-xs text-gray-500">{formatDate(mission.date_start)}</p>
-                        </div>
-                      </div>
-                      <Badge 
-                        variant={
-                          mission.assignment.status === 'accepté' ? 'default' :
-                          mission.assignment.status === 'proposé' ? 'secondary' : 'destructive'
-                        }
-                        className="text-xs"
-                      >
-                        {mission.assignment.status === 'accepté' ? 'Acceptée' :
-                         mission.assignment.status === 'proposé' ? 'Proposée' : 'Refusée'}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-6 text-gray-500">
-                  <Calendar className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm">Aucune mission récente</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                     {/* Missions récentes */}
+           <Card className="transition-all duration-200 hover:shadow-md">
+             <CardHeader className="pb-3">
+               <div className="flex items-center justify-between">
+                 <CardTitle className="flex items-center gap-2 text-lg">
+                   <div className="p-2 bg-blue-100 rounded-lg">
+                     <Calendar className="h-5 w-5 text-blue-600" />
+                   </div>
+                   Missions récentes
+                 </CardTitle>
+                 {recentMissions.length > 0 && (
+                   <Button 
+                     variant="ghost" 
+                     size="sm" 
+                     className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                     onClick={() => onTabChange?.('missions')}
+                   >
+                     Voir tout
+                   </Button>
+                 )}
+               </div>
+             </CardHeader>
+             <CardContent>
+               {recentMissions.length > 0 ? (
+                 <div className="space-y-3">
+                   {recentMissions.map((mission, index) => {
+                     const statusConfig = {
+                       'accepté': { 
+                         variant: 'default' as const, 
+                         label: 'Acceptée', 
+                         icon: CheckCircle,
+                         className: 'bg-green-100 text-green-800 border-green-200'
+                       },
+                       'proposé': { 
+                         variant: 'secondary' as const, 
+                         label: 'Proposée', 
+                         icon: Clock,
+                         className: 'bg-blue-100 text-blue-800 border-blue-200'
+                       },
+                       'refusé': { 
+                         variant: 'destructive' as const, 
+                         label: 'Refusée', 
+                         icon: AlertCircle,
+                         className: 'bg-red-100 text-red-800 border-red-200'
+                       }
+                     }
+                     
+                     const config = statusConfig[mission.assignment.status as keyof typeof statusConfig] || statusConfig.proposé
+                     const StatusIcon = config.icon
+                     
+                     return (
+                       <div 
+                         key={mission.id} 
+                         className="group flex items-center justify-between p-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-all duration-200 hover:shadow-sm"
+                         style={{ animationDelay: `${index * 100}ms` }}
+                       >
+                         <div className="flex-1 min-w-0">
+                           <div className="flex items-center gap-3">
+                             <div className="flex-shrink-0">
+                               <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center">
+                                 <Map className="h-5 w-5 text-blue-600" />
+                               </div>
+                             </div>
+                             <div className="flex-1 min-w-0">
+                               <p className="font-semibold text-sm text-gray-900 truncate">
+                                 {mission.title}
+                               </p>
+                               <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                                 <MapPin className="h-3 w-3" />
+                                 {mission.location}
+                               </p>
+                               <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
+                                 <Calendar className="h-3 w-3" />
+                                 {formatDate(mission.date_start)}
+                               </p>
+                               {mission.forfeit && (
+                                 <p className="text-xs text-green-600 flex items-center gap-1 mt-1 font-medium">
+                                   <DollarSign className="h-3 w-3" />
+                                   {formatAmount(mission.forfeit)}
+                                 </p>
+                               )}
+                             </div>
+                           </div>
+                         </div>
+                         <div className="flex-shrink-0 ml-3">
+                           <Badge 
+                             variant={config.variant}
+                             className={`text-xs px-3 py-1 flex items-center gap-1 ${config.className}`}
+                           >
+                             <StatusIcon className="h-3 w-3" />
+                             {config.label}
+                           </Badge>
+                         </div>
+                       </div>
+                     )
+                   })}
+                 </div>
+               ) : (
+                 <div className="text-center py-8 text-gray-500">
+                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                     <Calendar className="h-8 w-8 text-gray-400" />
+                   </div>
+                   <p className="text-sm font-medium text-gray-600 mb-1">Aucune mission récente</p>
+                   <p className="text-xs text-gray-400">Vos missions apparaîtront ici</p>
+                 </div>
+               )}
+             </CardContent>
+           </Card>
         </div>
 
                  {/* Panneau latéral */}
@@ -564,48 +628,103 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
           </Card>
 
           {/* Facturations récentes */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5" />
-                Facturations récentes
-              </CardTitle>
+          <Card className="transition-all duration-200 hover:shadow-md">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <DollarSign className="h-5 w-5 text-green-600" />
+                  </div>
+                  Facturations récentes
+                </CardTitle>
+                {recentBillings.length > 0 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-xs text-green-600 hover:text-green-700 hover:bg-green-50"
+                    onClick={() => onTabChange?.('billing')}
+                  >
+                    Voir tout
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {recentBillings.length > 0 ? (
                 <div className="space-y-3">
-                  {recentBillings.map((billing) => {
+                  {recentBillings.map((billing, index) => {
+                    const statusConfig = {
+                      'payé': { 
+                        variant: 'default' as const, 
+                        label: 'Payé', 
+                        icon: CheckCircle,
+                        className: 'bg-green-100 text-green-800 border-green-200'
+                      },
+                      'validé': { 
+                        variant: 'secondary' as const, 
+                        label: 'Validé', 
+                        icon: CheckCircle,
+                        className: 'bg-blue-100 text-blue-800 border-blue-200'
+                      },
+                      'en_attente': { 
+                        variant: 'outline' as const, 
+                        label: 'En attente', 
+                        icon: Clock,
+                        className: 'bg-amber-100 text-amber-800 border-amber-200'
+                      }
+                    }
+                    
+                    const config = statusConfig[billing.status as keyof typeof statusConfig] || statusConfig.en_attente
+                    const StatusIcon = config.icon
+                    
                     return (
-                      <div key={billing.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 bg-gray-50">
-                        <div className="flex-1">
-                          <p className="font-medium text-sm text-gray-900">
-                            {formatAmount(billing.amount)}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            Mission #{billing.mission_id}
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            {formatDate(billing.created_at)}
-                          </p>
+                      <div 
+                        key={billing.id} 
+                        className="group flex items-center justify-between p-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-all duration-200 hover:shadow-sm"
+                        style={{ animationDelay: `${index * 100}ms` }}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3">
+                            <div className="flex-shrink-0">
+                              <div className="w-10 h-10 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center">
+                                <CreditCard className="h-5 w-5 text-green-600" />
+                              </div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-sm text-gray-900 truncate">
+                                {formatAmount(billing.amount)}
+                              </p>
+                                                             <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                                 <Briefcase className="h-3 w-3" />
+                                 {billing.missions?.title || `Mission #${billing.mission_id}`}
+                               </p>
+                              <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
+                                <Calendar className="h-3 w-3" />
+                                {formatDate(billing.created_at)}
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                        <Badge 
-                          variant={
-                            billing.status === 'payé' ? 'default' :
-                            billing.status === 'validé' ? 'secondary' : 'outline'
-                          }
-                          className="text-xs"
-                        >
-                          {billing.status === 'payé' ? 'Payé' :
-                           billing.status === 'validé' ? 'Validé' : 'En attente'}
-                        </Badge>
+                        <div className="flex-shrink-0 ml-3">
+                          <Badge 
+                            variant={config.variant}
+                            className={`text-xs px-3 py-1 flex items-center gap-1 ${config.className}`}
+                          >
+                            <StatusIcon className="h-3 w-3" />
+                            {config.label}
+                          </Badge>
+                        </div>
                       </div>
                     )
                   })}
                 </div>
               ) : (
-                <div className="text-center py-6 text-gray-500">
-                  <DollarSign className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm">Aucune facturation récente</p>
+                <div className="text-center py-8 text-gray-500">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <DollarSign className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Aucune facturation récente</p>
+                  <p className="text-xs text-gray-400">Vos facturations apparaîtront ici</p>
                 </div>
               )}
             </CardContent>

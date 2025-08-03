@@ -6,7 +6,7 @@ import { AdminAgendaTab } from './AdminAgendaTab'
 import { AdminBillingTab } from './AdminBillingTab'
 import { MissionsWithAssignmentsTab } from './MissionsWithAssignmentsTab'
 import { MissionsMapTab } from './MissionsMapTab'
-import { PaymentSummaryCard } from './PaymentSummaryCard'
+
 import { MissionDialog } from './MissionDialog'
 import { MissionViewDialog } from './MissionViewDialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -201,17 +201,11 @@ export function AdminDashboard() {
             </LoadingOverlay>
           </TabsContent>
 
-          <TabsContent value="billing" className="animate-slide-in-right">
-            <LoadingOverlay loading={loading.billings} text="Chargement des facturations...">
-              <div className="space-y-6">
-                <PaymentSummaryCard 
-                  billings={useAdminStore.getState().billings}
-                  onViewAll={() => {}}
-                />
-                <AdminBillingTab />
-              </div>
-            </LoadingOverlay>
-          </TabsContent>
+                     <TabsContent value="billing" className="animate-slide-in-right">
+             <LoadingOverlay loading={loading.billings} text="Chargement des facturations...">
+               <AdminBillingTab />
+             </LoadingOverlay>
+           </TabsContent>
         </Tabs>
       </div>
 
@@ -270,19 +264,13 @@ export function AdminDashboard() {
           </div>
         )}
         
-        {activeTab === 'billing' && (
-          <div className="animate-slide-in-right space-y-6">
-            <LoadingOverlay loading={loading.billings} text="Chargement des facturations...">
-              <div className="space-y-6">
-                <PaymentSummaryCard 
-                  billings={useAdminStore.getState().billings}
-                  onViewAll={() => {}}
-                />
-                <AdminBillingTab />
-              </div>
-            </LoadingOverlay>
-          </div>
-        )}
+                 {activeTab === 'billing' && (
+           <div className="animate-slide-in-right">
+             <LoadingOverlay loading={loading.billings} text="Chargement des facturations...">
+               <AdminBillingTab />
+             </LoadingOverlay>
+           </div>
+         )}
       </div>
 
       {/* Indicateur d'onglet actuel pour mobile */}

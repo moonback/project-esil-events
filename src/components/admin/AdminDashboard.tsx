@@ -16,6 +16,7 @@ import {
 import { LoadingOverlay } from '@/components/ui/loading'
 import { useRealtimeSync } from '@/lib/useRealtimeSync'
 import { MobileMenu } from '@/components/ui/mobile-menu'
+import { FloatingActions } from '@/components/ui/floating-actions'
 import type { Mission, MissionWithAssignments } from '@/types/database'
 
 export function AdminDashboard() {
@@ -308,6 +309,13 @@ export function AdminDashboard() {
         mission={selectedMission}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
+      />
+
+      {/* Menu d'actions rapides flottant */}
+      <FloatingActions 
+        onTabChange={setActiveTab}
+        currentTab={activeTab}
+        userType="admin"
       />
 
       {/* Dialogue de visualisation */}

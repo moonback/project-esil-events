@@ -8,6 +8,7 @@ import { TechnicianProfileTab } from './TechnicianProfileTab'
 import { PaymentSummaryCard } from './PaymentSummaryCard'
 import { Calendar, CreditCard, Clock, CheckCircle, User } from 'lucide-react'
 import { MobileMenu } from '@/components/ui/mobile-menu'
+import { FloatingActions } from '@/components/ui/floating-actions'
 
 export function TechnicianDashboard() {
   const [activeTab, setActiveTab] = useState('availability')
@@ -72,6 +73,13 @@ export function TechnicianDashboard() {
         </div>
       </div>
 
+      {/* Menu d'actions rapides flottant */}
+      <FloatingActions 
+        onTabChange={setActiveTab}
+        currentTab={activeTab}
+        userType="technician"
+      />
+
       {/* Tabs desktop */}
       <div className="hidden md:block">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -114,7 +122,7 @@ export function TechnicianDashboard() {
           </TabsContent>
 
           <TabsContent value="profile" className="animate-slide-in-right">
-            <TechnicianProfileTab />
+            <TechnicianProfileTab onTabChange={setActiveTab} />
           </TabsContent>
         </Tabs>
       </div>

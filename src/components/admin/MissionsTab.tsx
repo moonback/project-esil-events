@@ -1,16 +1,14 @@
-import { useState, useMemo, useEffect, useCallback, memo } from 'react'
-import { useMissionsStore } from '@/store/missionsStore'
+import { useState, useMemo, useCallback, memo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { DateFilter } from '@/components/ui/date-filter'
 import { 
   Plus, Edit, Trash2, Users, UserPlus, Calendar, MapPin, 
-  Clock, Filter, Search, CheckCircle, XCircle, AlertCircle,
-  TrendingUp, Activity, AlertTriangle, X, Trash, Play,
-  MoreVertical, User, ArrowRight, Check, X as XIcon
-} from 'lucide-react'
-import { formatDateTime, formatCurrency, getMissionTypeColor, getStatusColor } from '@/lib/utils'
+  Clock, Search, CheckCircle, XCircle, AlertCircle,
+  TrendingUp, Activity, X, Trash, Play,
+  User, ArrowRight, Check} from 'lucide-react'
+import { formatDateTime, formatCurrency, getMissionTypeColor } from '@/lib/utils'
 import { MissionDialog } from './MissionDialog'
 import { AssignTechniciansDialog } from './AssignTechniciansDialog'
 import { TechnicianContactDialog } from './TechnicianContactDialog'
@@ -179,7 +177,6 @@ AssignmentDetails.displayName = 'AssignmentDetails'
 const MissionCard = memo(({ 
   mission, 
   onEdit, 
-  onAssign, 
   onDelete, 
   onQuickAssign,
   onViewTechnicianDetails,

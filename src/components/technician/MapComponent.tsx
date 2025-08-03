@@ -297,6 +297,7 @@ function RouteStats({
   if (isLoading) {
     return (
       <div className="space-y-4">
+        {/* Informations du dépôt */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-center space-x-2 mb-2">
             <Building className="h-4 w-4 text-blue-600" />
@@ -306,10 +307,74 @@ function RouteStats({
           <p className="text-xs text-blue-600">{depot.address}</p>
         </div>
 
-        <div className="text-center py-8">
-          <Loader2 className="h-8 w-8 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-sm text-gray-600">Optimisation de l'itinéraire en cours...</p>
-          <p className="text-xs text-gray-500 mt-2">IA Gemini analyse vos missions</p>
+        {/* État de l'optimisation */}
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
+          <div className="text-center">
+            {/* Animation de chargement améliorée */}
+            <div className="relative mb-6">
+              <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Sparkles className="h-6 w-6 text-purple-600 animate-pulse" />
+              </div>
+            </div>
+            
+            {/* Titre principal */}
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">
+              Optimisation IA en cours
+            </h3>
+            
+            {/* Description détaillée */}
+            <p className="text-sm text-gray-600 mb-4">
+              L'intelligence artificielle Gemini analyse vos {missionsWithCoords.length} mission{missionsWithCoords.length > 1 ? 's' : ''} 
+              pour créer l'itinéraire optimal
+            </p>
+            
+            {/* Étapes de traitement */}
+            <div className="space-y-3 text-left max-w-md mx-auto">
+              <div className="flex items-center space-x-3 text-sm">
+                <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                  ✓
+                </div>
+                <span className="text-gray-700">Analyse des coordonnées GPS</span>
+              </div>
+              
+              <div className="flex items-center space-x-3 text-sm">
+                <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                </div>
+                <span className="text-gray-700">Calcul de l'ordre optimal</span>
+              </div>
+              
+              <div className="flex items-center space-x-3 text-sm">
+                <div className="w-6 h-6 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-xs font-bold">
+                  3
+                </div>
+                <span className="text-gray-500">Estimation des temps de trajet</span>
+              </div>
+              
+              <div className="flex items-center space-x-3 text-sm">
+                <div className="w-6 h-6 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-xs font-bold">
+                  4
+                </div>
+                <span className="text-gray-500">Calcul des coûts de carburant</span>
+              </div>
+            </div>
+            
+            {/* Informations supplémentaires */}
+            <div className="mt-6 p-3 bg-white rounded-lg border border-gray-200">
+              <div className="flex items-center justify-between text-xs text-gray-600">
+                <span>Mode de transport: {routeType === 'driving' ? 'Voiture' : 
+                  routeType === 'walking' ? 'À pied' : 
+                  routeType === 'bicycling' ? 'Vélo' : 'Transport'}</span>
+                <span>{missionsWithCoords.length} mission{missionsWithCoords.length > 1 ? 's' : ''}</span>
+              </div>
+            </div>
+            
+            {/* Message d'encouragement */}
+            <p className="text-xs text-purple-600 mt-4 font-medium">
+              ⚡ Génération en temps réel avec l'IA Gemini
+            </p>
+          </div>
         </div>
       </div>
     )
@@ -362,44 +427,213 @@ function RouteStats({
         </div>
       </div>
 
-      {/* Itinéraire détaillé optimisé */}
-      <div className="bg-gray-50 rounded-lg p-4">
-        <div className="flex items-center space-x-2 mb-3">
-          <Sparkles className="h-4 w-4 text-purple-600" />
-          <h5 className="font-medium text-gray-800">Itinéraire optimisé par IA</h5>
-        </div>
-        <div className="space-y-2">
-          {optimizedRoute.route.map((segment, index) => (
-            <div key={index} className="flex items-center space-x-2 text-sm">
-              <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                {index + 1}
-              </span>
-              <div className="flex-1">
-                <span className="text-gray-700">{segment.from} → {segment.to}</span>
-                <div className="flex items-center space-x-4 text-xs text-gray-500">
-                  <span>{segment.distance.toFixed(1)} km</span>
-                  <span>{segment.time} min</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+             {/* Itinéraire détaillé optimisé */}
+       <div className="bg-gray-50 rounded-lg p-4">
+         <div className="flex items-center space-x-2 mb-3">
+           <Sparkles className="h-4 w-4 text-purple-600" />
+           <h5 className="font-medium text-gray-800">Itinéraire détaillé par IA</h5>
+         </div>
+         <div className="space-y-3">
+           {optimizedRoute.route.map((segment, index) => (
+             <div key={index} className="bg-white rounded-lg p-3 border border-gray-200">
+               {/* En-tête de l'étape */}
+               <div className="flex items-center space-x-3 mb-2">
+                 <span className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                   {index + 1}
+                 </span>
+                 <div className="flex-1">
+                   <div className="flex items-center space-x-2">
+                     <span className="font-medium text-gray-800">{segment.from}</span>
+                     <Navigation className="h-3 w-3 text-blue-500" />
+                     <span className="font-medium text-gray-800">{segment.to}</span>
+                   </div>
+                 </div>
+                 <Badge className={`text-xs ${
+                   segment.mode === 'driving' ? 'bg-blue-100 text-blue-700' :
+                   segment.mode === 'walking' ? 'bg-green-100 text-green-700' :
+                   segment.mode === 'bicycling' ? 'bg-purple-100 text-purple-700' :
+                   'bg-orange-100 text-orange-700'
+                 }`}>
+                   {segment.mode === 'driving' ? 'Voiture' :
+                    segment.mode === 'walking' ? 'À pied' :
+                    segment.mode === 'bicycling' ? 'Vélo' : 'Transport'}
+                 </Badge>
+               </div>
+               
+               {/* Détails de l'étape */}
+               <div className="grid grid-cols-3 gap-3 text-xs">
+                 <div className="bg-blue-50 p-2 rounded text-center">
+                   <div className="font-bold text-blue-600">{segment.distance.toFixed(1)} km</div>
+                   <div className="text-blue-500">Distance</div>
+                 </div>
+                 <div className="bg-green-50 p-2 rounded text-center">
+                   <div className="font-bold text-green-600">{segment.time} min</div>
+                   <div className="text-green-500">Temps</div>
+                 </div>
+                 <div className="bg-purple-50 p-2 rounded text-center">
+                   <div className="font-bold text-purple-600">
+                     {segment.mode === 'driving' ? `${(segment.distance * 0.15).toFixed(2)}€` : 'Gratuit'}
+                   </div>
+                   <div className="text-purple-500">Coût</div>
+                 </div>
+               </div>
+               
+               {/* Informations supplémentaires */}
+               <div className="mt-2 pt-2 border-t border-gray-100">
+                 <div className="flex items-center justify-between text-xs text-gray-500">
+                   <span>Vitesse moyenne: {
+                     segment.mode === 'driving' ? '50 km/h' :
+                     segment.mode === 'walking' ? '5 km/h' :
+                     segment.mode === 'bicycling' ? '15 km/h' : '25 km/h'
+                   }</span>
+                   <span>Étape {index + 1} sur {optimizedRoute.route.length}</span>
+                 </div>
+               </div>
+             </div>
+           ))}
+         </div>
+         
+         {/* Résumé de l'itinéraire */}
+         <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+           <div className="flex items-center space-x-2 mb-2">
+             <Route className="h-4 w-4 text-blue-600" />
+             <h6 className="font-medium text-blue-800">Résumé de l'itinéraire</h6>
+           </div>
+           <div className="grid grid-cols-2 gap-4 text-xs">
+             <div>
+               <span className="text-blue-600 font-medium">Départ:</span>
+               <span className="text-gray-700 ml-1">{optimizedRoute.route[0]?.from}</span>
+             </div>
+             <div>
+               <span className="text-blue-600 font-medium">Arrivée:</span>
+               <span className="text-gray-700 ml-1">{optimizedRoute.route[optimizedRoute.route.length - 1]?.to}</span>
+             </div>
+             <div>
+               <span className="text-blue-600 font-medium">Étapes:</span>
+               <span className="text-gray-700 ml-1">{optimizedRoute.route.length}</span>
+             </div>
+             <div>
+               <span className="text-blue-600 font-medium">Mode principal:</span>
+               <span className="text-gray-700 ml-1">
+                 {routeType === 'driving' ? 'Voiture' :
+                  routeType === 'walking' ? 'À pied' :
+                  routeType === 'bicycling' ? 'Vélo' : 'Transport'}
+               </span>
+             </div>
+           </div>
+         </div>
+       </div>
 
-      {/* Ordre optimisé des missions */}
-      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-        <h5 className="font-medium text-purple-800 mb-3">Ordre recommandé par l'IA</h5>
-        <div className="space-y-2">
-          {optimizedRoute.optimizedOrder.map((missionTitle, index) => (
-            <div key={index} className="flex items-center space-x-2 text-sm">
-              <span className="w-5 h-5 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                {index + 1}
-              </span>
-              <span className="text-purple-700">{missionTitle}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+             {/* Ordre optimisé des missions */}
+       <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+         <div className="flex items-center space-x-2 mb-3">
+           <Sparkles className="h-4 w-4 text-purple-600" />
+           <h5 className="font-medium text-purple-800">Séquence optimale des missions</h5>
+         </div>
+         <div className="space-y-3">
+           {optimizedRoute.optimizedOrder.map((missionTitle, index) => {
+             const mission = missions.find(m => m.missions.title === missionTitle)
+             const hasCoordinates = mission?.missions.latitude !== null && mission?.missions.longitude !== null
+             
+             return (
+               <div key={index} className="bg-white rounded-lg p-3 border border-purple-200">
+                 <div className="flex items-center space-x-3">
+                   <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                     {index + 1}
+                   </span>
+                   <div className="flex-1">
+                     <div className="flex items-center space-x-2 mb-1">
+                       <span className="font-medium text-purple-800">{missionTitle}</span>
+                       {hasCoordinates ? (
+                         <CheckCircle className="h-3 w-3 text-green-500" />
+                       ) : (
+                         <AlertTriangle className="h-3 w-3 text-yellow-500" />
+                       )}
+                     </div>
+                     {mission && (
+                       <div className="text-xs text-gray-600 space-y-1">
+                         <div className="flex items-center space-x-1">
+                           <MapPin className="h-3 w-3" />
+                           <span>{mission.missions.location}</span>
+                         </div>
+                         <div className="flex items-center space-x-1">
+                           <Clock className="h-3 w-3" />
+                           <span>{format(parseISO(mission.missions.date_start), 'dd/MM/yyyy HH:mm', { locale: fr })}</span>
+                         </div>
+                         <div className="flex items-center space-x-1">
+                           <Euro className="h-3 w-3" />
+                           <span>{mission.missions.forfeit}€</span>
+                         </div>
+                       </div>
+                     )}
+                   </div>
+                   <div className="flex flex-col items-end space-y-1">
+                     <Badge className={mission ? getMissionTypeColor(mission.missions.type) : 'bg-gray-100 text-gray-700'}>
+                       {mission?.missions.type || 'N/A'}
+                     </Badge>
+                     {hasCoordinates ? (
+                       <span className="text-xs text-green-600">GPS ✓</span>
+                     ) : (
+                       <span className="text-xs text-yellow-600">GPS ✗</span>
+                     )}
+                   </div>
+                 </div>
+                 
+                 {/* Informations de distance si disponible */}
+                 {index > 0 && hasCoordinates && (
+                   <div className="mt-2 pt-2 border-t border-purple-100">
+                     <div className="flex items-center justify-between text-xs text-purple-600">
+                       <span>Distance depuis la mission précédente</span>
+                       <span className="font-medium">
+                         {(() => {
+                           const prevMission = missions.find(m => m.missions.title === optimizedRoute.optimizedOrder[index - 1])
+                           if (prevMission && 
+                               prevMission.missions.latitude !== null && 
+                               prevMission.missions.longitude !== null && 
+                               mission && 
+                               mission.missions.latitude !== null && 
+                               mission.missions.longitude !== null) {
+                             const distance = calculateDistance(
+                               prevMission.missions.latitude,
+                               prevMission.missions.longitude,
+                               mission.missions.latitude,
+                               mission.missions.longitude
+                             )
+                             return `${distance.toFixed(1)} km`
+                           }
+                           return 'N/A'
+                         })()}
+                       </span>
+                     </div>
+                   </div>
+                 )}
+               </div>
+             )
+           })}
+         </div>
+         
+         {/* Statistiques de la séquence */}
+         <div className="mt-4 p-3 bg-purple-100 rounded-lg">
+           <div className="grid grid-cols-3 gap-4 text-center text-xs">
+             <div>
+               <div className="font-bold text-purple-700">{optimizedRoute.optimizedOrder.length}</div>
+               <div className="text-purple-600">Missions</div>
+             </div>
+             <div>
+               <div className="font-bold text-purple-700">
+                 {missions.filter(m => m.missions.latitude !== null && m.missions.longitude !== null).length}
+               </div>
+               <div className="text-purple-600">Avec GPS</div>
+             </div>
+             <div>
+               <div className="font-bold text-purple-700">
+                 {missions.filter(m => m.missions.latitude === null || m.missions.longitude === null).length}
+               </div>
+               <div className="text-purple-600">Sans GPS</div>
+             </div>
+           </div>
+         </div>
+       </div>
     </div>
   )
 }

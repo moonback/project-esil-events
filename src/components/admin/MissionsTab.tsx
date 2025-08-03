@@ -763,7 +763,7 @@ export function MissionsTab({
               size="sm"
               className="h-8 px-3"
             >
-              Kanban
+              Prestations
             </Button>
             <Button
               onClick={() => onViewModeChange?.('list')}

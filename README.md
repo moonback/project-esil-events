@@ -57,6 +57,13 @@ Elle permet de **planifier, gérer et suivre** facilement les missions et dispon
 - **Historique des missions** et performances
 - **Système de notifications** pour les nouvelles assignations
 
+#### 🚗 Gestion des Véhicules
+- **Flotte complète** avec différents types de véhicules (camion, fourgon, utilitaire, voiture)
+- **Assignation intelligente** des véhicules aux missions
+- **Suivi des statuts** (disponible, en maintenance, hors service, en mission)
+- **Gestion des capacités** et caractéristiques techniques
+- **Notes d'assignation** pour les instructions spéciales
+
 ### 👷 Interface Technicien
 
 #### 📅 Gestion des Disponibilités
@@ -78,6 +85,12 @@ Elle permet de **planifier, gérer et suivre** facilement les missions et dispon
 - **Statistiques personnelles** (total gagné, missions complétées)
 - **Filtrage par période** et statut de paiement
 - **Détails des missions** avec montants et dates
+
+#### 🚗 Véhicules Assignés
+- **Consultation des véhicules** assignés aux missions
+- **Informations détaillées** (capacité, type, caractéristiques)
+- **Organisation par mission** pour une vue claire
+- **Statuts en temps réel** des véhicules
 
 ## 🛠️ Stack Technique
 

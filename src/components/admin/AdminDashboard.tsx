@@ -6,12 +6,13 @@ import { AdminAgendaTab } from './AdminAgendaTab'
 import { AdminBillingTab } from './AdminBillingTab'
 import { MissionsWithAssignmentsTab } from './MissionsWithAssignmentsTab'
 import { MissionsMapTab } from './MissionsMapTab'
+import { VehiclesTab } from './VehiclesTab'
 import { PaymentSummaryCard } from './PaymentSummaryCard'
 import { MissionDialog } from './MissionDialog'
 import { MissionViewDialog } from './MissionViewDialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
-  Users, Calendar, CreditCard, Activity, CheckCircle, MapPin
+  Users, Calendar, CreditCard, Activity, CheckCircle, MapPin, Car
 } from 'lucide-react'
 import { LoadingOverlay } from '@/components/ui/loading'
 import { useRealtimeSync } from '@/lib/useRealtimeSync'
@@ -94,6 +95,12 @@ export function AdminDashboard() {
       color: 'green'
     },
     {
+      value: 'vehicles',
+      label: 'Véhicules',
+      icon: Car,
+      color: 'teal'
+    },
+    {
       value: 'agenda',
       label: 'Agenda',
       icon: Calendar,
@@ -113,6 +120,7 @@ export function AdminDashboard() {
       red: isActive ? 'bg-red-600 text-white' : 'hover:bg-red-50 data-[state=active]:bg-red-600 data-[state=active]:text-white',
       blue: isActive ? 'bg-blue-600 text-white' : 'hover:bg-blue-50 data-[state=active]:bg-blue-600 data-[state=active]:text-white',
       green: isActive ? 'bg-green-600 text-white' : 'hover:bg-green-50 data-[state=active]:bg-green-600 data-[state=active]:text-white',
+      teal: isActive ? 'bg-teal-600 text-white' : 'hover:bg-teal-50 data-[state=active]:bg-teal-600 data-[state=active]:text-white',
       purple: isActive ? 'bg-purple-600 text-white' : 'hover:bg-purple-50 data-[state=active]:bg-purple-600 data-[state=active]:text-white',
       orange: isActive ? 'bg-orange-600 text-white' : 'hover:bg-orange-50 data-[state=active]:bg-orange-600 data-[state=active]:text-white'
     }
@@ -141,7 +149,7 @@ export function AdminDashboard() {
       {/* Tabs desktop */}
       <div className="hidden md:block">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 bg-white border border-gray-200 shadow-sm rounded-lg p-1">
+          <TabsList className="grid w-full grid-cols-7 bg-white border border-gray-200 shadow-sm rounded-lg p-1">
             {tabs.map((tab) => {
               const Icon = tab.icon
               return (
@@ -191,6 +199,12 @@ export function AdminDashboard() {
           <TabsContent value="technicians" className="animate-slide-in-right">
             <LoadingOverlay loading={loading.technicians} text="Chargement des techniciens...">
               <TechniciansTab />
+            </LoadingOverlay>
+          </TabsContent>
+
+          <TabsContent value="vehicles" className="animate-slide-in-right">
+            <LoadingOverlay loading={false} text="Chargement des véhicules...">
+              <VehiclesTab />
             </LoadingOverlay>
           </TabsContent>
 
@@ -257,6 +271,14 @@ export function AdminDashboard() {
           <div className="animate-slide-in-right">
             <LoadingOverlay loading={loading.technicians} text="Chargement des techniciens...">
               <TechniciansTab />
+            </LoadingOverlay>
+          </div>
+        )}
+        
+        {activeTab === 'vehicles' && (
+          <div className="animate-slide-in-right">
+            <LoadingOverlay loading={false} text="Chargement des véhicules...">
+              <VehiclesTab />
             </LoadingOverlay>
           </div>
         )}

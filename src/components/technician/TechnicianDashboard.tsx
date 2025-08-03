@@ -5,8 +5,9 @@ import { ProposedMissionsTab } from './ProposedMissionsTab'
 import { TechnicianBillingTab } from './TechnicianBillingTab'
 import { TechnicianAgendaTab } from './TechnicianAgendaTab'
 import { TechnicianProfileTab } from './TechnicianProfileTab'
+import { VehiclesTab } from './VehiclesTab'
 import { PaymentSummaryCard } from './PaymentSummaryCard'
-import { Calendar, CreditCard, Clock, CheckCircle, User } from 'lucide-react'
+import { Calendar, CreditCard, Clock, CheckCircle, User, Car } from 'lucide-react'
 import { MobileMenu } from '@/components/ui/mobile-menu'
 
 export function TechnicianDashboard() {
@@ -24,6 +25,12 @@ export function TechnicianDashboard() {
       label: 'Missions Proposées',
       icon: Calendar,
       color: 'indigo'
+    },
+    {
+      value: 'vehicles',
+      label: 'Véhicules',
+      icon: Car,
+      color: 'teal'
     },
     {
       value: 'billing',
@@ -49,6 +56,7 @@ export function TechnicianDashboard() {
     const colors = {
       blue: isActive ? 'bg-blue-600 text-white' : 'hover:bg-blue-50 data-[state=active]:bg-blue-600 data-[state=active]:text-white',
       indigo: isActive ? 'bg-indigo-600 text-white' : 'hover:bg-indigo-50 data-[state=active]:bg-indigo-600 data-[state=active]:text-white',
+      teal: isActive ? 'bg-teal-600 text-white' : 'hover:bg-teal-50 data-[state=active]:bg-teal-600 data-[state=active]:text-white',
       purple: isActive ? 'bg-purple-600 text-white' : 'hover:bg-purple-50 data-[state=active]:bg-purple-600 data-[state=active]:text-white',
       green: isActive ? 'bg-green-600 text-white' : 'hover:bg-green-50 data-[state=active]:bg-green-600 data-[state=active]:text-white',
       orange: isActive ? 'bg-orange-600 text-white' : 'hover:bg-orange-50 data-[state=active]:bg-orange-600 data-[state=active]:text-white'
@@ -75,7 +83,7 @@ export function TechnicianDashboard() {
       {/* Tabs desktop */}
       <div className="hidden md:block">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white border border-gray-200 shadow-sm rounded-lg p-1">
+          <TabsList className="grid w-full grid-cols-6 bg-white border border-gray-200 shadow-sm rounded-lg p-1">
             {tabs.map((tab) => {
               const Icon = tab.icon
               return (
@@ -97,6 +105,10 @@ export function TechnicianDashboard() {
 
           <TabsContent value="missions" className="animate-slide-in-right">
             <ProposedMissionsTab />
+          </TabsContent>
+
+          <TabsContent value="vehicles" className="animate-slide-in-right">
+            <VehiclesTab />
           </TabsContent>
 
           <TabsContent value="billing" className="animate-slide-in-right">
@@ -130,6 +142,12 @@ export function TechnicianDashboard() {
         {activeTab === 'missions' && (
           <div className="animate-slide-in-right">
             <ProposedMissionsTab />
+          </div>
+        )}
+        
+        {activeTab === 'vehicles' && (
+          <div className="animate-slide-in-right">
+            <VehiclesTab />
           </div>
         )}
         

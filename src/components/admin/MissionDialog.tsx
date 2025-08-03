@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { GeocodingPreview } from '@/components/ui/geocoding-preview'
+import { AssignVehiclesDialog } from './AssignVehiclesDialog'
 import type { Mission, User, MissionType } from '@/types/database'
 
 interface MissionDialogProps {
@@ -21,6 +22,7 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
   const [technicians, setTechnicians] = useState<User[]>([])
   const [selectedTechnicians, setSelectedTechnicians] = useState<string[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [vehiclesDialogOpen, setVehiclesDialogOpen] = useState(false)
 
   // Hook de géocodage
   const {
@@ -493,6 +495,25 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
               </div>
             )}
 
+            {mission && (
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label>Gestion des véhicules</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setVehiclesDialogOpen(true)}
+                  >
+                    Assigner des véhicules
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Gérez les véhicules assignés à cette mission
+                </p>
+              </div>
+            )}
+
             <div className="flex justify-end space-x-2 pt-4">
               <Button
                 type="button"
@@ -509,6 +530,13 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
           </form>
         </CardContent>
       </Card>
+
+      {/* Dialogue d'assignation de véhicules */}
+      <AssignVehiclesDialog
+        mission={mission}
+        open={vehiclesDialogOpen}
+        onOpenChange={setVehiclesDialogOpen}
+      />
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -15,10 +15,13 @@ import {
   User,
   Phone,
   Mail,
-  Edit
+  Edit,
+  Car
 } from 'lucide-react'
 import { formatCurrency, formatDate, getMissionTypeColor } from '@/lib/utils'
-import type { MissionWithAssignments } from '@/types/database'
+import { useVehiclesStore } from '@/store/vehiclesStore'
+import { AssignVehiclesDialog } from './AssignVehiclesDialog'
+import type { MissionWithAssignments, Vehicle } from '@/types/database'
 
 interface MissionViewDialogProps {
   mission: MissionWithAssignments | null
@@ -28,6 +31,25 @@ interface MissionViewDialogProps {
 }
 
 export function MissionViewDialog({ mission, open, onOpenChange, onEdit }: MissionViewDialogProps) {
+  const { getMissionVehicles } = useVehiclesStore()
+  const [missionVehicles, setMissionVehicles] = useState<Vehicle[]>([])
+  const [vehiclesDialogOpen, setVehiclesDialogOpen] = useState(false)
+
+  useEffect(() => {
+    if (open && mission) {
+      loadMissionVehicles()
+    }
+  }, [open, mission])
+
+  const loadMissionVehicles = async () => {
+    try {
+      const vehicles = await getMissionVehicles(mission.id)
+      setMissionVehicles(vehicles)
+    } catch (error) {
+      console.error('Erreur lors du chargement des véhicules:', error)
+    }
+  }
+
   if (!mission) return null
 
   const getAssignmentStatus = (mission: MissionWithAssignments) => {
@@ -249,6 +271,68 @@ export function MissionViewDialog({ mission, open, onOpenChange, onEdit }: Missi
             </CardContent>
           </Card>
 
+          {/* Véhicules */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Car className="h-5 w-5 text-teal-600" />
+                  <span>Véhicules ({missionVehicles.length})</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setVehiclesDialogOpen(true)}
+                >
+                  Gérer les véhicules
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {missionVehicles.length > 0 ? (
+                <div className="space-y-3">
+                  {missionVehicles.map((vehicle) => (
+                    <div key={vehicle.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center">
+                          <Car className="h-4 w-4 text-teal-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {vehicle.name}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {vehicle.model} • {vehicle.license_plate}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant="outline">
+                          {vehicle.type}
+                        </Badge>
+                        <Badge 
+                          variant={
+                            vehicle.status === 'disponible' ? 'default' :
+                            vehicle.status === 'en_mission' ? 'secondary' :
+                            vehicle.status === 'en_maintenance' ? 'destructive' :
+                            'outline'
+                          }
+                        >
+                          {vehicle.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <Car className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                  <p className="text-gray-500">Aucun véhicule assigné</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Informations de création */}
           <Card>
             <CardHeader>
@@ -272,6 +356,13 @@ export function MissionViewDialog({ mission, open, onOpenChange, onEdit }: Missi
             </CardContent>
           </Card>
         </div>
+
+        {/* Dialogue d'assignation de véhicules */}
+        <AssignVehiclesDialog
+          mission={mission}
+          open={vehiclesDialogOpen}
+          onOpenChange={setVehiclesDialogOpen}
+        />
       </DialogContent>
     </Dialog>
   )

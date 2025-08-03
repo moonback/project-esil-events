@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, memo } from 'react'
 import { useMissionsStore } from '@/store/missionsStore'
+import { useVehiclesStore } from '@/store/vehiclesStore'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -7,14 +8,83 @@ import {
   Plus, Edit, Trash2, Users, UserPlus, Calendar, MapPin, 
   Clock, Filter, Search, CheckCircle, XCircle, AlertCircle,
   TrendingUp, Activity, AlertTriangle, X, Trash, Play,
-  MoreVertical, User, ArrowRight, Check, X as XIcon
+  MoreVertical, User, ArrowRight, Check, X as XIcon, Car
 } from 'lucide-react'
 import { formatDateTime, formatCurrency, getMissionTypeColor, getStatusColor } from '@/lib/utils'
 import { MissionDialog } from './MissionDialog'
 import { AssignTechniciansDialog } from './AssignTechniciansDialog'
 import { TechnicianContactDialog } from './TechnicianContactDialog'
-import type { Mission, MissionWithAssignments } from '@/types/database'
+import type { Mission, MissionWithAssignments, Vehicle } from '@/types/database'
 import { useAdminStore } from '@/store/adminStore'
+
+// Composant pour afficher les véhicules assignés
+const VehicleDetails = memo(({ 
+  missionId 
+}: { 
+  missionId: string
+}) => {
+  const { getMissionVehicles } = useVehiclesStore()
+  const [vehicles, setVehicles] = useState<Vehicle[]>([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const loadVehicles = async () => {
+      setLoading(true)
+      try {
+        const missionVehicles = await getMissionVehicles(missionId)
+        setVehicles(missionVehicles)
+      } catch (error) {
+        console.error('Erreur lors du chargement des véhicules:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadVehicles()
+  }, [missionId, getMissionVehicles])
+
+  if (loading) {
+    return (
+      <div className="text-xs text-gray-500 italic">
+        Chargement des véhicules...
+      </div>
+    )
+  }
+
+  if (vehicles.length === 0) {
+    return null
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-teal-700">Véhicules assignés</span>
+        <span className="text-xs text-gray-500">{vehicles.length}</span>
+      </div>
+      
+      <div className="space-y-1">
+        {vehicles.map((vehicle) => (
+          <div key={vehicle.id} className="flex items-center space-x-2 p-2 bg-teal-50 rounded-md">
+            <div className="w-6 h-6 bg-gradient-to-r from-teal-500 to-teal-600 rounded-full flex items-center justify-center">
+              <Car className="h-3 w-3 text-white" />
+            </div>
+            <div className="flex-1">
+              <span className="text-xs font-medium text-gray-900">
+                {vehicle.name}
+              </span>
+              <p className="text-xs text-gray-500">{vehicle.model}</p>
+            </div>
+            <Badge className="bg-teal-500 text-white text-xs">
+              {vehicle.type}
+            </Badge>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+})
+
+VehicleDetails.displayName = 'VehicleDetails'
 
 // Composant pour afficher les détails des assignations
 const AssignmentDetails = memo(({ 
@@ -314,6 +384,9 @@ const MissionCard = memo(({
 
                  {/* Détails des assignations */}
          <AssignmentDetails mission={mission} onViewTechnicianDetails={onViewTechnicianDetails} />
+
+        {/* Véhicules assignés */}
+        <VehicleDetails missionId={mission.id} />
 
         {/* Barre de progression */}
         {mission.mission_assignments && mission.mission_assignments.length > 0 && (

@@ -108,12 +108,7 @@ export function AdminDashboard() {
       icon: CreditCard,
       color: 'orange'
     },
-    {
-      value: 'test',
-      label: 'Test Notif',
-      icon: Bell,
-      color: 'yellow'
-    }
+    
   ]
 
   const getTabColor = (color: string, isActive: boolean) => {
@@ -124,7 +119,6 @@ export function AdminDashboard() {
       green: isActive ? 'bg-green-600 text-white' : 'hover:bg-green-50 data-[state=active]:bg-green-600 data-[state=active]:text-white',
       purple: isActive ? 'bg-purple-600 text-white' : 'hover:bg-purple-50 data-[state=active]:bg-purple-600 data-[state=active]:text-white',
       orange: isActive ? 'bg-orange-600 text-white' : 'hover:bg-orange-50 data-[state=active]:bg-orange-600 data-[state=active]:text-white',
-      yellow: isActive ? 'bg-yellow-600 text-white' : 'hover:bg-yellow-50 data-[state=active]:bg-yellow-600 data-[state=active]:text-white'
     }
     return colors[color as keyof typeof colors] || colors.indigo
   }

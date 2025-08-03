@@ -56,7 +56,34 @@ export function TechnicianBillingTab() {
       if (error) throw error
 
       const billingData = data as (BillingWithDetails & { users?: any })[]
-      setBillings(billingData)
+      
+      // Vérifier les paiements en lot pour chaque facture
+      const billingsWithBulkInfo = await Promise.all(
+        billingData.map(async (billing) => {
+          if (billing.status === 'payé' && billing.payment_date) {
+            // Chercher d'autres factures payées le même jour
+            const { data: sameDayBillings } = await supabase
+              .from('billing')
+              .select('id, amount, missions(title)')
+              .eq('technician_id', profile.id)
+              .eq('status', 'payé')
+              .eq('payment_date', billing.payment_date)
+              .neq('id', billing.id)
+
+            return {
+              ...billing,
+              bulkPayment: sameDayBillings && sameDayBillings.length > 0 ? {
+                count: sameDayBillings.length + 1,
+                totalAmount: sameDayBillings.reduce((sum, b) => sum + b.amount, billing.amount),
+                otherBillings: sameDayBillings
+              } : null
+            }
+          }
+          return billing
+        })
+      )
+      
+      setBillings(billingsWithBulkInfo)
 
       // Calculer les statistiques
       const stats = billingData.reduce((acc, billing) => {
@@ -326,12 +353,24 @@ export function TechnicianBillingTab() {
 
                   {/* Statut */}
                   <div className="lg:col-span-2 text-center">
-                    <Badge 
-                      className={`${getStatusColor(billing.status)} flex items-center gap-1 justify-center`}
-                    >
-                      {getStatusIcon(billing.status)}
-                      {billing.status.replace('_', ' ')}
-                    </Badge>
+                    <div className="space-y-1">
+                      <Badge 
+                        className={`${getStatusColor(billing.status)} flex items-center gap-1 justify-center`}
+                      >
+                        {getStatusIcon(billing.status)}
+                        {billing.status.replace('_', ' ')}
+                      </Badge>
+                      {/* Indicateur de paiement en lot */}
+                      {(billing as any).bulkPayment && (
+                        <Badge 
+                          variant="secondary"
+                          className="bg-purple-100 text-purple-700 border-purple-200 text-xs"
+                        >
+                          <Receipt className="h-3 w-3 mr-1" />
+                          Paiement en lot
+                        </Badge>
+                      )}
+                    </div>
                   </div>
 
                   {/* Date de paiement */}
@@ -490,6 +529,38 @@ export function TechnicianBillingTab() {
                                 <p className="text-sm bg-gray-50 p-2 rounded border">
                                   {billing.notes}
                                 </p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Information de paiement en lot */}
+                          {(billing as any).bulkPayment && (
+                            <div className="flex items-start gap-2">
+                              <div className="p-1 bg-purple-100 rounded">
+                                <Receipt className="h-3 w-3 text-purple-600" />
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500">Paiement en lot</p>
+                                <div className="text-sm bg-purple-50 p-2 rounded border">
+                                  <p className="font-medium text-purple-700">
+                                    Paiement groupé avec {(billing as any).bulkPayment.count - 1} autre{(billing as any).bulkPayment.count - 1 > 1 ? 's' : ''} facture{(billing as any).bulkPayment.count - 1 > 1 ? 's' : ''}
+                                  </p>
+                                  <p className="text-xs text-purple-600 mt-1">
+                                    Total du lot: {formatCurrency((billing as any).bulkPayment.totalAmount)}
+                                  </p>
+                                  {(billing as any).bulkPayment.otherBillings && (billing as any).bulkPayment.otherBillings.length > 0 && (
+                                    <div className="mt-2">
+                                      <p className="text-xs text-gray-600 mb-1">Autres factures du lot:</p>
+                                      <div className="space-y-1">
+                                        {(billing as any).bulkPayment.otherBillings.map((otherBilling: any) => (
+                                          <div key={otherBilling.id} className="text-xs bg-white p-1 rounded border">
+                                            {otherBilling.missions?.title || 'Mission inconnue'} - {formatCurrency(otherBilling.amount)}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           )}

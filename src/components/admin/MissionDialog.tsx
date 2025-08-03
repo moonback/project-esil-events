@@ -255,15 +255,15 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <CardHeader>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <Card className="w-full max-w-2xl max-h-[85vh] m-4 flex flex-col">
+        <CardHeader className="flex-shrink-0">
           <CardTitle>
             {mission ? 'Modifier la Mission' : 'Nouvelle Mission'}
           </CardTitle>
         </CardHeader>
         
-        <CardContent>
+        <CardContent className="flex-1 overflow-y-auto">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
@@ -493,21 +493,23 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
               </div>
             )}
 
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={loading}
-              >
-                Annuler
-              </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? 'Enregistrement...' : mission ? 'Modifier' : 'Créer'}
-              </Button>
-            </div>
+
           </form>
         </CardContent>
+        
+        <div className="sticky bottom-0 border-t bg-background p-4 flex justify-end space-x-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
+            Annuler
+          </Button>
+          <Button type="submit" disabled={loading} onClick={handleSubmit}>
+            {loading ? 'Enregistrement...' : mission ? 'Modifier' : 'Créer'}
+          </Button>
+        </div>
       </Card>
     </div>
   )

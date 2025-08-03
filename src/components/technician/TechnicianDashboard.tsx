@@ -57,13 +57,10 @@ export function TechnicianDashboard() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="space-y-2 animate-fade-in-up">
       {/* Header responsive */}
       <div className="flex items-center justify-between">
-        <div className="hidden md:block">
-          <h1 className="text-2xl font-bold text-gray-900">Espace Technicien</h1>
-          <p className="text-gray-600 mt-1">Gérez vos missions et disponibilités</p>
-        </div>
+        
         
         {/* Menu mobile */}
         <div className="md:hidden">

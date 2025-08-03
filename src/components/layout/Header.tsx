@@ -112,29 +112,13 @@ export function Header() {
             
           </div>
 
-          {/* Statistiques rapides - seulement pour admin */}
-          {profile?.role === 'admin' && quickStats && (
-            <div className="hidden lg:flex items-center space-x-4">
-              <div className="flex items-center space-x-2 px-3 py-1 bg-blue-50 rounded-full">
-                <Activity className="h-3 w-3 text-blue-600" />
-                <span className="text-xs font-medium text-blue-700">{quickStats.missions} missions</span>
-              </div>
-              
-              
-              {quickStats.pending > 0 && (
-                <div className="flex items-center space-x-2 px-3 py-1 bg-orange-50 rounded-full">
-                  <AlertCircle className="h-3 w-3 text-orange-600" />
-                  <span className="text-xs font-medium text-orange-700">{quickStats.pending} en attente</span>
-                </div>
-              )}
-            </div>
-          )}
+          
 
           {/* Actions et statut */}
           <div className="flex items-center space-x-2 sm:space-x-4">
             
             {/* Notifications */}
-            <Button
+            {/* <Button
               variant="ghost"
               size="sm"
               className="relative p-1.5 sm:p-2 rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-800"
@@ -145,7 +129,7 @@ export function Header() {
                   {notifications > 9 ? '9+' : notifications}
                 </span>
               )}
-            </Button>
+            </Button> */}
 
             {/* Bouton de rafraîchissement - seulement pour admin */}
             {profile?.role === 'admin' && (

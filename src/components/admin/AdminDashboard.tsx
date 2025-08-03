@@ -9,9 +9,10 @@ import { MissionsMapTab } from './MissionsMapTab'
 import { PaymentSummaryCard } from './PaymentSummaryCard'
 import { MissionDialog } from './MissionDialog'
 import { MissionViewDialog } from './MissionViewDialog'
+import { GoogleCalendarSettings } from './GoogleCalendarSettings'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
-  Users, Calendar, CreditCard, Activity, CheckCircle, MapPin
+  Users, Calendar, CreditCard, Activity, CheckCircle, MapPin, Settings
 } from 'lucide-react'
 import { LoadingOverlay } from '@/components/ui/loading'
 import { useRealtimeSync } from '@/lib/useRealtimeSync'
@@ -104,6 +105,12 @@ export function AdminDashboard() {
       label: 'Facturation',
       icon: CreditCard,
       color: 'orange'
+    },
+    {
+      value: 'google-calendar',
+      label: 'Google Calendar',
+      icon: Settings,
+      color: 'blue'
     }
   ]
 
@@ -141,7 +148,7 @@ export function AdminDashboard() {
       {/* Tabs desktop */}
       <div className="hidden md:block">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 bg-white border border-gray-200 shadow-sm rounded-lg p-1">
+          <TabsList className="grid w-full grid-cols-7 bg-white border border-gray-200 shadow-sm rounded-lg p-1">
             {tabs.map((tab) => {
               const Icon = tab.icon
               return (
@@ -210,6 +217,10 @@ export function AdminDashboard() {
                 <AdminBillingTab />
               </div>
             </LoadingOverlay>
+          </TabsContent>
+
+          <TabsContent value="google-calendar" className="animate-slide-in-right">
+            <GoogleCalendarSettings />
           </TabsContent>
         </Tabs>
       </div>
@@ -280,6 +291,12 @@ export function AdminDashboard() {
                 <AdminBillingTab />
               </div>
             </LoadingOverlay>
+          </div>
+        )}
+
+        {activeTab === 'google-calendar' && (
+          <div className="animate-slide-in-right">
+            <GoogleCalendarSettings />
           </div>
         )}
       </div>

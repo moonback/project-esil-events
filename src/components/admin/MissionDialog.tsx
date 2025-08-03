@@ -2,11 +2,15 @@ import React, { useState, useEffect } from 'react'
 import { useAdminStore } from '@/store/adminStore'
 import { supabase } from '@/lib/supabase'
 import { useGeocoding } from '@/lib/useGeocoding'
+import { useGoogleCalendar } from '@/lib/useGoogleCalendar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { GeocodingPreview } from '@/components/ui/geocoding-preview'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Badge } from '@/components/ui/badge'
+import { Calendar, Mail } from 'lucide-react'
 import type { Mission, User, MissionType } from '@/types/database'
 
 interface MissionDialogProps {
@@ -21,6 +25,10 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
   const [technicians, setTechnicians] = useState<User[]>([])
   const [selectedTechnicians, setSelectedTechnicians] = useState<string[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
+  
+  // Google Calendar integration
+  const { isAuthenticated, createMissionEvent } = useGoogleCalendar()
+  const [sendToGoogleCalendar, setSendToGoogleCalendar] = useState(false)
 
   // Hook de géocodage
   const {
@@ -222,6 +230,24 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
       // Assigner les techniciens sélectionnés
       if (selectedTechnicians.length > 0 && missionId) {
         await assignTechnicians(missionId, selectedTechnicians)
+      }
+
+      // Créer l'événement Google Calendar si activé
+      if (sendToGoogleCalendar && isAuthenticated && missionId) {
+        const selectedTechs = technicians.filter(tech => 
+          selectedTechnicians.includes(tech.id)
+        )
+        
+        // Récupérer la mission créée/modifiée
+        const { data: missionData } = await supabase
+          .from('missions')
+          .select('*')
+          .eq('id', missionId)
+          .single()
+        
+        if (missionData && selectedTechs.length > 0) {
+          await createMissionEvent(missionData, selectedTechs)
+        }
       }
 
       // Rafraîchir les données dans le store admin
@@ -489,6 +515,41 @@ export function MissionDialog({ mission, open, onOpenChange }: MissionDialogProp
                       <span className="text-sm">{tech.name}</span>
                     </label>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Google Calendar Integration */}
+            {isAuthenticated && selectedTechnicians.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-blue-600" />
+                  <Label className="text-sm font-medium">Google Calendar</Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <Checkbox
+                    id="google-calendar"
+                    checked={sendToGoogleCalendar}
+                    onCheckedChange={(checked) => setSendToGoogleCalendar(checked as boolean)}
+                  />
+                  <label htmlFor="google-calendar" className="text-sm cursor-pointer">
+                    Créer un événement Google Calendar et envoyer les invitations
+                  </label>
+                </div>
+                {sendToGoogleCalendar && (
+                  <div className="flex items-center gap-2 text-xs text-blue-600">
+                    <Mail className="h-3 w-3" />
+                    <span>Les techniciens recevront une invitation par email</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!isAuthenticated && selectedTechnicians.length > 0 && (
+              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                <div className="flex items-center gap-2 text-sm text-yellow-700">
+                  <Calendar className="h-4 w-4" />
+                  <span>Connectez-vous à Google Calendar pour envoyer des invitations automatiques</span>
                 </div>
               </div>
             )}

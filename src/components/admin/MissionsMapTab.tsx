@@ -1179,6 +1179,121 @@ export function MissionsMapTab({ onViewMission, onEditMission, isModalOpen = fal
                           }}
                         />
                       )}
+                      
+                      {/* Popup seulement en mode plein écran */}
+                      {isFullscreen && (
+                        <Popup>
+                          <div className="space-y-3 min-w-64">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h3 className="font-semibold text-gray-900">{mission.title}</h3>
+                                <div className="flex items-center space-x-2 mt-1">
+                                  <Badge 
+                                    variant="secondary" 
+                                    style={{ backgroundColor: getMissionTypeColor(mission.type) }}
+                                  >
+                                    {mission.type}
+                                  </Badge>
+                                  {isUrgent && (
+                                    <Badge variant="destructive" className="text-xs animate-pulse">
+                                      Urgent
+                                    </Badge>
+                                  )}
+                                  {isSelectedForRoute && (
+                                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                                      Itinéraire sélectionné
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-lg font-bold text-emerald-600">
+                                  {formatCurrency(mission.forfeit)}
+                                </p>
+                              </div>
+                            </div>
+
+                            {mission.description && (
+                              <p className="text-sm text-gray-600">{mission.description}</p>
+                            )}
+
+                            <div className="space-y-2">
+                              <div className="flex items-center space-x-2 text-sm">
+                                <Calendar className="h-4 w-4 text-gray-500" />
+                                <span className="text-gray-700">
+                                  {formatDate(mission.date_start)} - {formatDate(mission.date_end)}
+                                </span>
+                                {isUrgent && (
+                                  <span className="text-red-600 font-medium">
+                                    (dans {daysDiff} jour{daysDiff > 1 ? 's' : ''})
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="flex items-center space-x-2 text-sm">
+                                <MapPin className="h-4 w-4 text-gray-500" />
+                                <span className="text-gray-700">{mission.location}</span>
+                              </div>
+
+                              <div className="flex items-center space-x-2 text-sm">
+                                <Users className="h-4 w-4 text-gray-500" />
+                                <span className="text-gray-700">
+                                  {mission.required_people} personne(s) requise(s)
+                                </span>
+                              </div>
+
+                              <div className="flex items-center space-x-2 text-sm">
+                                <assignmentStatus.icon className="h-4 w-4 text-gray-500" />
+                                <Badge className={assignmentStatus.color}>
+                                  {assignmentStatus.text}
+                                </Badge>
+                              </div>
+
+                              {showRoutes && (
+                                <div className="pt-2 border-t">
+                                  <div className="flex items-center space-x-2 text-sm">
+                                    <Route className="h-4 w-4 text-green-600" />
+                                    <span className="text-green-700 font-medium">Itinéraire disponible</span>
+                                  </div>
+                                  {routeDetails && selectedMissionForRoute?.id === mission.id && (
+                                    <div className="mt-2 space-y-1 text-xs">
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-600">Distance:</span>
+                                        <span className="font-medium">{routeDetails.distance}</span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-600">Durée:</span>
+                                        <span className="font-medium">{routeDetails.duration}</span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="flex space-x-2 pt-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleViewMission(mission)}
+                                className="flex-1"
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                Voir
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEditMission(mission)}
+                                className="flex-1"
+                              >
+                                <Edit className="h-4 w-4 mr-1" />
+                                Modifier
+                              </Button>
+                            </div>
+                          </div>
+                        </Popup>
+                      )}
                     </Marker>
                   )
                 })}

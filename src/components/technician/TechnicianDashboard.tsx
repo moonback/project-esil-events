@@ -5,9 +5,10 @@ import { ProposedMissionsTab } from './ProposedMissionsTab'
 import { TechnicianBillingTab } from './TechnicianBillingTab'
 import { TechnicianAgendaTab } from './TechnicianAgendaTab'
 import { TechnicianProfileTab } from './TechnicianProfileTab'
-import { PaymentSummaryCard } from './PaymentSummaryCard'
-import { Calendar, CreditCard, Clock, CheckCircle, User } from 'lucide-react'
+import { NotificationsTab } from './NotificationsTab'
+import { Calendar, CreditCard, Clock, CheckCircle, User, Bell } from 'lucide-react'
 import { MobileMenu } from '@/components/ui/mobile-menu'
+import { FloatingActions } from '@/components/ui/floating-actions'
 
 export function TechnicianDashboard() {
   const [activeTab, setActiveTab] = useState('availability')
@@ -38,6 +39,12 @@ export function TechnicianDashboard() {
       color: 'green'
     },
     {
+      value: 'notifications',
+      label: 'Notifications',
+      icon: Bell,
+      color: 'red'
+    },
+    {
       value: 'profile',
       label: 'Mon Profil',
       icon: User,
@@ -51,13 +58,14 @@ export function TechnicianDashboard() {
       indigo: isActive ? 'bg-indigo-600 text-white' : 'hover:bg-indigo-50 data-[state=active]:bg-indigo-600 data-[state=active]:text-white',
       purple: isActive ? 'bg-purple-600 text-white' : 'hover:bg-purple-50 data-[state=active]:bg-purple-600 data-[state=active]:text-white',
       green: isActive ? 'bg-green-600 text-white' : 'hover:bg-green-50 data-[state=active]:bg-green-600 data-[state=active]:text-white',
+      red: isActive ? 'bg-red-600 text-white' : 'hover:bg-red-50 data-[state=active]:bg-red-600 data-[state=active]:text-white',
       orange: isActive ? 'bg-orange-600 text-white' : 'hover:bg-orange-50 data-[state=active]:bg-orange-600 data-[state=active]:text-white'
     }
     return colors[color as keyof typeof colors] || colors.blue
   }
 
   return (
-    <div className="space-y-2 animate-fade-in-up">
+    <div className="space-y-2 animate-fade-in-up pb-20">
       {/* Header responsive */}
       <div className="flex items-center justify-between">
         
@@ -72,10 +80,17 @@ export function TechnicianDashboard() {
         </div>
       </div>
 
+      {/* Menu d'actions rapides flottant */}
+      <FloatingActions 
+        onTabChange={setActiveTab}
+        currentTab={activeTab}
+        userType="technician"
+      />
+
       {/* Tabs desktop */}
       <div className="hidden md:block">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white border border-gray-200 shadow-sm rounded-lg p-1">
+          <TabsList className="grid w-full grid-cols-6 bg-white border border-gray-200 shadow-sm rounded-lg p-1">
             {tabs.map((tab) => {
               const Icon = tab.icon
               return (
@@ -100,21 +115,19 @@ export function TechnicianDashboard() {
           </TabsContent>
 
           <TabsContent value="billing" className="animate-slide-in-right">
-            <div className="space-y-6">
-              <PaymentSummaryCard 
-                billings={[]}
-                onViewAll={() => {}}
-              />
-              <TechnicianBillingTab />
-            </div>
+            <TechnicianBillingTab />
           </TabsContent>
 
           <TabsContent value="agenda" className="animate-slide-in-right">
             <TechnicianAgendaTab />
           </TabsContent>
 
+          <TabsContent value="notifications" className="animate-slide-in-right">
+            <NotificationsTab />
+          </TabsContent>
+
           <TabsContent value="profile" className="animate-slide-in-right">
-            <TechnicianProfileTab />
+            <TechnicianProfileTab onTabChange={setActiveTab} />
           </TabsContent>
         </Tabs>
       </div>
@@ -134,11 +147,7 @@ export function TechnicianDashboard() {
         )}
         
         {activeTab === 'billing' && (
-          <div className="animate-slide-in-right space-y-6">
-            <PaymentSummaryCard 
-              billings={[]}
-              onViewAll={() => {}}
-            />
+          <div className="animate-slide-in-right">
             <TechnicianBillingTab />
           </div>
         )}
@@ -149,9 +158,15 @@ export function TechnicianDashboard() {
           </div>
         )}
         
+        {activeTab === 'notifications' && (
+          <div className="animate-slide-in-right">
+            <NotificationsTab />
+          </div>
+        )}
+        
         {activeTab === 'profile' && (
           <div className="animate-slide-in-right">
-            <TechnicianProfileTab />
+            <TechnicianProfileTab onTabChange={setActiveTab} />
           </div>
         )}
       </div>

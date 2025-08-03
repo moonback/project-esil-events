@@ -159,7 +159,7 @@ export function Header() {
             )}
 
             {/* Profil utilisateur - version desktop */}
-            <div className="hidden sm:flex items-center space-x-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-md border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
+            <div className="hidden sm:flex items-center space-x-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-md border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors relative group">
               <div className="p-1 rounded-md bg-gradient-to-br from-blue-600 to-blue-700 text-white">
                 <User className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
               </div>
@@ -170,18 +170,51 @@ export function Header() {
                 </span>
               </div>
               <ChevronDown className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-gray-400" />
+              
+              {/* Menu déroulant du profil */}
+              <div className="absolute top-full right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div className="p-4 border-b border-gray-100">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 rounded-md bg-gradient-to-br from-blue-600 to-blue-700 text-white">
+                      <User className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm text-gray-900">{profile?.name}</p>
+                      <p className="text-xs text-gray-500">{profile?.email}</p>
+                      <Badge variant="secondary" className="mt-1 text-xs">
+                        {profile?.role === 'admin' ? 'Admin' : 'Technicien'}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-2">
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm">
+                    <User className="h-4 w-4 mr-2" />
+                    Mon profil
+                  </Button>
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Paramètres
+                  </Button>
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm">
+                    <Bell className="h-4 w-4 mr-2" />
+                    Notifications
+                  </Button>
+                  <div className="border-t border-gray-100 my-2"></div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={signOut}
+                    className="w-full justify-start text-sm text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Déconnexion
+                  </Button>
+                </div>
+              </div>
             </div>
             
-            {/* Bouton de déconnexion - version desktop */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={signOut}
-              className="hidden sm:flex items-center space-x-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-md font-medium border-red-200 text-red-600 hover:bg-red-50 transition-colors"
-            >
-              <LogOut className="h-3 w-3" />
-              <span className="hidden lg:inline text-xs">Déconnexion</span>
-            </Button>
+
 
             {/* Menu mobile */}
             <div className="sm:hidden">

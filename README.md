@@ -2,13 +2,14 @@
 # 🎉 Esil-events – Plateforme de Gestion Événementielle Moderne
 
 Esil-events est une plateforme **tout-en-un** pour les agences événementielles, offrant une **interface d'administration** et une **interface technicien** dans un design moderne, fluide et responsive.  
-Elle permet de **planifier, gérer et suivre** facilement les missions et disponibilités des techniciens avec un système de facturation intégré.
+Elle permet de **planifier, gérer et suivre** facilement les missions et disponibilités des techniciens avec un système de facturation intégré et un système de notifications avancé.
 
 ## ✨ Points Forts
 
 - 🎨 **Design contemporain** avec **gradients dynamiques**, **glassmorphism**, **animations fluides** et **mode sombre/clair**.  
 - 📅 **Gestion intelligente des missions et disponibilités** avec détection automatique des conflits.  
 - 💼 **Facturation complète** avec vue calendrier, filtres avancés et recherche intelligente.  
+- 🔔 **Système de notifications avancé** avec paiements en lot et rémunérations en temps réel.
 - 📱 **Interface responsive** optimisée pour mobile, tablette et desktop.  
 - 🔐 **Sécurité avancée** grâce à Supabase et Row Level Security.  
 - 🚀 **Performance optimisée** avec lazy loading, cache intelligent et calculs en temps réel.  
@@ -22,6 +23,7 @@ Elle permet de **planifier, gérer et suivre** facilement les missions et dispon
 - Particules animées en arrière-plan  
 - Composants UI avec **soft shadows** et transitions douces  
 - Mode sombre/clair personnalisable  
+- **Navigation bottom** responsive avec icônes
 
 ### 🧩 Composants UI Améliorés
 - Boutons et badges avec gradients  
@@ -30,6 +32,8 @@ Elle permet de **planifier, gérer et suivre** facilement les missions et dispon
 - Calendrier interactif et responsive  
 - Notifications toast pour un feedback instantané  
 - Filtres avancés avec recherche en temps réel  
+- **Menu flottant** avec actions rapides
+- **Indicateurs de statut** en temps réel
 
 ## 🚀 Fonctionnalités
 
@@ -50,6 +54,15 @@ Elle permet de **planifier, gérer et suivre** facilement les missions et dispon
 - **Statistiques en temps réel** (total, moyenne, paiements par statut)
 - **Gestion des statuts** : En attente → Validé → Payé
 - **Export et reporting** des données de facturation
+- **Paiements en lot** pour régler plusieurs factures en une fois
+- **Notifications automatiques** aux techniciens lors des paiements
+
+#### 🔔 Système de Notifications
+- **Notifications en temps réel** pour les paiements
+- **Paiements en lot** avec notifications détaillées
+- **Historique des notifications** avec gestion des statuts
+- **Interface de test** pour vérifier le système de notifications
+- **Debugging avancé** pour diagnostiquer les problèmes
 
 #### 👥 Gestion des Techniciens
 - **Profil complet** avec informations de contact
@@ -78,6 +91,23 @@ Elle permet de **planifier, gérer et suivre** facilement les missions et dispon
 - **Statistiques personnelles** (total gagné, missions complétées)
 - **Filtrage par période** et statut de paiement
 - **Détails des missions** avec montants et dates
+- **Section "Mes Rémunérations"** avec notifications de paiement en lot
+- **Historique des paiements** avec détails complets
+
+#### 🔔 Notifications Personnelles
+- **Onglet Notifications** dédié avec gestion des statuts
+- **Marquage comme lu** individuel ou en lot
+- **Suppression** des notifications obsolètes
+- **Filtrage** par type de notification
+- **Statistiques** des notifications non lues
+
+#### 👤 Profil Technicien Amélioré
+- **Statistiques personnelles** (missions, revenus, note moyenne)
+- **Informations personnelles** modifiables
+- **Historique des missions récentes**
+- **Section "Mes Rémunérations"** avec notifications de paiement
+- **Facturations récentes** avec statuts
+- **Statut de validation** du compte
 
 ## 🛠️ Stack Technique
 
@@ -89,7 +119,8 @@ Elle permet de **planifier, gérer et suivre** facilement les missions et dispon
 - **Sécurité** : RLS + Policies SQL  
 - **Validation** : Zod + validation personnalisée  
 - **Dates** : date-fns (support français)  
-- **Notifications** : Système toast personnalisé  
+- **Notifications** : Système toast personnalisé + notifications en temps réel
+- **Paiements** : Système de paiements en lot avec notifications
 
 ## 🎨 Palette de Couleurs
 
@@ -136,19 +167,25 @@ src/
 │   │   ├── MissionsTab.tsx
 │   │   ├── TechniciansTab.tsx
 │   │   ├── AssignTechniciansDialog.tsx
-│   │   ├── CreatePaymentDialog.tsx
+│   │   ├── BulkPaymentDialog.tsx
 │   │   ├── MissionDialog.tsx
 │   │   ├── BillingCalendarView.tsx
-│   │   └── AdvancedBillingFilters.tsx
+│   │   ├── AdvancedBillingFilters.tsx
+│   │   ├── TestNotifications.tsx
+│   │   └── DebugNotifications.tsx
 │   ├── technician/ # Interface technicien
 │   │   ├── TechnicianDashboard.tsx
 │   │   ├── TechnicianAgendaTab.tsx
 │   │   ├── TechnicianBillingTab.tsx
+│   │   ├── TechnicianProfileTab.tsx
 │   │   ├── AvailabilityTab.tsx
 │   │   ├── ProposedMissionsTab.tsx
-│   │   └── TechnicianProfileTab.tsx
+│   │   └── NotificationsTab.tsx
 │   ├── auth/      # Authentification
 │   └── ui/        # Composants UI réutilisables
+│       ├── floating-actions.tsx
+│       ├── notification.tsx
+│       └── ...
 ├── lib/           # Supabase, utils, hooks, validation
 ├── store/         # État global (Zustand)
 ├── types/         # Types TypeScript
@@ -163,6 +200,7 @@ src/
 - **Validation Zod** côté client et serveur  
 - **Conflits de planning** détectés automatiquement  
 - **Validation des formulaires** avec gestion d'erreurs  
+- **Fonctions RPC** pour les opérations sensibles
 
 ## 💰 Système de Facturation
 
@@ -173,6 +211,8 @@ src/
 - **Statistiques en temps réel** (total, moyenne, paiements par statut)
 - **Gestion des statuts** : En attente → Validé → Payé
 - **Export et reporting** des données de facturation
+- **Paiements en lot** pour régler plusieurs factures en une fois
+- **Notifications automatiques** aux techniciens lors des paiements
 
 ### Interface Utilisateur
 - **Vue liste** et **vue calendrier** interchangeables
@@ -180,6 +220,24 @@ src/
 - **Détails enrichis** avec nom du technicien et mission
 - **Actions rapides** pour validation et paiement
 - **Notifications toast** pour les actions importantes
+- **Bouton "Paiement en Lot"** pour les paiements groupés
+
+## 🔔 Système de Notifications
+
+### Fonctionnalités
+- **Notifications en temps réel** pour les paiements
+- **Paiements en lot** avec notifications détaillées
+- **Historique des notifications** avec gestion des statuts
+- **Interface de test** pour vérifier le système
+- **Debugging avancé** pour diagnostiquer les problèmes
+- **Marquage comme lu** individuel ou en lot
+- **Suppression** des notifications obsolètes
+
+### Types de Notifications
+- **Paiement** : Notifications de paiement en lot
+- **Mission** : Nouvelles assignations de missions
+- **Système** : Notifications générales
+- **Info** : Informations importantes
 
 ## 📅 Gestion des Disponibilités
 
@@ -214,6 +272,12 @@ npm run test:e2e   # Tests end-to-end
 - Interface moderne avec animations et gradients
 - Gestion des assignations avec détection de conflits
 - Calendrier interactif pour les techniciens
+- **Système de notifications avancé**
+- **Paiements en lot avec notifications**
+- **Section "Mes Rémunérations" pour les techniciens**
+- **Navigation bottom responsive**
+- **Interface de test et debugging des notifications**
+- **Profil technicien amélioré avec statistiques**
 
 🚧 **En développement :**
 - Mode sombre/clair automatique
@@ -225,6 +289,9 @@ npm run test:e2e   # Tests end-to-end
 - PWA avec cache intelligent
 - Système de rapports avancés
 - Intégration avec des services de paiement
+- **Notifications push en temps réel**
+- **Système de badges pour les notifications non lues**
+- **Export des données de facturation**
 
 ## 🤝 Contribution
 

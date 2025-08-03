@@ -211,6 +211,38 @@ export interface Database {
           updated_at?: string
         }
       }
+      notifications: {
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          message: string
+          type: string
+          read: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          message: string
+          type?: string
+          read?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string
+          message?: string
+          type?: string
+          read?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
   }
 }
@@ -226,6 +258,7 @@ export type Unavailability = Database['public']['Tables']['unavailability']['Row
 export type Mission = Database['public']['Tables']['missions']['Row']
 export type MissionAssignment = Database['public']['Tables']['mission_assignments']['Row']
 export type Billing = Database['public']['Tables']['billing']['Row']
+export type Notification = Database['public']['Tables']['notifications']['Row']
 
 // Types avec relations
 export type MissionWithAssignments = Mission & {

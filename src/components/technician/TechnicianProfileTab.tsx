@@ -28,11 +28,13 @@ import {
   Briefcase,
   DollarSign,
   Map,
-  CalendarDays
+  CalendarDays,
+  Bell,
+  CreditCard
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
-import type { User, Mission, MissionAssignment, Billing } from '@/types/database'
+import type { User, Mission, MissionAssignment, Billing, Notification } from '@/types/database'
 import { useToast } from '@/lib/useToast'
 
 interface TechnicianStats {
@@ -65,6 +67,7 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
   })
   const [recentMissions, setRecentMissions] = useState<(Mission & { assignment: MissionAssignment })[]>([])
   const [recentBillings, setRecentBillings] = useState<Billing[]>([])
+  const [paymentNotifications, setPaymentNotifications] = useState<Notification[]>([])
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -148,6 +151,17 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
         const validBillings = billings.filter(b => b.status === 'validé' || b.status === 'payé')
         setRecentBillings(validBillings.slice(0, 3))
       }
+
+      // Récupérer les notifications de paiement
+      const { data: notifications } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', profile.id)
+        .eq('type', 'payment')
+        .order('created_at', { ascending: false })
+        .limit(10)
+
+      setPaymentNotifications(notifications || [])
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error)
     }
@@ -497,6 +511,55 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
                   {stats.lastMissionDate ? formatDate(stats.lastMissionDate) : 'Aucune'}
                 </span>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Mes Rémunérations */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Mes Rémunérations
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {paymentNotifications.length > 0 ? (
+                <div className="space-y-3">
+                  {paymentNotifications.map((notification) => (
+                    <div key={notification.id} className="p-3 rounded-lg border border-green-200 bg-green-50">
+                      <div className="flex items-start gap-3">
+                        <div className="p-1.5 rounded-md bg-green-100">
+                          <Bell className="h-4 w-4 text-green-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-medium text-sm text-green-900 truncate">
+                              {notification.title}
+                            </h4>
+                            <Badge variant="default" className="bg-green-600 text-white text-xs">
+                              Paiement
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-green-700 leading-relaxed whitespace-pre-line">
+                            {notification.message}
+                          </p>
+                          <p className="text-xs text-green-600 mt-2">
+                            {formatDate(notification.created_at)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6 text-gray-500">
+                  <CreditCard className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                  <p className="text-sm">Aucune rémunération récente</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Les paiements en lot apparaîtront ici
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 

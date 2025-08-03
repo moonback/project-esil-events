@@ -58,7 +58,7 @@ export function TechnicianDashboard() {
   }
 
   return (
-    <div className="space-y-2 animate-fade-in-up">
+    <div className="space-y-2 animate-fade-in-up pb-20">
       {/* Header responsive */}
       <div className="flex items-center justify-between">
         

@@ -21,7 +21,6 @@ interface FloatingActionsProps {
 }
 
 export function FloatingActions({ onTabChange, currentTab, userType = 'technician' }: FloatingActionsProps) {
-  const [isOpen, setIsOpen] = useState(false)
   const { showInfo } = useToast()
 
   const technicianActions = [
@@ -128,105 +127,59 @@ export function FloatingActions({ onTabChange, currentTab, userType = 'technicia
         `Redirection vers ${action.label.toLowerCase()}...`
       )
     }
-    setIsOpen(false)
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      {/* Actions rapides avec animation améliorée */}
-      <div className={`transition-all duration-500 ease-out ${isOpen ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95 pointer-events-none'}`}>
-        <div className="flex flex-col items-end space-y-4 mb-6">
-          {actions.map((action, index) => {
-            const Icon = action.icon
-            const isActive = currentTab === action.tab
-            
-            return (
-              <div
-                key={action.id}
-                className={`transition-all duration-300 ease-out transform ${
-                  isOpen 
-                    ? 'translate-x-0 opacity-100' 
-                    : 'translate-x-8 opacity-0'
-                }`}
-                style={{
-                  transitionDelay: `${index * 100}ms`
-                }}
-              >
-                <Button
-                  onClick={() => handleActionClick(action)}
-                  className={`
-                    relative overflow-hidden group
-                    bg-gradient-to-r ${action.color}
-                    text-white shadow-2xl hover:shadow-3xl
-                    transition-all duration-300 ease-out
-                    transform hover:scale-110 hover:-translate-y-1
-                    ${isActive ? 'ring-4 ring-white ring-offset-2 ring-offset-gray-900' : ''}
-                    min-w-[140px] h-12 px-4 rounded-full
-                    backdrop-blur-sm border border-white/20
-                  `}
-                  size="sm"
-                >
-                  {/* Effet de brillance au survol */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
-                  
-                  <Icon className="h-4 w-4 mr-2 relative z-10" />
-                  <span className="text-sm font-semibold relative z-10">{action.label}</span>
-                  
-                  {/* Indicateur actif */}
-                  {isActive && (
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full animate-pulse" />
-                  )}
-                </Button>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Bouton principal amélioré */}
-      <div className="relative">
-        {/* Effet de halo */}
-        <div className={`absolute inset-0 rounded-full blur-xl transition-all duration-300 ${
-          isOpen 
-            ? 'bg-red-400/30 scale-125' 
-            : 'bg-blue-400/30 scale-100'
-        }`} />
-        
-        <Button
-          onClick={() => setIsOpen(!isOpen)}
-          className={`
-            relative z-10
-            ${isOpen 
-              ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700' 
-              : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700'
-            }
-            text-white shadow-2xl hover:shadow-3xl
-            transition-all duration-300 ease-out
-            transform hover:scale-110 active:scale-95
-            w-16 h-16 rounded-full
-            backdrop-blur-sm border border-white/20
-            group
-          `}
-          size="lg"
-        >
-          {/* Effet de rotation */}
-          <div className={`transition-transform duration-300 ${isOpen ? 'rotate-45' : 'rotate-0'}`}>
-            {isOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Plus className="h-6 w-6" />
-            )}
-          </div>
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg">
+      {/* Menu de navigation responsive */}
+      <div className="flex items-center justify-around px-2 py-3 max-w-md mx-auto">
+        {actions.map((action) => {
+          const Icon = action.icon
+          const isActive = currentTab === action.tab
           
-          {/* Effet de brillance */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
-        </Button>
-        
-        {/* Indicateur de pulsation */}
-        {!isOpen && (
-          <div className="absolute inset-0 rounded-full bg-blue-400/20 animate-ping" />
-        )}
+          return (
+            <Button
+              key={action.id}
+              onClick={() => handleActionClick(action)}
+              variant="ghost"
+              size="sm"
+              className={`
+                flex flex-col items-center justify-center gap-1
+                w-12 h-12 rounded-xl transition-all duration-300
+                ${isActive 
+                  ? 'bg-gradient-to-r ' + action.color + ' text-white shadow-lg scale-110' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }
+                group relative
+              `}
+              aria-label={action.label}
+            >
+              <Icon className={`h-5 w-5 transition-all duration-300 ${
+                isActive ? 'scale-110' : 'group-hover:scale-110'
+              }`} />
+              
+              {/* Label pour desktop */}
+              <span className="text-xs font-medium hidden sm:block">
+                {action.label}
+              </span>
+              
+              {/* Indicateur actif */}
+              {isActive && (
+                <div className="absolute -top-1 w-2 h-2 bg-white rounded-full animate-pulse" />
+              )}
+              
+              {/* Tooltip pour mobile */}
+              <div className="absolute bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap sm:hidden">
+                {action.label}
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-900"></div>
+              </div>
+            </Button>
+          )
+        })}
       </div>
+      
+      {/* Indicateur de scroll pour mobile */}
+      <div className="h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 sm:hidden" />
     </div>
   )
 } 

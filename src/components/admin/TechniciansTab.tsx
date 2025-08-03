@@ -330,7 +330,7 @@ export function TechniciansTab() {
                     <option value="name">Nom</option>
                     <option value="missions">Nombre de missions</option>
                     <option value="revenue">Revenus</option>
-                    <option value="rating">Note moyenne</option>
+                    {/* <option value="rating">Note moyenne</option> */}
                   </select>
                 </div>
                 <div>

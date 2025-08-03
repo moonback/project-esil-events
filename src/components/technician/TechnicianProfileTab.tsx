@@ -276,7 +276,7 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
       </div>
 
       {/* Statistiques personnelles */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -313,7 +313,7 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+        {/* <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -326,7 +326,7 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
               <Award className="h-8 w-8 text-purple-600" />
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

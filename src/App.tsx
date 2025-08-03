@@ -5,7 +5,6 @@ import { Layout } from '@/components/layout/Layout'
 import { Sparkles, Loader2, AlertCircle, CheckCircle } from 'lucide-react'
 import { NotificationContainer } from '@/components/ui/notification'
 import { useAppState } from '@/lib/useErrorHandler'
-import { Welcome, useWelcome } from '@/components/ui/welcome'
 
 // Types pour une meilleure sécurité de type
 interface AppUser {
@@ -151,7 +150,6 @@ const useAppInitialization = () => {
 
 function App() {
   const { user, loading } = useAuthStore()
-  const { showWelcome, showWelcomeScreen, hideWelcomeScreen } = useWelcome()
   const { initializing, initializeApp } = useAppInitialization()
 
   // Initialisation de l'application
@@ -159,26 +157,8 @@ function App() {
     initializeApp()
   }, []) // Dépendance vide pour n'exécuter qu'une fois
 
-  // Gestion de l'écran de bienvenue
-  useEffect(() => {
-    if (user && !loading && !initializing) {
-      const timer = setTimeout(() => {
-        showWelcomeScreen()
-      }, 100) // Petit délai pour une transition plus fluide
-
-      return () => clearTimeout(timer)
-    }
-  }, [user, loading, initializing, showWelcomeScreen])
-
   // Optimisation du rendu conditionnel
   const shouldShowLoading = loading || initializing
-  const welcomeUser = useMemo(() => {
-    if (!user) return null
-    return {
-      name: (user as AppUser).name || 'Utilisateur',
-      role: (user as AppUser).role || 'technicien'
-    }
-  }, [user])
 
   // Écran de chargement
   if (shouldShowLoading) {
@@ -199,14 +179,6 @@ function App() {
 
       {/* Système de notifications */}
       <NotificationContainer />
-
-      {/* Écran de bienvenue conditionnel */}
-      {showWelcome && welcomeUser && (
-        <Welcome 
-          user={{ name: welcomeUser.name, role: welcomeUser.role as "admin" | "technicien" }}
-          onComplete={hideWelcomeScreen}
-        />
-      )}
     </div>
   )
 }

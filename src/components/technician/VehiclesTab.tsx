@@ -4,7 +4,7 @@ import { useMissionsStore } from '../../store/missionsStore'
 import { Vehicle, Mission } from '../../types/database'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
 import { Badge } from '../ui/badge'
-import { Car, Truck, Van, CarFront, Calendar, MapPin, Euro } from 'lucide-react'
+import { Car, Truck, CarFront, Calendar, MapPin, Euro } from 'lucide-react'
 import { formatDateTime, formatCurrency } from '../../lib/utils'
 
 interface MissionWithVehicles extends Mission {
@@ -13,7 +13,7 @@ interface MissionWithVehicles extends Mission {
 
 const vehicleTypeIcons = {
   camion: Truck,
-  fourgon: Van,
+  fourgon: Car,
   utilitaire: Car,
   voiture: CarFront
 }

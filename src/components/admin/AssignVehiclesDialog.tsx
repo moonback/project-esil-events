@@ -8,7 +8,7 @@ import { Badge } from '../ui/badge'
 import { Textarea } from '../ui/textarea'
 import { Label } from '../ui/label'
 import { useToast } from '../../lib/useToast'
-import { Car, Truck, Van, CarFront, Check, X } from 'lucide-react'
+import { Car, Truck, CarFront, Check, X } from 'lucide-react'
 
 interface AssignVehiclesDialogProps {
   mission: Mission | null
@@ -23,7 +23,7 @@ interface VehicleWithAssignment extends Vehicle {
 
 const vehicleTypeIcons = {
   camion: Truck,
-  fourgon: Van,
+  fourgon: Car,
   utilitaire: Car,
   voiture: CarFront
 }

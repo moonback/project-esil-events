@@ -8,9 +8,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { Textarea } from '../ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+
 import { useToast } from '../../lib/useToast'
-import { Trash2, Edit, Plus, Car, Truck, Van, CarFront } from 'lucide-react'
+import { Trash2, Edit, Plus, Car, Truck, CarFront } from 'lucide-react'
 
 interface VehicleFormData {
   name: string
@@ -26,7 +26,7 @@ interface VehicleFormData {
 
 const vehicleTypeIcons = {
   camion: Truck,
-  fourgon: Van,
+  fourgon: Car,
   utilitaire: Car,
   voiture: CarFront
 }
@@ -54,7 +54,7 @@ const vehicleStatusColors = {
 
 export function VehiclesTab() {
   const { vehicles, loading, error, fetchVehicles, createVehicle, updateVehicle, deleteVehicle, clearError } = useVehiclesStore()
-  const { toast } = useToast()
+  const { showSuccess, showError } = useToast()
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null)
   const [formData, setFormData] = useState<VehicleFormData>({
@@ -75,14 +75,10 @@ export function VehiclesTab() {
 
   useEffect(() => {
     if (error) {
-      toast({
-        title: 'Erreur',
-        description: error,
-        variant: 'destructive'
-      })
+      showError('Erreur', error)
       clearError()
     }
-  }, [error, toast, clearError])
+  }, [error, showError, clearError])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -90,16 +86,10 @@ export function VehiclesTab() {
     try {
       if (editingVehicle) {
         await updateVehicle(editingVehicle.id, formData)
-        toast({
-          title: 'Succès',
-          description: 'Véhicule mis à jour avec succès'
-        })
+        showSuccess('Succès', 'Véhicule mis à jour avec succès')
       } else {
         await createVehicle(formData)
-        toast({
-          title: 'Succès',
-          description: 'Véhicule créé avec succès'
-        })
+        showSuccess('Succès', 'Véhicule créé avec succès')
       }
       
       setIsCreateDialogOpen(false)
@@ -130,10 +120,7 @@ export function VehiclesTab() {
     if (confirm(`Êtes-vous sûr de vouloir supprimer le véhicule "${vehicle.name}" ?`)) {
       try {
         await deleteVehicle(vehicle.id)
-        toast({
-          title: 'Succès',
-          description: 'Véhicule supprimé avec succès'
-        })
+        showSuccess('Succès', 'Véhicule supprimé avec succès')
       } catch (error) {
         // L'erreur est déjà gérée par le store
       }
@@ -202,21 +189,19 @@ export function VehiclesTab() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="type">Type de véhicule *</Label>
-                  <Select
+                  <select
+                    id="type"
                     value={formData.type}
-                    onValueChange={(value: VehicleType) => setFormData({ ...formData, type: value })}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value as VehicleType })}
+                    className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm transition-all duration-300 focus:border-indigo-500 focus:ring-indigo-500"
+                    required
                   >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(vehicleTypeLabels).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    {Object.entries(vehicleTypeLabels).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -280,21 +265,18 @@ export function VehiclesTab() {
 
               <div className="space-y-2">
                 <Label htmlFor="status">Statut</Label>
-                <Select
+                <select
+                  id="status"
                   value={formData.status}
-                  onValueChange={(value: VehicleStatus) => setFormData({ ...formData, status: value })}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value as VehicleStatus })}
+                  className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm transition-all duration-300 focus:border-indigo-500 focus:ring-indigo-500"
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(vehicleStatusLabels).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {Object.entries(vehicleStatusLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="space-y-2">

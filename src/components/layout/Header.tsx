@@ -261,7 +261,7 @@ export function Header() {
                     <div className="w-px h-4 bg-gray-300" />
                     <div className="flex items-center space-x-1">
                       <AlertCircle className="h-4 w-4 text-orange-600" />
-                      <span className="text-sm font-semibold text-orange-700">{quickStats.pending} missions sans technicien</span>
+                      <span className="text-sm font-semibold text-orange-700">{quickStats.pending} sans technicien</span>
 
                     </div>
                   </>

@@ -215,6 +215,13 @@ export function AdminDashboard() {
                <AdminBillingTab />
              </LoadingOverlay>
            </TabsContent>
+
+           <TabsContent value="test" className="animate-slide-in-right">
+             <div className="space-y-6">
+               <TestNotifications />
+               <DebugNotifications />
+             </div>
+           </TabsContent>
         </Tabs>
       </div>
 

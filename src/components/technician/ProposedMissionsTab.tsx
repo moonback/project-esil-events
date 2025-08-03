@@ -156,39 +156,39 @@ export function ProposedMissionsTab() {
   }
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      <div>
+    <div className="space-y-3 md:space-y-6">
+      <div className="px-1">
         <h3 className="text-lg md:text-xl font-semibold">Missions Proposées</h3>
-        <p className="text-sm md:text-base text-gray-600">
+        <p className="text-sm md:text-base text-gray-600 mt-1">
           Acceptez ou refusez les missions qui vous sont proposées
         </p>
       </div>
 
       {/* Affichage des erreurs */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <AlertTriangle className="h-5 w-5 text-red-600" />
-            <p className="text-red-800">{error}</p>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 md:p-4 flex items-start justify-between gap-2">
+          <div className="flex items-start gap-2 flex-1 min-w-0">
+            <AlertTriangle className="h-4 w-4 md:h-5 md:w-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <p className="text-red-800 text-sm md:text-base">{error}</p>
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setError(null)}
-            className="text-red-600 hover:text-red-800"
+            className="text-red-600 hover:text-red-800 h-6 w-6 md:h-8 md:w-8 p-0 flex-shrink-0"
           >
-            <X className="h-4 w-4" />
+            <X className="h-3 w-3 md:h-4 md:w-4" />
           </Button>
         </div>
       )}
 
-      <div className="grid gap-4">
+      <div className="grid gap-3 md:gap-4">
         {proposedMissions.length === 0 ? (
           <Card>
-            <CardContent className="py-12 text-center">
-              <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">Aucune mission proposée pour le moment</p>
-              <p className="text-sm text-gray-400 mt-2">
+            <CardContent className="py-8 md:py-12 text-center">
+              <Clock className="h-10 w-10 md:h-12 md:w-12 text-gray-400 mx-auto mb-3 md:mb-4" />
+              <p className="text-gray-500 text-sm md:text-base">Aucune mission proposée pour le moment</p>
+              <p className="text-xs md:text-sm text-gray-400 mt-2">
                 Les nouvelles missions apparaîtront ici
               </p>
             </CardContent>
@@ -196,77 +196,77 @@ export function ProposedMissionsTab() {
         ) : (
           proposedMissions.map((assignment) => (
             <Card key={assignment.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <CardTitle className="text-lg">{assignment.missions.title}</CardTitle>
-                      <Badge className={getMissionTypeColor(assignment.missions.type)}>
+              <CardHeader className="pb-3 md:pb-6">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
+                  <div className="space-y-2 flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <CardTitle className="text-base md:text-lg truncate">{assignment.missions.title}</CardTitle>
+                      <Badge className={`${getMissionTypeColor(assignment.missions.type)} flex-shrink-0`}>
                         {assignment.missions.type}
                       </Badge>
                     </div>
                     {assignment.missions.description && (
-                      <p className="text-gray-600">{assignment.missions.description}</p>
+                      <p className="text-gray-600 text-sm md:text-base line-clamp-2">{assignment.missions.description}</p>
                     )}
                   </div>
                   
-                  <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                  <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 flex-shrink-0 text-xs">
                     Proposé
                   </Badge>
                 </div>
               </CardHeader>
               
-              <CardContent>
+              <CardContent className="pt-0">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
-                  <div className="flex items-start space-x-2">
-                    <Calendar className="h-4 w-4 text-gray-500 mt-0.5" />
+                  <div className="flex items-start gap-2">
+                    <Calendar className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
                     <div className="min-w-0 flex-1">
                       <p className="text-xs md:text-sm font-medium">Période</p>
-                      <p className="text-xs md:text-sm text-gray-600">
+                      <p className="text-xs md:text-sm text-gray-600 truncate">
                         {formatDateTime(assignment.missions.date_start)}
                       </p>
-                      <p className="text-xs md:text-sm text-gray-600">
+                      <p className="text-xs md:text-sm text-gray-600 truncate">
                         → {formatDateTime(assignment.missions.date_end)}
                       </p>
                     </div>
                   </div>
                   
-                  <div className="flex items-start space-x-2">
-                    <MapPin className="h-4 w-4 text-gray-500 mt-0.5" />
+                  <div className="flex items-start gap-2">
+                    <MapPin className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
                     <div className="min-w-0 flex-1">
                       <p className="text-xs md:text-sm font-medium">Lieu</p>
                       <p className="text-xs md:text-sm text-gray-600 truncate">{assignment.missions.location}</p>
                     </div>
                   </div>
                   
-                  <div className="flex items-start space-x-2 sm:col-span-2 lg:col-span-1">
-                    <DollarSign className="h-4 w-4 text-gray-500 mt-0.5" />
+                  <div className="flex items-start gap-2 sm:col-span-2 lg:col-span-1">
+                    <DollarSign className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
                     <div className="min-w-0 flex-1">
                       <p className="text-xs md:text-sm font-medium">Rémunération</p>
-                      <p className="text-base md:text-lg font-bold text-green-600">
+                      <p className="text-sm md:text-lg font-bold text-green-600">
                         {formatCurrency(assignment.missions.forfeit)}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex justify-end space-x-3 pt-4 border-t">
+                <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-3 md:pt-4 border-t">
                   <Button
                     variant="outline"
                     onClick={() => handleResponse(assignment.id, 'refusé')}
                     disabled={actionLoading === assignment.id}
-                    className="flex items-center space-x-2 text-red-600 border-red-200 hover:bg-red-50"
+                    className="flex items-center justify-center gap-2 text-red-600 border-red-200 hover:bg-red-50 text-sm md:text-base"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3 w-3 md:h-4 md:w-4" />
                     <span>Refuser</span>
                   </Button>
                   
                   <Button
                     onClick={() => handleResponse(assignment.id, 'accepté')}
                     disabled={actionLoading === assignment.id}
-                    className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
+                    className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-sm md:text-base"
                   >
-                    <Check className="h-4 w-4" />
+                    <Check className="h-3 w-3 md:h-4 md:w-4" />
                     <span>
                       {actionLoading === assignment.id ? 'Acceptation...' : 'Accepter'}
                     </span>

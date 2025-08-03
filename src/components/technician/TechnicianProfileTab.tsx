@@ -658,29 +658,31 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
             </CardContent>
           </Card>
 
-          {/* Facturations récentes */}
+          {/* Facturations récentes - Responsive */}
           <Card className="transition-all duration-200 hover:shadow-md">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-lg">
+            <CardHeader className="pb-3 p-4 md:p-6">
+              <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+                <CardTitle className="flex items-center justify-center md:justify-start gap-2 text-base md:text-lg">
                   <div className="p-2 bg-green-100 rounded-lg">
-                    <DollarSign className="h-5 w-5 text-green-600" />
+                    <DollarSign className="h-4 w-4 md:h-5 md:w-5 text-green-600" />
                   </div>
-                  Facturations récentes
+                  <span className="hidden sm:inline">Facturations récentes</span>
+                  <span className="sm:hidden">Facturations</span>
                 </CardTitle>
                 {recentBillings.length > 0 && (
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="text-xs text-green-600 hover:text-green-700 hover:bg-green-50"
+                    className="text-xs text-green-600 hover:text-green-700 hover:bg-green-50 self-center md:self-auto"
                     onClick={() => onTabChange?.('billing')}
                   >
-                    Voir tout
+                    <span className="hidden sm:inline">Voir tout</span>
+                    <span className="sm:hidden">Tout</span>
                   </Button>
                 )}
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 md:p-6">
               {recentBillings.length > 0 ? (
                 <div className="space-y-3">
                   {recentBillings.map((billing, index) => {
@@ -711,35 +713,35 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
                     return (
                       <div 
                         key={billing.id} 
-                        className="group flex items-center justify-between p-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-all duration-200 hover:shadow-sm"
+                        className="group flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 md:p-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-all duration-200 hover:shadow-sm space-y-3 sm:space-y-0"
                         style={{ animationDelay: `${index * 100}ms` }}
                       >
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2 md:gap-3">
                             <div className="flex-shrink-0">
-                              <div className="w-10 h-10 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center">
-                                <CreditCard className="h-5 w-5 text-green-600" />
+                              <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center">
+                                <CreditCard className="h-4 w-4 md:h-5 md:w-5 text-green-600" />
                               </div>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-sm text-gray-900 truncate">
+                              <p className="font-semibold text-sm md:text-base text-gray-900 truncate">
                                 {formatAmount(billing.amount)}
                               </p>
-                                                             <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                                 <Briefcase className="h-3 w-3" />
-                                 {billing.missions?.title || `Mission #${billing.mission_id}`}
-                               </p>
+                              <p className="text-xs text-gray-500 flex items-center gap-1 mt-1 truncate">
+                                <Briefcase className="h-3 w-3 flex-shrink-0" />
+                                <span className="truncate">{billing.missions?.title || `Mission #${billing.mission_id}`}</span>
+                              </p>
                               <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
-                                <Calendar className="h-3 w-3" />
+                                <Calendar className="h-3 w-3 flex-shrink-0" />
                                 {formatDate(billing.created_at)}
                               </p>
                             </div>
                           </div>
                         </div>
-                        <div className="flex-shrink-0 ml-3">
+                        <div className="flex-shrink-0 sm:ml-3 self-start sm:self-center">
                           <Badge 
                             variant={config.variant}
-                            className={`text-xs px-3 py-1 flex items-center gap-1 ${config.className}`}
+                            className={`text-xs px-2 md:px-3 py-1 flex items-center gap-1 ${config.className}`}
                           >
                             <StatusIcon className="h-3 w-3" />
                             {config.label}
@@ -750,9 +752,9 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
                   })}
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <DollarSign className="h-8 w-8 text-gray-400" />
+                <div className="text-center py-6 md:py-8 text-gray-500">
+                  <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4">
+                    <DollarSign className="h-6 w-6 md:h-8 md:w-8 text-gray-400" />
                   </div>
                   <p className="text-sm font-medium text-gray-600 mb-1">Aucune facturation récente</p>
                   <p className="text-xs text-gray-400">Vos facturations apparaîtront ici</p>

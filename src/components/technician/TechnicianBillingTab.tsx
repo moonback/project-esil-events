@@ -418,54 +418,54 @@ export function TechnicianBillingTab() {
                   </div>
                 </div>
 
-                {/* Détails étendus */}
+                {/* Détails étendus - Responsive */}
                 {expandedBilling === billing.id && (
-                  <div className="mt-6 pt-6 border-t border-gray-100">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-gray-100">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                       {/* Informations de la mission */}
-                      <div className="space-y-4">
-                        <h5 className="font-semibold text-gray-900 flex items-center gap-2">
-                          <Calendar className="h-4 w-4" />
+                      <div className="space-y-3 md:space-y-4">
+                        <h5 className="font-semibold text-gray-900 flex items-center gap-2 text-sm md:text-base">
+                          <Calendar className="h-3 w-3 md:h-4 md:w-4" />
                           Détails de la mission
                         </h5>
-                        <div className="space-y-3">
+                        <div className="space-y-2 md:space-y-3">
                           <div className="flex items-center gap-2">
-                            <div className="p-1 bg-gray-100 rounded">
+                            <div className="p-1 bg-gray-100 rounded flex-shrink-0">
                               <Building className="h-3 w-3 text-gray-500" />
                             </div>
-                            <div>
+                            <div className="min-w-0 flex-1">
                               <p className="text-xs text-gray-500">Titre</p>
-                              <p className="text-sm font-medium">{billing.missions?.title}</p>
+                              <p className="text-xs md:text-sm font-medium truncate">{billing.missions?.title}</p>
                             </div>
                           </div>
                           
                           <div className="flex items-center gap-2">
-                            <div className="p-1 bg-gray-100 rounded">
+                            <div className="p-1 bg-gray-100 rounded flex-shrink-0">
                               <MapPin className="h-3 w-3 text-gray-500" />
                             </div>
-                            <div>
+                            <div className="min-w-0 flex-1">
                               <p className="text-xs text-gray-500">Lieu</p>
-                              <p className="text-sm font-medium">{billing.missions?.location}</p>
+                              <p className="text-xs md:text-sm font-medium truncate">{billing.missions?.location}</p>
                             </div>
                           </div>
                           
                           <div className="flex items-center gap-2">
-                            <div className="p-1 bg-gray-100 rounded">
+                            <div className="p-1 bg-gray-100 rounded flex-shrink-0">
                               <ClockIcon className="h-3 w-3 text-gray-500" />
                             </div>
-                            <div>
+                            <div className="min-w-0 flex-1">
                               <p className="text-xs text-gray-500">Type</p>
                               <Badge variant="secondary" className="text-xs">{billing.missions?.type}</Badge>
                             </div>
                           </div>
                           
                           <div className="flex items-center gap-2">
-                            <div className="p-1 bg-gray-100 rounded">
+                            <div className="p-1 bg-gray-100 rounded flex-shrink-0">
                               <Calendar className="h-3 w-3 text-gray-500" />
                             </div>
-                            <div>
+                            <div className="min-w-0 flex-1">
                               <p className="text-xs text-gray-500">Période</p>
-                              <p className="text-sm font-medium">
+                              <p className="text-xs md:text-sm font-medium">
                                 {billing.missions?.date_start && billing.missions?.date_end 
                                   ? `${formatDate(billing.missions.date_start)} - ${formatDate(billing.missions.date_end)}`
                                   : 'Non spécifiée'
@@ -477,64 +477,68 @@ export function TechnicianBillingTab() {
                       </div>
 
                       {/* Informations de paiement */}
-                      <div className="space-y-4">
-                        <h5 className="font-semibold text-gray-900 flex items-center gap-2">
-                          <DollarSign className="h-4 w-4" />
+                      <div className="space-y-3 md:space-y-4">
+                        <h5 className="font-semibold text-gray-900 flex items-center gap-2 text-sm md:text-base">
+                          <DollarSign className="h-3 w-3 md:h-4 md:w-4" />
                           Détails du paiement
                         </h5>
-                        <div className="space-y-3">
+                        <div className="space-y-2 md:space-y-3">
                           <div className="flex items-center gap-2">
-                            <div className="p-1 bg-green-100 rounded">
+                            <div className="p-1 bg-green-100 rounded flex-shrink-0">
                               <Wallet className="h-3 w-3 text-green-600" />
                             </div>
-                            <div>
+                            <div className="min-w-0 flex-1">
                               <p className="text-xs text-gray-500">Montant</p>
-                              <p className="text-lg font-bold text-green-600">{formatCurrency(billing.amount)}</p>
+                              <p className="text-base md:text-lg font-bold text-green-600">{formatCurrency(billing.amount)}</p>
                             </div>
                           </div>
                           
                           <div className="flex items-center gap-2">
-                            <div className="p-1 bg-blue-100 rounded">
+                            <div className="p-1 bg-blue-100 rounded flex-shrink-0">
                               <CheckCircle className="h-3 w-3 text-blue-600" />
                             </div>
-                            <div>
+                            <div className="min-w-0 flex-1">
                               <p className="text-xs text-gray-500">Statut</p>
-                              <Badge className={getStatusColor(billing.status)}>
-                                {billing.status.replace('_', ' ')}
+                              <Badge className={`${getStatusColor(billing.status)} text-xs`}>
+                                <span className="hidden sm:inline">{billing.status.replace('_', ' ')}</span>
+                                <span className="sm:hidden">
+                                  {billing.status === 'en_attente' ? 'Attente' : 
+                                   billing.status === 'validé' ? 'Validé' : 'Payé'}
+                                </span>
                               </Badge>
                             </div>
                           </div>
                           
                           <div className="flex items-center gap-2">
-                            <div className="p-1 bg-gray-100 rounded">
+                            <div className="p-1 bg-gray-100 rounded flex-shrink-0">
                               <Calendar className="h-3 w-3 text-gray-500" />
                             </div>
-                            <div>
+                            <div className="min-w-0 flex-1">
                               <p className="text-xs text-gray-500">Créé le</p>
-                              <p className="text-sm font-medium">{formatDate(billing.created_at)}</p>
+                              <p className="text-xs md:text-sm font-medium">{formatDate(billing.created_at)}</p>
                             </div>
                           </div>
                           
                           {billing.payment_date && (
                             <div className="flex items-center gap-2">
-                              <div className="p-1 bg-green-100 rounded">
+                              <div className="p-1 bg-green-100 rounded flex-shrink-0">
                                 <CreditCard className="h-3 w-3 text-green-600" />
                               </div>
-                              <div>
+                              <div className="min-w-0 flex-1">
                                 <p className="text-xs text-gray-500">Payé le</p>
-                                <p className="text-sm font-medium">{formatDate(billing.payment_date)}</p>
+                                <p className="text-xs md:text-sm font-medium">{formatDate(billing.payment_date)}</p>
                               </div>
                             </div>
                           )}
                           
                           {billing.notes && (
                             <div className="flex items-start gap-2">
-                              <div className="p-1 bg-gray-100 rounded">
+                              <div className="p-1 bg-gray-100 rounded flex-shrink-0">
                                 <FileText className="h-3 w-3 text-gray-500" />
                               </div>
-                              <div>
+                              <div className="min-w-0 flex-1">
                                 <p className="text-xs text-gray-500">Notes</p>
-                                <p className="text-sm bg-gray-50 p-2 rounded border">
+                                <p className="text-xs md:text-sm bg-gray-50 p-2 rounded border break-words">
                                   {billing.notes}
                                 </p>
                               </div>
@@ -544,25 +548,35 @@ export function TechnicianBillingTab() {
                           {/* Information de paiement en lot */}
                           {(billing as any).bulkPayment && (
                             <div className="flex items-start gap-2">
-                              <div className="p-1 bg-purple-100 rounded">
+                              <div className="p-1 bg-purple-100 rounded flex-shrink-0">
                                 <Receipt className="h-3 w-3 text-purple-600" />
                               </div>
-                              <div>
+                              <div className="min-w-0 flex-1">
                                 <p className="text-xs text-gray-500">Paiement en lot</p>
-                                <div className="text-sm bg-purple-50 p-2 rounded border">
+                                <div className="text-xs md:text-sm bg-purple-50 p-2 rounded border">
                                   <p className="font-medium text-purple-700">
-                                    Paiement groupé avec {(billing as any).bulkPayment.count - 1} autre{(billing as any).bulkPayment.count - 1 > 1 ? 's' : ''} facture{(billing as any).bulkPayment.count - 1 > 1 ? 's' : ''}
+                                    <span className="hidden sm:inline">
+                                      Paiement groupé avec {(billing as any).bulkPayment.count - 1} autre{(billing as any).bulkPayment.count - 1 > 1 ? 's' : ''} facture{(billing as any).bulkPayment.count - 1 > 1 ? 's' : ''}
+                                    </span>
+                                    <span className="sm:hidden">
+                                      Lot de {(billing as any).bulkPayment.count} factures
+                                    </span>
                                   </p>
                                   <p className="text-xs text-purple-600 mt-1">
-                                    Total du lot: {formatCurrency((billing as any).bulkPayment.totalAmount)}
+                                    Total: {formatCurrency((billing as any).bulkPayment.totalAmount)}
                                   </p>
                                   {(billing as any).bulkPayment.otherBillings && (billing as any).bulkPayment.otherBillings.length > 0 && (
                                     <div className="mt-2">
-                                      <p className="text-xs text-gray-600 mb-1">Autres factures du lot:</p>
+                                      <p className="text-xs text-gray-600 mb-1">
+                                        <span className="hidden sm:inline">Autres factures du lot:</span>
+                                        <span className="sm:hidden">Autres:</span>
+                                      </p>
                                       <div className="space-y-1">
                                         {(billing as any).bulkPayment.otherBillings.map((otherBilling: any) => (
                                           <div key={otherBilling.id} className="text-xs bg-white p-1 rounded border">
-                                            {otherBilling.missions?.title || 'Mission inconnue'} - {formatCurrency(otherBilling.amount)}
+                                            <span className="truncate block">
+                                              {otherBilling.missions?.title || 'Mission inconnue'} - {formatCurrency(otherBilling.amount)}
+                                            </span>
                                           </div>
                                         ))}
                                       </div>
@@ -576,25 +590,34 @@ export function TechnicianBillingTab() {
                       </div>
                     </div>
 
-                    {/* Statut détaillé */}
-                    <div className="mt-6 pt-4 border-t border-gray-100">
+                    {/* Statut détaillé - Responsive */}
+                    <div className="mt-4 md:mt-6 pt-3 md:pt-4 border-t border-gray-100">
                       <div className="flex items-center gap-2">
                         {billing.status === 'en_attente' && (
                           <div className="flex items-center gap-2 text-yellow-600">
-                            <Clock className="h-4 w-4" />
-                            <span className="text-sm font-medium">En attente de validation par l'administrateur</span>
+                            <Clock className="h-3 w-3 md:h-4 md:w-4" />
+                            <span className="text-xs md:text-sm font-medium">
+                              <span className="hidden sm:inline">En attente de validation par l'administrateur</span>
+                              <span className="sm:hidden">En attente de validation</span>
+                            </span>
                           </div>
                         )}
                         {billing.status === 'validé' && (
                           <div className="flex items-center gap-2 text-blue-600">
-                            <CheckCircle className="h-4 w-4" />
-                            <span className="text-sm font-medium">Paiement validé, en cours de traitement</span>
+                            <CheckCircle className="h-3 w-3 md:h-4 md:w-4" />
+                            <span className="text-xs md:text-sm font-medium">
+                              <span className="hidden sm:inline">Paiement validé, en cours de traitement</span>
+                              <span className="sm:hidden">Validé, en cours</span>
+                            </span>
                           </div>
                         )}
                         {billing.status === 'payé' && (
                           <div className="flex items-center gap-2 text-green-600">
-                            <CreditCard className="h-4 w-4" />
-                            <span className="text-sm font-medium">Paiement effectué avec succès</span>
+                            <CreditCard className="h-3 w-3 md:h-4 md:w-4" />
+                            <span className="text-xs md:text-sm font-medium">
+                              <span className="hidden sm:inline">Paiement effectué avec succès</span>
+                              <span className="sm:hidden">Payé avec succès</span>
+                            </span>
                           </div>
                         )}
                       </div>

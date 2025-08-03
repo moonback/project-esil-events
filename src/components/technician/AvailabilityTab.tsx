@@ -352,37 +352,37 @@ export function AvailabilityTab() {
     <div className="space-y-6">
       {/* En-tête avec statistiques */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
+        <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 hover:shadow-md transition-shadow">
           <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs md:text-sm text-green-600 font-medium">Disponibilités</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs md:text-sm text-green-600 font-medium truncate">Disponibilités</p>
                 <p className="text-lg md:text-2xl font-bold text-green-800">{stats.availabilityCount}</p>
                 <p className="text-xs text-green-600">{stats.totalAvailabilityHours}h</p>
               </div>
-              <CheckCircle className="h-6 w-6 md:h-8 md:w-8 text-green-600" />
+              <CheckCircle className="h-6 w-6 md:h-8 md:w-8 text-green-600 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-red-50 to-red-100 border-red-200">
+        <Card className="bg-gradient-to-r from-red-50 to-red-100 border-red-200 hover:shadow-md transition-shadow">
           <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs md:text-sm text-red-600 font-medium">Indisponibilités</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs md:text-sm text-red-600 font-medium truncate">Indisponibilités</p>
                 <p className="text-lg md:text-2xl font-bold text-red-800">{stats.unavailabilityCount}</p>
                 <p className="text-xs text-red-600">{stats.totalUnavailabilityHours}h</p>
               </div>
-              <Ban className="h-6 w-6 md:h-8 md:w-8 text-red-600" />
+              <Ban className="h-6 w-6 md:h-8 md:w-8 text-red-600 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
+        <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200 hover:shadow-md transition-shadow">
           <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs md:text-sm text-blue-600 font-medium">Ce mois</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs md:text-sm text-blue-600 font-medium truncate">Ce mois</p>
                 <p className="text-lg md:text-2xl font-bold text-blue-800">
                   {availabilities.filter(a => {
                     const start = parseISO(a.start_time)
@@ -391,23 +391,23 @@ export function AvailabilityTab() {
                   }).length}
                 </p>
               </div>
-              <CalendarIcon className="h-6 w-6 md:h-8 md:w-8 text-blue-600" />
+              <CalendarIcon className="h-6 w-6 md:h-8 md:w-8 text-blue-600 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200">
+        <Card className="bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200 hover:shadow-md transition-shadow">
           <CardContent className="p-3 md:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs md:text-sm text-purple-600 font-medium">Taux de disponibilité</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs md:text-sm text-purple-600 font-medium truncate">Taux de disponibilité</p>
                 <p className="text-lg md:text-2xl font-bold text-purple-800">
                   {stats.availabilityCount + stats.unavailabilityCount > 0 
                     ? Math.round((stats.availabilityCount / (stats.availabilityCount + stats.unavailabilityCount)) * 100)
                     : 0}%
                 </p>
               </div>
-              <Clock className="h-6 w-6 md:h-8 md:w-8 text-purple-600" />
+              <Clock className="h-6 w-6 md:h-8 md:w-8 text-purple-600 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
@@ -415,25 +415,27 @@ export function AvailabilityTab() {
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'availability' | 'unavailability')}>
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="availability" className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4" />
-            Disponibilités
+          <TabsTrigger value="availability" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+            <CheckCircle className="h-3 w-3 md:h-4 md:w-4" />
+            <span className="hidden sm:inline">Disponibilités</span>
+            <span className="sm:hidden">Dispo.</span>
           </TabsTrigger>
-          <TabsTrigger value="unavailability" className="flex items-center gap-2">
-            <Ban className="h-4 w-4" />
-            Indisponibilités
+          <TabsTrigger value="unavailability" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+            <Ban className="h-3 w-3 md:h-4 md:w-4" />
+            <span className="hidden sm:inline">Indisponibilités</span>
+            <span className="sm:hidden">Indispo.</span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="availability" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
+        <TabsContent value="availability" className="space-y-3 md:space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
             <div className="lg:col-span-3">
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <span className="text-lg md:text-xl">Mes disponibilités</span>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <div className="flex items-center space-x-1">
+                <CardHeader className="p-3 md:p-6">
+                  <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4">
+                    <span className="text-base md:text-lg lg:text-xl">Mes disponibilités</span>
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                      <div className="grid grid-cols-3 sm:flex sm:items-center gap-1">
                         <Button
                           variant={calendarView === 'dayGridMonth' ? 'default' : 'outline'}
                           size="sm"
@@ -448,7 +450,8 @@ export function AvailabilityTab() {
                           onClick={() => setCalendarView('timeGridWeek')}
                           className="text-xs px-2 py-1"
                         >
-                          Semaine
+                          <span className="hidden sm:inline">Semaine</span>
+                          <span className="sm:hidden">Sem.</span>
                         </Button>
                         <Button
                           variant={calendarView === 'listWeek' ? 'default' : 'outline'}
@@ -463,16 +466,17 @@ export function AvailabilityTab() {
                         variant="outline"
                         size="sm"
                         onClick={() => setShowAvailabilityForm(true)}
-                        className="text-xs px-3 py-1"
+                        className="text-xs px-3 py-1 w-full sm:w-auto"
                       >
                         <Plus className="h-3 w-3 mr-1" />
-                        Ajouter
+                        <span className="hidden sm:inline">Ajouter</span>
+                        <span className="sm:hidden">+</span>
                       </Button>
                     </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-3 md:p-6">
-                  <div style={{ height: '400px', minHeight: '400px' }} className="md:h-[600px]">
+                  <div style={{ height: '350px', minHeight: '350px' }} className="sm:h-[400px] md:h-[500px] lg:h-[600px]">
                     <FullCalendar
                       key={calendarView}
                       ref={calendarRef}
@@ -543,47 +547,50 @@ export function AvailabilityTab() {
               </Card>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {/* Formulaire d'ajout de disponibilité */}
               {showAvailabilityForm && (
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center justify-between">
-                      Ajouter une disponibilité
+                  <CardHeader className="p-3 md:p-4">
+                    <CardTitle className="text-sm md:text-base flex items-center justify-between">
+                      <span className="truncate">Ajouter une disponibilité</span>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setShowAvailabilityForm(false)}
+                        className="flex-shrink-0"
                       >
-                        <XCircle className="h-4 w-4" />
+                        <XCircle className="h-3 w-3 md:h-4 md:w-4" />
                       </Button>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <form onSubmit={createAvailability} className="space-y-4">
+                  <CardContent className="p-3 md:p-4">
+                    <form onSubmit={createAvailability} className="space-y-3 md:space-y-4">
                       <div>
-                        <Label htmlFor="availability_start_time">Début</Label>
+                        <Label htmlFor="availability_start_time" className="text-xs md:text-sm">Début</Label>
                         <Input
                           id="availability_start_time"
                           type="datetime-local"
                           value={availabilityFormData.start_time}
                           onChange={(e) => setAvailabilityFormData(prev => ({ ...prev, start_time: e.target.value }))}
                           required
+                          className="text-xs md:text-sm"
                         />
                       </div>
                       
                       <div>
-                        <Label htmlFor="availability_end_time">Fin</Label>
+                        <Label htmlFor="availability_end_time" className="text-xs md:text-sm">Fin</Label>
                         <Input
                           id="availability_end_time"
                           type="datetime-local"
                           value={availabilityFormData.end_time}
                           onChange={(e) => setAvailabilityFormData(prev => ({ ...prev, end_time: e.target.value }))}
                           required
+                          className="text-xs md:text-sm"
                         />
                       </div>
                       
-                      <Button type="submit" disabled={loading} className="w-full">
+                      <Button type="submit" disabled={loading} className="w-full text-xs md:text-sm">
                         {loading ? 'Création...' : 'Ajouter'}
                       </Button>
                     </form>
@@ -593,22 +600,22 @@ export function AvailabilityTab() {
 
               {/* Liste des disponibilités */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Disponibilités récentes</CardTitle>
+                <CardHeader className="p-3 md:p-4">
+                  <CardTitle className="text-sm md:text-base">Disponibilités récentes</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="p-3 md:p-4 space-y-2">
                   {availabilities.length === 0 ? (
-                    <p className="text-sm text-gray-500 text-center py-4">
+                    <p className="text-xs md:text-sm text-gray-500 text-center py-4">
                       Aucune disponibilité
                     </p>
                   ) : (
                     availabilities.slice(0, 5).map((availability) => (
                       <div key={availability.id} className="flex items-center justify-between p-2 bg-green-50 rounded">
-                        <div className="text-sm">
-                          <div className="font-medium">
+                        <div className="text-xs md:text-sm min-w-0 flex-1">
+                          <div className="font-medium truncate">
                             {format(parseISO(availability.start_time), 'dd/MM/yyyy', { locale: fr })}
                           </div>
-                          <div className="text-gray-600">
+                          <div className="text-gray-600 truncate">
                             {format(parseISO(availability.start_time), 'HH:mm', { locale: fr })} - {format(parseISO(availability.end_time), 'HH:mm', { locale: fr })}
                           </div>
                         </div>
@@ -616,6 +623,7 @@ export function AvailabilityTab() {
                           variant="ghost"
                           size="sm"
                           onClick={() => deleteAvailability(availability.id)}
+                          className="flex-shrink-0"
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
@@ -628,48 +636,56 @@ export function AvailabilityTab() {
           </div>
         </TabsContent>
 
-        <TabsContent value="unavailability" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <TabsContent value="unavailability" className="space-y-3 md:space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
             <div className="lg:col-span-3">
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>Mes indisponibilités</span>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant={calendarView === 'dayGridMonth' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setCalendarView('dayGridMonth')}
-                      >
-                        Mois
-                      </Button>
-                      <Button
-                        variant={calendarView === 'timeGridWeek' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setCalendarView('timeGridWeek')}
-                      >
-                        Semaine
-                      </Button>
-                      <Button
-                        variant={calendarView === 'listWeek' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setCalendarView('listWeek')}
-                      >
-                        Liste
-                      </Button>
+                <CardHeader className="p-3 md:p-6">
+                  <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4">
+                    <span className="text-base md:text-lg lg:text-xl">Mes indisponibilités</span>
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                      <div className="grid grid-cols-3 sm:flex sm:items-center gap-1">
+                        <Button
+                          variant={calendarView === 'dayGridMonth' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setCalendarView('dayGridMonth')}
+                          className="text-xs px-2 py-1"
+                        >
+                          Mois
+                        </Button>
+                        <Button
+                          variant={calendarView === 'timeGridWeek' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setCalendarView('timeGridWeek')}
+                          className="text-xs px-2 py-1"
+                        >
+                          <span className="hidden sm:inline">Semaine</span>
+                          <span className="sm:hidden">Sem.</span>
+                        </Button>
+                        <Button
+                          variant={calendarView === 'listWeek' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setCalendarView('listWeek')}
+                          className="text-xs px-2 py-1"
+                        >
+                          Liste
+                        </Button>
+                      </div>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setShowUnavailabilityForm(true)}
+                        className="text-xs px-3 py-1 w-full sm:w-auto"
                       >
-                        <Plus className="h-4 w-4 mr-1" />
-                        Ajouter
+                        <Plus className="h-3 w-3 mr-1" />
+                        <span className="hidden sm:inline">Ajouter</span>
+                        <span className="sm:hidden">+</span>
                       </Button>
                     </div>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
-                  <div style={{ height: '600px' }}>
+                <CardContent className="p-3 md:p-6">
+                  <div style={{ height: '350px', minHeight: '350px' }} className="sm:h-[400px] md:h-[500px] lg:h-[600px]">
                     <FullCalendar
                       key={calendarView}
                       ref={calendarRef}
@@ -740,58 +756,62 @@ export function AvailabilityTab() {
               </Card>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {/* Formulaire d'ajout d'indisponibilité */}
               {showUnavailabilityForm && (
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center justify-between">
-                      Ajouter une indisponibilité
+                  <CardHeader className="p-3 md:p-4">
+                    <CardTitle className="text-sm md:text-base flex items-center justify-between">
+                      <span className="truncate">Ajouter une indisponibilité</span>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setShowUnavailabilityForm(false)}
+                        className="flex-shrink-0"
                       >
-                        <XCircle className="h-4 w-4" />
+                        <XCircle className="h-3 w-3 md:h-4 md:w-4" />
                       </Button>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <form onSubmit={createUnavailability} className="space-y-4">
+                  <CardContent className="p-3 md:p-4">
+                    <form onSubmit={createUnavailability} className="space-y-3 md:space-y-4">
                       <div>
-                        <Label htmlFor="unavailability_start_time">Début</Label>
+                        <Label htmlFor="unavailability_start_time" className="text-xs md:text-sm">Début</Label>
                         <Input
                           id="unavailability_start_time"
                           type="datetime-local"
                           value={unavailabilityFormData.start_time}
                           onChange={(e) => setUnavailabilityFormData(prev => ({ ...prev, start_time: e.target.value }))}
                           required
+                          className="text-xs md:text-sm"
                         />
                       </div>
                       
                       <div>
-                        <Label htmlFor="unavailability_end_time">Fin</Label>
+                        <Label htmlFor="unavailability_end_time" className="text-xs md:text-sm">Fin</Label>
                         <Input
                           id="unavailability_end_time"
                           type="datetime-local"
                           value={unavailabilityFormData.end_time}
                           onChange={(e) => setUnavailabilityFormData(prev => ({ ...prev, end_time: e.target.value }))}
                           required
+                          className="text-xs md:text-sm"
                         />
                       </div>
                       
                       <div>
-                        <Label htmlFor="unavailability_reason">Raison (optionnel)</Label>
+                        <Label htmlFor="unavailability_reason" className="text-xs md:text-sm">Raison (optionnel)</Label>
                         <Textarea
                           id="unavailability_reason"
                           value={unavailabilityFormData.reason}
                           onChange={(e) => setUnavailabilityFormData(prev => ({ ...prev, reason: e.target.value }))}
                           placeholder="Ex: Congés, Formation, Rendez-vous médical..."
                           rows={3}
+                          className="text-xs md:text-sm"
                         />
                       </div>
                       
-                      <Button type="submit" disabled={loading} className="w-full">
+                      <Button type="submit" disabled={loading} className="w-full text-xs md:text-sm">
                         {loading ? 'Création...' : 'Ajouter'}
                       </Button>
                     </form>
@@ -801,26 +821,26 @@ export function AvailabilityTab() {
 
               {/* Liste des indisponibilités */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Indisponibilités récentes</CardTitle>
+                <CardHeader className="p-3 md:p-4">
+                  <CardTitle className="text-sm md:text-base">Indisponibilités récentes</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="p-3 md:p-4 space-y-2">
                   {unavailabilities.length === 0 ? (
-                    <p className="text-sm text-gray-500 text-center py-4">
+                    <p className="text-xs md:text-sm text-gray-500 text-center py-4">
                       Aucune indisponibilité
                     </p>
                   ) : (
                     unavailabilities.slice(0, 5).map((unavailability) => (
                       <div key={unavailability.id} className="flex items-center justify-between p-2 bg-red-50 rounded">
-                        <div className="text-sm">
-                          <div className="font-medium">
+                        <div className="text-xs md:text-sm min-w-0 flex-1">
+                          <div className="font-medium truncate">
                             {format(parseISO(unavailability.start_time), 'dd/MM/yyyy', { locale: fr })}
                           </div>
-                          <div className="text-gray-600">
+                          <div className="text-gray-600 truncate">
                             {format(parseISO(unavailability.start_time), 'HH:mm', { locale: fr })} - {format(parseISO(unavailability.end_time), 'HH:mm', { locale: fr })}
                           </div>
                           {unavailability.reason && (
-                            <div className="text-xs text-red-600 mt-1">
+                            <div className="text-xs text-red-600 mt-1 truncate">
                               {unavailability.reason}
                             </div>
                           )}
@@ -829,6 +849,7 @@ export function AvailabilityTab() {
                           variant="ghost"
                           size="sm"
                           onClick={() => deleteUnavailability(unavailability.id)}
+                          className="flex-shrink-0"
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>

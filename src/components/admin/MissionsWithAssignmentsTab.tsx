@@ -105,25 +105,7 @@ export function MissionsWithAssignmentsTab() {
         </div>
       </div>
 
-      {/* Informations sur l'annulation automatique */}
-      <div className="px-6">
-        <Card className="border-blue-200 bg-blue-50">
-          <CardContent className="p-4">
-            <div className="flex items-start space-x-3">
-              <AlertTriangle className="h-5 w-5 text-blue-600 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="text-sm font-semibold text-blue-900 mb-1">
-                  Gestion des assignations
-                </h3>
-                <p className="text-xs text-blue-700">
-                  Les demandes en attente sont automatiquement annulées quand le nombre de techniciens validés requis est atteint. 
-                  Vous pouvez également annuler manuellement les demandes en attente.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      
 
       {/* Liste des missions */}
       <div className="px-6">

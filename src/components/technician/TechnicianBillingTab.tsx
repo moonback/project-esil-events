@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
-import { useMissionsStore } from '@/store/missionsStore'
+import { useAdminStore } from '@/store/adminStore'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -15,7 +15,7 @@ import type { BillingWithDetails } from '@/types/database'
 
 export function TechnicianBillingTab() {
   const profile = useAuthStore(state => state.profile)
-  const { refreshData } = useMissionsStore()
+  const { refreshData } = useAdminStore()
   const [billings, setBillings] = useState<BillingWithDetails[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'en_attente' | 'validé' | 'payé'>('all')

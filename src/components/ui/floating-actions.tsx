@@ -29,35 +29,40 @@ export function FloatingActions({ onTabChange, currentTab, userType = 'technicia
       id: 'home',
       label: 'Accueil',
       icon: Home,
-      color: 'bg-blue-500 hover:bg-blue-600',
+      color: 'from-blue-500 to-blue-600',
+      bgColor: 'bg-blue-500',
       tab: 'availability'
     },
     {
       id: 'missions',
       label: 'Missions',
       icon: FileText,
-      color: 'bg-indigo-500 hover:bg-indigo-600',
+      color: 'from-indigo-500 to-indigo-600',
+      bgColor: 'bg-indigo-500',
       tab: 'missions'
     },
     {
       id: 'billing',
       label: 'Facturation',
       icon: DollarSign,
-      color: 'bg-purple-500 hover:bg-purple-600',
+      color: 'from-purple-500 to-purple-600',
+      bgColor: 'bg-purple-500',
       tab: 'billing'
     },
     {
       id: 'agenda',
       label: 'Agenda',
       icon: Calendar,
-      color: 'bg-green-500 hover:bg-green-600',
+      color: 'from-green-500 to-green-600',
+      bgColor: 'bg-green-500',
       tab: 'agenda'
     },
     {
       id: 'profile',
       label: 'Profil',
       icon: User,
-      color: 'bg-orange-500 hover:bg-orange-600',
+      color: 'from-orange-500 to-orange-600',
+      bgColor: 'bg-orange-500',
       tab: 'profile'
     }
   ]
@@ -67,42 +72,48 @@ export function FloatingActions({ onTabChange, currentTab, userType = 'technicia
       id: 'missions',
       label: 'Missions',
       icon: FileText,
-      color: 'bg-indigo-500 hover:bg-indigo-600',
+      color: 'from-indigo-500 to-indigo-600',
+      bgColor: 'bg-indigo-500',
       tab: 'missions'
     },
     {
       id: 'map',
       label: 'Carte',
       icon: Map,
-      color: 'bg-red-500 hover:bg-red-600',
+      color: 'from-red-500 to-red-600',
+      bgColor: 'bg-red-500',
       tab: 'map'
     },
     {
       id: 'assignations',
       label: 'Assignations',
       icon: Settings,
-      color: 'bg-blue-500 hover:bg-blue-600',
+      color: 'from-blue-500 to-blue-600',
+      bgColor: 'bg-blue-500',
       tab: 'assignations'
     },
     {
       id: 'technicians',
       label: 'Techniciens',
       icon: User,
-      color: 'bg-green-500 hover:bg-green-600',
+      color: 'from-green-500 to-green-600',
+      bgColor: 'bg-green-500',
       tab: 'technicians'
     },
     {
       id: 'agenda',
       label: 'Agenda',
       icon: Calendar,
-      color: 'bg-purple-500 hover:bg-purple-600',
+      color: 'from-purple-500 to-purple-600',
+      bgColor: 'bg-purple-500',
       tab: 'agenda'
     },
     {
       id: 'billing',
       label: 'Facturation',
       icon: DollarSign,
-      color: 'bg-orange-500 hover:bg-orange-600',
+      color: 'from-orange-500 to-orange-600',
+      bgColor: 'bg-orange-500',
       tab: 'billing'
     }
   ]
@@ -122,40 +133,100 @@ export function FloatingActions({ onTabChange, currentTab, userType = 'technicia
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
-      {/* Actions rapides */}
-      <div className={`transition-all duration-300 ease-in-out ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
-        <div className="flex flex-col items-end space-y-3 mb-4">
-          {actions.map((action) => {
+      {/* Actions rapides avec animation améliorée */}
+      <div className={`transition-all duration-500 ease-out ${isOpen ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95 pointer-events-none'}`}>
+        <div className="flex flex-col items-end space-y-4 mb-6">
+          {actions.map((action, index) => {
             const Icon = action.icon
             const isActive = currentTab === action.tab
             
             return (
-              <Button
+              <div
                 key={action.id}
-                onClick={() => handleActionClick(action)}
-                className={`${action.color} text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 ${isActive ? 'ring-2 ring-white ring-offset-2' : ''}`}
-                size="sm"
+                className={`transition-all duration-300 ease-out transform ${
+                  isOpen 
+                    ? 'translate-x-0 opacity-100' 
+                    : 'translate-x-8 opacity-0'
+                }`}
+                style={{
+                  transitionDelay: `${index * 100}ms`
+                }}
               >
-                <Icon className="h-4 w-4 mr-2" />
-                <span className="text-sm font-medium">{action.label}</span>
-              </Button>
+                <Button
+                  onClick={() => handleActionClick(action)}
+                  className={`
+                    relative overflow-hidden group
+                    bg-gradient-to-r ${action.color}
+                    text-white shadow-2xl hover:shadow-3xl
+                    transition-all duration-300 ease-out
+                    transform hover:scale-110 hover:-translate-y-1
+                    ${isActive ? 'ring-4 ring-white ring-offset-2 ring-offset-gray-900' : ''}
+                    min-w-[140px] h-12 px-4 rounded-full
+                    backdrop-blur-sm border border-white/20
+                  `}
+                  size="sm"
+                >
+                  {/* Effet de brillance au survol */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
+                  
+                  <Icon className="h-4 w-4 mr-2 relative z-10" />
+                  <span className="text-sm font-semibold relative z-10">{action.label}</span>
+                  
+                  {/* Indicateur actif */}
+                  {isActive && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full animate-pulse" />
+                  )}
+                </Button>
+              </div>
             )
           })}
         </div>
       </div>
 
-      {/* Bouton principal */}
-      <Button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`${isOpen ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'} text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105`}
-        size="lg"
-      >
-        {isOpen ? (
-          <X className="h-5 w-5" />
-        ) : (
-          <Plus className="h-5 w-5" />
+      {/* Bouton principal amélioré */}
+      <div className="relative">
+        {/* Effet de halo */}
+        <div className={`absolute inset-0 rounded-full blur-xl transition-all duration-300 ${
+          isOpen 
+            ? 'bg-red-400/30 scale-125' 
+            : 'bg-blue-400/30 scale-100'
+        }`} />
+        
+        <Button
+          onClick={() => setIsOpen(!isOpen)}
+          className={`
+            relative z-10
+            ${isOpen 
+              ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700' 
+              : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700'
+            }
+            text-white shadow-2xl hover:shadow-3xl
+            transition-all duration-300 ease-out
+            transform hover:scale-110 active:scale-95
+            w-16 h-16 rounded-full
+            backdrop-blur-sm border border-white/20
+            group
+          `}
+          size="lg"
+        >
+          {/* Effet de rotation */}
+          <div className={`transition-transform duration-300 ${isOpen ? 'rotate-45' : 'rotate-0'}`}>
+            {isOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Plus className="h-6 w-6" />
+            )}
+          </div>
+          
+          {/* Effet de brillance */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
+        </Button>
+        
+        {/* Indicateur de pulsation */}
+        {!isOpen && (
+          <div className="absolute inset-0 rounded-full bg-blue-400/20 animate-ping" />
         )}
-      </Button>
+      </div>
     </div>
   )
 } 

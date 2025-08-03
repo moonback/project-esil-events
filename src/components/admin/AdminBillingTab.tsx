@@ -14,16 +14,15 @@ import {
 } from 'lucide-react'
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils'
 import type { BillingWithDetails, User } from '@/types/database'
-import { CreatePaymentDialog } from './CreatePaymentDialog'
+
 import { BillingCalendarView } from './BillingCalendarView'
 import { AdvancedBillingFilters, type BillingFilters } from './AdvancedBillingFilters'
 import { useToast } from '@/lib/useToast'
 
 export function AdminBillingTab() {
-  const { billings, technicians, loading, stats } = useAdminStore()
+  const { billings, technicians, loading, stats, refreshData } = useAdminStore()
   const { showSuccess, showError } = useToast()
-  const [createPaymentDialogOpen, setCreatePaymentDialogOpen] = useState(false)
-  const [selectedTechnician, setSelectedTechnician] = useState<User | null>(null)
+
   const [viewMode, setViewMode] = useState<'list' | 'calendar' | 'analytics'>('list')
   const [selectedBilling, setSelectedBilling] = useState<BillingWithDetails | null>(null)
   const [showFilters, setShowFilters] = useState(false)
@@ -152,6 +151,9 @@ export function AdminBillingTab() {
 
       if (error) throw error
 
+      // Mettre à jour le store pour refléter les changements immédiatement
+      await refreshData()
+
       showSuccess(
         "Statut mis à jour",
         `La facturation a été marquée comme ${status.replace('_', ' ')}`
@@ -176,6 +178,9 @@ export function AdminBillingTab() {
 
       if (error) throw error
 
+      // Mettre à jour le store pour refléter les changements immédiatement
+      await refreshData()
+
       showSuccess(
         "Facturation supprimée",
         "La facturation a été supprimée avec succès"
@@ -189,10 +194,7 @@ export function AdminBillingTab() {
     }
   }
 
-  const handleCreatePayment = (technician: any) => {
-    setSelectedTechnician(technician)
-    setCreatePaymentDialogOpen(true)
-  }
+
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -269,13 +271,7 @@ export function AdminBillingTab() {
               </Button>
             </div>
             
-            <Button
-              onClick={() => setCreatePaymentDialogOpen(true)}
-              className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Nouveau Paiement
-            </Button>
+
           </div>
         </div>
       </div>
@@ -603,12 +599,7 @@ export function AdminBillingTab() {
         </div>
       )}
 
-      {/* Dialog de création de paiement */}
-      <CreatePaymentDialog
-        open={createPaymentDialogOpen}
-        onOpenChange={setCreatePaymentDialogOpen}
-        technician={selectedTechnician || undefined}
-      />
+
     </div>
   )
 }

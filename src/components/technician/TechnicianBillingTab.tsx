@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
+import { useMissionsStore } from '@/store/missionsStore'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -14,6 +15,7 @@ import type { BillingWithDetails } from '@/types/database'
 
 export function TechnicianBillingTab() {
   const profile = useAuthStore(state => state.profile)
+  const { refreshData } = useMissionsStore()
   const [billings, setBillings] = useState<BillingWithDetails[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'en_attente' | 'validé' | 'payé'>('all')
@@ -86,6 +88,12 @@ export function TechnicianBillingTab() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Fonction pour mettre à jour les données après les actions
+  const refreshBillings = async () => {
+    await fetchBillings()
+    await refreshData()
   }
 
   const filteredBillings = filter === 'all' 

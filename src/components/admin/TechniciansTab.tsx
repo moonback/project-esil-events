@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { TechnicianContactDialog } from './TechnicianContactDialog'
 import { CreatePaymentDialog } from './CreatePaymentDialog'
+import { TechnicianAvailabilityCalendar } from './TechnicianAvailabilityCalendar'
 import { 
   Phone, 
   Users, 
@@ -21,10 +22,7 @@ import {
   TrendingUp,
   AlertTriangle,
   Star,
-  Eye,
-  EyeOff,
   Search,
-  Filter,
   MoreHorizontal,
   CalendarDays,
   DollarSign,
@@ -50,17 +48,12 @@ import type { User, MissionAssignment, Mission, Availability, Unavailability, Bi
 export function TechniciansTab() {
   const { technicians, loading, stats, validateTechnician, fetchTechnicians, deleteTechnician } = useAdminStore()
   const [searchTerm, setSearchTerm] = useState('')
-  const [showDetailedView, setShowDetailedView] = useState(false)
-  const [selectedTechnician, setSelectedTechnician] = useState<TechnicianWithStats | null>(null)
-  const [showFilters, setShowFilters] = useState(false)
-  const [sortBy, setSortBy] = useState<'name' | 'missions' | 'revenue' | 'rating'>('name')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
-  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable' | 'available_on_request'>('all')
-  const [validationFilter, setValidationFilter] = useState<'all' | 'validated' | 'not_validated'>('all')
   const [contactDialogOpen, setContactDialogOpen] = useState(false)
   const [selectedTechnicianForContact, setSelectedTechnicianForContact] = useState<User | null>(null)
   const [createPaymentDialogOpen, setCreatePaymentDialogOpen] = useState(false)
   const [selectedTechnicianForPayment, setSelectedTechnicianForPayment] = useState<User | null>(null)
+  const [calendarDialogOpen, setCalendarDialogOpen] = useState(false)
+  const [selectedTechnicianForCalendar, setSelectedTechnicianForCalendar] = useState<TechnicianWithStats | null>(null)
   const [validationLoading, setValidationLoading] = useState<string | null>(null)
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
   const { showSuccess, showError } = useToast()
@@ -145,61 +138,8 @@ export function TechniciansTab() {
     const matchesSearch = tech.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          tech.phone?.includes(searchTerm)
     
-    if (!matchesSearch) return false
-    
-    // Filtre par disponibilité
-    if (availabilityFilter !== 'all') {
-      const availabilityStatus = getAvailabilityStatus(tech)
-      if (availabilityFilter === 'available' && availabilityStatus.status !== 'disponible') return false
-      if (availabilityFilter === 'unavailable' && availabilityStatus.status !== 'indisponible') return false
-      if (availabilityFilter === 'available_on_request' && availabilityStatus.status !== 'available_on_request') return false
-    }
-    
-    // Filtre par validation
-    if (validationFilter !== 'all') {
-      if (validationFilter === 'validated' && !tech.is_validated) return false
-      if (validationFilter === 'not_validated' && tech.is_validated) return false
-    }
-    
-    return true
+    return matchesSearch
   })
-
-  const sortedTechnicians = [...filteredTechnicians].sort((a, b) => {
-    let aValue: any, bValue: any
-    
-    switch (sortBy) {
-      case 'name':
-        aValue = a.name
-        bValue = b.name
-        break
-      case 'missions':
-        aValue = a.stats?.totalAssignments || 0
-        bValue = b.stats?.totalAssignments || 0
-        break
-      case 'revenue':
-        aValue = a.stats?.totalRevenue || 0
-        bValue = b.stats?.totalRevenue || 0
-        break
-      case 'rating':
-        // Note moyenne temporairement désactivée
-        aValue = 0
-        bValue = 0
-        break
-      default:
-        aValue = a.name
-        bValue = b.name
-    }
-
-    if (sortOrder === 'asc') {
-      return aValue > bValue ? 1 : -1
-    } else {
-      return aValue < bValue ? 1 : -1
-    }
-  })
-
-
-
-
 
   const handleOpenContact = (technician: User) => {
     setSelectedTechnicianForContact(technician)
@@ -214,6 +154,11 @@ export function TechniciansTab() {
   const handleCreatePayment = (technician: User) => {
     setSelectedTechnicianForPayment(technician)
     setCreatePaymentDialogOpen(true)
+  }
+
+  const handleOpenCalendar = (technician: TechnicianWithStats) => {
+    setSelectedTechnicianForCalendar(technician)
+    setCalendarDialogOpen(true)
   }
 
   const handleValidateTechnician = async (technicianId: string, isValidated: boolean) => {
@@ -275,29 +220,11 @@ export function TechniciansTab() {
 
   return (
     <div className="space-y-4">
-      {/* En-tête avec recherche et filtres */}
+      {/* En-tête avec recherche */}
       <div className="flex items-center justify-between bg-white border-b border-gray-200 px-6 py-3">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">Techniciens</h2>
           <p className="text-sm text-gray-500">{technicians.length} technicien{technicians.length > 1 ? 's' : ''} au total</p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowDetailedView(!showDetailedView)}
-          >
-            {showDetailedView ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
-            {showDetailedView ? 'Vue compacte' : 'Vue détaillée'}
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="h-4 w-4 mr-2" />
-            Filtres
-          </Button>
         </div>
       </div>
 
@@ -314,89 +241,8 @@ export function TechniciansTab() {
         </div>
       </div>
 
-      {/* Filtres */}
-      {showFilters && (
-        <div className="px-6">
-          <Card>
-            <CardContent className="p-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                  <Label className="text-xs font-medium mb-2 block">Trier par</Label>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as any)}
-                    className="w-full text-sm border border-gray-300 rounded-md px-3 py-2"
-                  >
-                    <option value="name">Nom</option>
-                    <option value="missions">Nombre de missions</option>
-                    <option value="revenue">Revenus</option>
-                    {/* <option value="rating">Note moyenne</option> */}
-                  </select>
-                </div>
-                <div>
-                  <Label className="text-xs font-medium mb-2 block">Ordre</Label>
-                  <select
-                    value={sortOrder}
-                    onChange={(e) => setSortOrder(e.target.value as any)}
-                    className="w-full text-sm border border-gray-300 rounded-md px-3 py-2"
-                  >
-                    <option value="asc">Croissant</option>
-                    <option value="desc">Décroissant</option>
-                  </select>
-                </div>
-                <div>
-                  <Label className="text-xs font-medium mb-2 block">Disponibilité</Label>
-                  <select
-                    value={availabilityFilter}
-                    onChange={(e) => setAvailabilityFilter(e.target.value as any)}
-                    className="w-full text-sm border border-gray-300 rounded-md px-3 py-2"
-                  >
-                    <option value="all">Tous</option>
-                    <option value="available">Disponibles</option>
-                    <option value="unavailable">Indisponibles</option>
-                    <option value="available_on_request">Disponible sur demande</option>
-                  </select>
-                </div>
-                <div>
-                  <Label className="text-xs font-medium mb-2 block">Validation</Label>
-                  <select
-                    value={validationFilter}
-                    onChange={(e) => setValidationFilter(e.target.value as any)}
-                    className="w-full text-sm border border-gray-300 rounded-md px-3 py-2"
-                  >
-                    <option value="all">Tous</option>
-                    <option value="validated">Validés</option>
-                    <option value="not_validated">Non validés</option>
-                  </select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Informations sur l'annulation automatique */}
-      {/* <div className="px-6">
-        <Card className="border-blue-200 bg-blue-50">
-          <CardContent className="p-4">
-            <div className="flex items-start space-x-3">
-              <AlertTriangle className="h-5 w-5 text-blue-600 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="text-sm font-semibold text-blue-900 mb-1">
-                  Annulation automatique des demandes
-                </h3>
-                <p className="text-xs text-blue-700">
-                  Lorsqu'un technicien validé accepte une mission, les demandes en attente pour cette mission sont automatiquement annulées 
-                  si le nombre de techniciens validés requis est atteint.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div> */}
-
       {/* Statistiques globales */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 px-6">
+      <div className="grid grid-cols-2 md:grid-cols-7 gap-4 px-6">
         <div className="bg-white rounded-lg p-3 border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
@@ -420,8 +266,6 @@ export function TechniciansTab() {
             <Euro className="h-5 w-5 text-green-600" />
           </div>
         </div>
-
-        
 
         <div className="bg-white rounded-lg p-3 border border-gray-200">
           <div className="flex items-center justify-between">
@@ -462,18 +306,50 @@ export function TechniciansTab() {
             <UserCheck className="h-5 w-5 text-blue-600" />
           </div>
         </div>
+
+        <div className="bg-white rounded-lg p-3 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-gray-600">Avec disponibilités futures</p>
+              <p className="text-lg font-bold text-green-600">
+                {technicians.filter(tech => {
+                  const now = new Date()
+                  const futureAvailabilities = tech.availabilities?.filter(avail => parseISO(avail.start_time) > now) || []
+                  return futureAvailabilities.length > 0
+                }).length}
+              </p>
+            </div>
+            <CalendarCheck className="h-5 w-5 text-green-600" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg p-3 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-gray-600">Avec indisponibilités futures</p>
+              <p className="text-lg font-bold text-red-600">
+                {technicians.filter(tech => {
+                  const now = new Date()
+                  const futureUnavailabilities = tech.unavailabilities?.filter(unavail => parseISO(unavail.start_time) > now) || []
+                  return futureUnavailabilities.length > 0
+                }).length}
+              </p>
+            </div>
+            <CalendarX className="h-5 w-5 text-red-600" />
+          </div>
+        </div>
       </div>
 
       {/* Liste des techniciens */}
       <div className="px-6">
-        {sortedTechnicians.length === 0 ? (
+        {filteredTechnicians.length === 0 ? (
           <div className="text-center py-12">
             <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500 text-sm">Aucun technicien trouvé</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {sortedTechnicians.map((technician) => (
+            {filteredTechnicians.map((technician) => (
               <Card key={technician.id} className="border border-gray-200 hover:border-indigo-200 transition-colors">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
@@ -516,6 +392,44 @@ export function TechniciansTab() {
                             )
                           })()}
                           
+                          {/* Indicateur de disponibilités futures */}
+                          {(() => {
+                            const now = new Date()
+                            const futureAvailabilities = technician.availabilities?.filter(avail => 
+                              parseISO(avail.start_time) > now
+                            ) || []
+                            const futureUnavailabilities = technician.unavailabilities?.filter(unavail => 
+                              parseISO(unavail.start_time) > now
+                            ) || []
+                            
+                            return (
+                              <div className="flex items-center space-x-1 text-xs">
+                                {futureAvailabilities.length > 0 && (
+                                  <Badge 
+                                    variant="secondary" 
+                                    className="bg-green-100 text-green-800 cursor-pointer hover:bg-green-200"
+                                    title={`${futureAvailabilities.length} disponibilité${futureAvailabilities.length > 1 ? 's' : ''} future${futureAvailabilities.length > 1 ? 's' : ''}`}
+                                    onClick={() => handleOpenCalendar(technician)}
+                                  >
+                                    <CalendarCheck className="h-3 w-3 mr-1" />
+                                    {futureAvailabilities.length}
+                                  </Badge>
+                                )}
+                                {futureUnavailabilities.length > 0 && (
+                                  <Badge 
+                                    variant="secondary" 
+                                    className="bg-red-100 text-red-800 cursor-pointer hover:bg-red-200"
+                                    title={`${futureUnavailabilities.length} indisponibilité${futureUnavailabilities.length > 1 ? 's' : ''} future${futureUnavailabilities.length > 1 ? 's' : ''}`}
+                                    onClick={() => handleOpenCalendar(technician)}
+                                  >
+                                    <CalendarX className="h-3 w-3 mr-1" />
+                                    {futureUnavailabilities.length}
+                                  </Badge>
+                                )}
+                              </div>
+                            )
+                          })()}
+                          
                           <Button
                             variant="ghost"
                             size="sm"
@@ -532,6 +446,15 @@ export function TechniciansTab() {
                             className="text-green-600 hover:text-green-700"
                           >
                             <Plus className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenCalendar(technician)}
+                            title="Voir le calendrier de disponibilités"
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            <Calendar className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -563,13 +486,6 @@ export function TechniciansTab() {
                               <Trash2 className="h-4 w-4" />
                             )}
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSelectedTechnician(selectedTechnician?.id === technician.id ? null : technician)}
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
                         </div>
                       </div>
 
@@ -585,11 +501,82 @@ export function TechniciansTab() {
                           <span>{technician.stats?.totalRevenue || 0}€</span>
                         </div>
                         
-                        
-                        
                         <div className="flex items-center space-x-1">
                           <Clock3 className="h-3 w-3 text-orange-500" />
                           <span>{technician.stats?.totalHours || 0}h</span>
+                        </div>
+
+                        <div className="flex items-center space-x-1">
+                          <CalendarCheck className="h-3 w-3 text-green-500" />
+                          <span>{technician.availabilities?.length || 0} dispo.</span>
+                        </div>
+                      </div>
+
+                      {/* Résumé des disponibilités */}
+                      <div className="mb-3">
+                        <div className="flex items-center justify-between text-xs mb-1">
+                          <span className="text-gray-500">Prochaines disponibilités</span>
+                          <span className="font-medium">
+                            {(() => {
+                              const now = new Date()
+                              const futureAvailabilities = technician.availabilities?.filter(avail => 
+                                parseISO(avail.start_time) > now
+                              ) || []
+                              return futureAvailabilities.length
+                            })()}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {(() => {
+                            const now = new Date()
+                            const futureAvailabilities = technician.availabilities?.filter(avail => 
+                              parseISO(avail.start_time) > now
+                            ).slice(0, 3) || []
+                            
+                            return futureAvailabilities.length > 0 ? (
+                              futureAvailabilities.map((availability) => (
+                                <Badge key={availability.id} variant="secondary" className="text-xs bg-green-100 text-green-800">
+                                  {format(parseISO(availability.start_time), 'dd/MM', { locale: fr })}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-xs text-gray-500">Aucune disponibilité future</span>
+                            )
+                          })()}
+                        </div>
+                      </div>
+
+                      {/* Résumé des indisponibilités */}
+                      <div className="mb-3">
+                        <div className="flex items-center justify-between text-xs mb-1">
+                          <span className="text-gray-500">Prochaines indisponibilités</span>
+                          <span className="font-medium">
+                            {(() => {
+                              const now = new Date()
+                              const futureUnavailabilities = technician.unavailabilities?.filter(unavail => 
+                                parseISO(unavail.start_time) > now
+                              ) || []
+                              return futureUnavailabilities.length
+                            })()}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {(() => {
+                            const now = new Date()
+                            const futureUnavailabilities = technician.unavailabilities?.filter(unavail => 
+                              parseISO(unavail.start_time) > now
+                            ).slice(0, 3) || []
+                            
+                            return futureUnavailabilities.length > 0 ? (
+                              futureUnavailabilities.map((unavailability) => (
+                                <Badge key={unavailability.id} variant="secondary" className="text-xs bg-red-100 text-red-800">
+                                  {format(parseISO(unavailability.start_time), 'dd/MM', { locale: fr })}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-xs text-gray-500">Aucune indisponibilité future</span>
+                            )
+                          })()}
                         </div>
                       </div>
 
@@ -609,160 +596,6 @@ export function TechniciansTab() {
                                 width: `${((technician.stats?.acceptedAssignments || 0) / (technician.stats?.totalAssignments || 1)) * 100}%`
                               }}
                             />
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Vue détaillée */}
-                      {showDetailedView && selectedTechnician?.id === technician.id && (
-                        <div className="mt-4 pt-4 border-t border-gray-100 space-y-4">
-                          {/* Missions récentes */}
-                          <div>
-                            <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
-                              <CalendarDays className="h-4 w-4 mr-2" />
-                              Missions récentes
-                            </h4>
-                            <div className="space-y-2">
-                              {technician.recentMissions && technician.recentMissions.length > 0 ? (
-                                technician.recentMissions.map((mission) => (
-                                  <div key={mission.id} className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
-                                    <div className="flex-1">
-                                      <div className="font-medium">{mission.title}</div>
-                                      <div className="text-gray-500">{mission.location}</div>
-                                    </div>
-                                    <div className="text-right">
-                                      <div className="font-medium">{mission.forfeit}€</div>
-                                      <div className="text-gray-500">
-                                        {format(parseISO(mission.date_start), 'dd/MM', { locale: fr })}
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))
-                              ) : (
-                                <div className="text-gray-500 text-xs">Aucune mission récente</div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Informations de contact */}
-                          <div>
-                            <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
-                              <Contact className="h-4 w-4 mr-2" />
-                              Informations de contact
-                            </h4>
-                            <div className="space-y-2">
-                              {technician.phone && (
-                                <div className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
-                                  <div className="flex items-center">
-                                    <Phone className="h-3 w-3 mr-2" />
-                                    <span className="text-gray-500">Téléphone</span>
-                                  </div>
-                                  <span className="font-medium">{technician.phone}</span>
-                                </div>
-                              )}
-                              {technician.email && (
-                                <div className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
-                                  <div className="flex items-center">
-                                    <Mail className="h-3 w-3 mr-2" />
-                                    <span className="text-gray-500">Email</span>
-                                  </div>
-                                  <span className="font-medium">{technician.email}</span>
-                                </div>
-                              )}
-                              {technician.address && (
-                                <div className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
-                                  <div className="flex items-center">
-                                    <MapPin className="h-3 w-3 mr-2" />
-                                    <span className="text-gray-500">Adresse</span>
-                                  </div>
-                                  <span className="font-medium">{technician.address}</span>
-                                </div>
-                              )}
-                              {(!technician.phone && !technician.email && !technician.address) && (
-                                <div className="text-gray-500 text-xs">Aucune information de contact</div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Disponibilités */}
-                          <div>
-                            <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
-                              <CalendarCheck className="h-4 w-4 mr-2" />
-                              Disponibilités ({technician.availabilities?.length || 0})
-                            </h4>
-                            <div className="space-y-1">
-                              {technician.availabilities && technician.availabilities.length > 0 ? (
-                                technician.availabilities.slice(0, 3).map((availability) => (
-                                  <div key={availability.id} className="flex items-center justify-between p-2 bg-blue-50 rounded text-xs">
-                                    <div>
-                                      {format(parseISO(availability.start_time), 'dd/MM HH:mm', { locale: fr })} - 
-                                      {format(parseISO(availability.end_time), 'HH:mm', { locale: fr })}
-                                    </div>
-                                  </div>
-                                ))
-                              ) : (
-                                <div className="text-gray-500 text-xs">Aucune disponibilité</div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Indisponibilités */}
-                          <div>
-                            <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
-                              <CalendarX className="h-4 w-4 mr-2" />
-                              Indisponibilités ({technician.unavailabilities?.length || 0})
-                            </h4>
-                            <div className="space-y-1">
-                              {technician.unavailabilities && technician.unavailabilities.length > 0 ? (
-                                technician.unavailabilities.slice(0, 3).map((unavailability) => (
-                                  <div key={unavailability.id} className="flex items-center justify-between p-2 bg-red-50 rounded text-xs">
-                                    <div>
-                                      <div>
-                                        {format(parseISO(unavailability.start_time), 'dd/MM HH:mm', { locale: fr })} - 
-                                        {format(parseISO(unavailability.end_time), 'HH:mm', { locale: fr })}
-                                      </div>
-                                      {unavailability.reason && (
-                                        <div className="text-gray-600 mt-1">
-                                          <Ban className="h-3 w-3 inline mr-1" />
-                                          {unavailability.reason}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                ))
-                              ) : (
-                                <div className="text-gray-500 text-xs">Aucune indisponibilité</div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Statistiques détaillées */}
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">Acceptées</span>
-                                <span className="font-medium text-green-600">{technician.stats?.acceptedAssignments || 0}</span>
-                              </div>
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">En attente</span>
-                                <span className="font-medium text-orange-600">{technician.stats?.pendingAssignments || 0}</span>
-                              </div>
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">Refusées</span>
-                                <span className="font-medium text-red-600">{technician.stats?.rejectedAssignments || 0}</span>
-                              </div>
-                            </div>
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">Revenus</span>
-                                <span className="font-medium text-green-600">{technician.stats?.totalRevenue || 0}€</span>
-                              </div>
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">Heures</span>
-                                <span className="font-medium text-blue-600">{technician.stats?.totalHours || 0}h</span>
-                              </div>
-                              
-                            </div>
                           </div>
                         </div>
                       )}
@@ -828,6 +661,15 @@ export function TechniciansTab() {
         open={createPaymentDialogOpen}
         onOpenChange={setCreatePaymentDialogOpen}
       />
+
+      {/* Dialogue du calendrier de disponibilités */}
+      {selectedTechnicianForCalendar && (
+        <TechnicianAvailabilityCalendar
+          technician={selectedTechnicianForCalendar}
+          open={calendarDialogOpen}
+          onOpenChange={setCalendarDialogOpen}
+        />
+      )}
     </div>
   )
 }

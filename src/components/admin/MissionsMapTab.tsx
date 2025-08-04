@@ -59,8 +59,8 @@ const DEPOTS = [
     latitude: 48.9733,
     longitude: 1.7075,
     type: 'départ',
-    description: 'Dépôt principal pour les missions de livraison et prestations',
-    radius: 50000 // 50km de rayon de service
+    description: 'Dépôt principal ',
+    radius: 90000 // 90km de rayon de service
   }
 ]
 

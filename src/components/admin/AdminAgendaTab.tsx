@@ -6,6 +6,15 @@ import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
 import { format, parseISO, isValid, startOfDay, endOfDay, addHours } from 'date-fns'
 import { fr } from 'date-fns/locale'
+
+// Fonction utilitaire pour convertir les dates UTC en heure locale
+const convertUTCToLocal = (dateString: string): Date => {
+  const utcDate = parseISO(dateString)
+  if (!isValid(utcDate)) {
+    throw new Error('Date invalide')
+  }
+  return new Date(utcDate.getTime() + (utcDate.getTimezoneOffset() * 60000))
+}
 import { useAdminStore } from '@/store/adminStore'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -271,20 +280,12 @@ export function AdminAgendaTab() {
       let endDate: Date
       
       try {
-        const startMoment = parseISO(mission.date_start)
-        const endMoment = parseISO(mission.date_end)
+        // Conversion des dates UTC en heure locale
+        startDate = convertUTCToLocal(mission.date_start)
+        endDate = convertUTCToLocal(mission.date_end)
         
-        if (!isValid(startMoment) || !isValid(endMoment)) {
-          console.error(`Dates invalides pour la mission ${mission.title}`)
-          startDate = addHours(startOfDay(new Date()), 9)
-          endDate = addHours(startOfDay(new Date()), 17)
-        } else {
-          startDate = startMoment
-          endDate = endMoment
-          
-          if (endDate < startDate) {
-            endDate = addHours(startDate, 2)
-          }
+        if (endDate < startDate) {
+          endDate = addHours(startDate, 2)
         }
       } catch (error) {
         console.error(`Erreur parsing dates pour ${mission.title}:`, error)
@@ -606,7 +607,15 @@ export function AdminAgendaTab() {
                                   <div className="flex items-center space-x-1">
                                     <Clock className="h-3 w-3" />
                                     <span>
-                                      {format(parseISO(mission.date_start), 'dd/MM HH:mm', { locale: fr })} - {format(parseISO(mission.date_end), 'HH:mm', { locale: fr })}
+                                      {(() => {
+                                        try {
+                                          const startDate = convertUTCToLocal(mission.date_start)
+                                          const endDate = convertUTCToLocal(mission.date_end)
+                                          return `${format(startDate, 'dd/MM HH:mm', { locale: fr })} - ${format(endDate, 'HH:mm', { locale: fr })}`
+                                        } catch (error) {
+                                          return 'Heures non disponibles'
+                                        }
+                                      })()}
                                     </span>
                                   </div>
                                   
@@ -784,7 +793,15 @@ export function AdminAgendaTab() {
                   <div className="flex items-center space-x-2">
                     <Clock className="h-3 w-3 text-gray-500" />
                     <span>
-                      {format(selectedEvent.start, 'dd/MM/yyyy HH:mm', { locale: fr })} - {format(selectedEvent.end, 'HH:mm', { locale: fr })}
+                      {(() => {
+                        try {
+                          const startDate = convertUTCToLocal(selectedEvent.resource.date_start)
+                          const endDate = convertUTCToLocal(selectedEvent.resource.date_end)
+                          return `${format(startDate, 'dd/MM/yyyy HH:mm', { locale: fr })} - ${format(endDate, 'HH:mm', { locale: fr })}`
+                        } catch (error) {
+                          return 'Heures non disponibles'
+                        }
+                      })()}
                     </span>
                   </div>
                   
@@ -977,10 +994,10 @@ export function AdminAgendaTab() {
                             </div>
                             <div className="text-right">
                               <div className="font-medium">
-                                Du {format(parseISO(availability.start_time), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                                Du {format(convertUTCToLocal(availability.start_time), 'dd/MM/yyyy HH:mm', { locale: fr })}
                               </div>
                               <div className="text-green-600">
-                                Au {format(parseISO(availability.end_time), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                                Au {format(convertUTCToLocal(availability.end_time), 'dd/MM/yyyy HH:mm', { locale: fr })}
                               </div>
                             </div>
                           </div>
@@ -1033,10 +1050,10 @@ export function AdminAgendaTab() {
                             </div>
                             <div className="text-right">
                               <div className="font-medium">
-                                Du {format(parseISO(unavailability.start_time), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                                Du {format(convertUTCToLocal(unavailability.start_time), 'dd/MM/yyyy HH:mm', { locale: fr })}
                               </div>
                               <div className="text-red-600">
-                                Au {format(parseISO(unavailability.end_time), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                                Au {format(convertUTCToLocal(unavailability.end_time), 'dd/MM/yyyy HH:mm', { locale: fr })}
                               </div>
                               {unavailability.reason && (
                                 <div className="text-red-500 text-xs mt-1">
@@ -1200,7 +1217,7 @@ export function AdminAgendaTab() {
                                     return futureAvailabilities.length > 0 ? (
                                       futureAvailabilities.map((availability) => (
                                         <Badge key={availability.id} variant="secondary" className="text-xs bg-green-100 text-green-800">
-                                          {format(parseISO(availability.start_time), 'dd/MM', { locale: fr })}
+                                          {format(convertUTCToLocal(availability.start_time), 'dd/MM', { locale: fr })}
                                         </Badge>
                                       ))
                                     ) : (

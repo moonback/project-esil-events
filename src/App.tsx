@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { AuthForm } from '@/components/auth/AuthForm'
+import AuthCallback from '@/components/auth/AuthCallback'
 import { Layout } from '@/components/layout/Layout'
 import { Sparkles, Loader2, AlertCircle, CheckCircle } from 'lucide-react'
 import { NotificationContainer } from '@/components/ui/notification'
@@ -157,12 +158,20 @@ function App() {
     initializeApp()
   }, []) // Dépendance vide pour n'exécuter qu'une fois
 
+  // Vérifier si nous sommes sur la route de callback d'authentification
+  const isAuthCallback = window.location.pathname === '/auth/callback'
+
   // Optimisation du rendu conditionnel
   const shouldShowLoading = loading || initializing
 
   // Écran de chargement
   if (shouldShowLoading) {
     return <LoadingScreen isLoading={loading} isInitializing={initializing} />
+  }
+
+  // Si nous sommes sur la route de callback, afficher le composant de callback
+  if (isAuthCallback) {
+    return <AuthCallback />
   }
 
   // Contenu principal avec gestion d'erreur

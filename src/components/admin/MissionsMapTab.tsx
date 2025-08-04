@@ -271,6 +271,7 @@ export function MissionsMapTab({ onViewMission, onEditMission, isModalOpen = fal
   const [routeDetails, setRouteDetails] = useState<RouteDetails | null>(null)
   const [routeLoading, setRouteLoading] = useState(false)
   const [showMissionDetails, setShowMissionDetails] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
 
   // Filtrer les missions avec coordonnées
   const missionsWithCoords = missions.filter(m => m.latitude && m.longitude)
@@ -592,68 +593,84 @@ export function MissionsMapTab({ onViewMission, onEditMission, isModalOpen = fal
           // Affichage de la liste des missions (code existant)
           <>
 
-            {/* Filtres et tri */}
+            {/* Barre de recherche */}
             <Card>
               <CardContent className="p-4">
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <Search className="h-4 w-4 text-gray-500" />
-                    <Input
-                      placeholder="Rechercher une mission..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="flex-1"
-                    />
-                  </div>
-                  
-                  <div className="flex space-x-2">
-                    <select
-                      value={selectedType}
-                      onChange={(e) => setSelectedType(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
-                    >
-                      <option value="all">Tous les types</option>
-                      {missionTypes.map(type => (
-                        <option key={type} value={type}>{type}</option>
-                      ))}
-                    </select>
-                    
-                    <select
-                      value={selectedStatus}
-                      onChange={(e) => setSelectedStatus(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
-                    >
-                      <option value="all">Tous les statuts</option>
-                      <option value="complete">Complètes</option>
-                      <option value="partial">Partiellement assignées</option>
-                      <option value="pending">En attente</option>
-                      <option value="empty">Non assignées</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium text-gray-600">Trier par:</span>
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value as 'date' | 'forfeit' | 'title')}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
-                    >
-                      <option value="date">Date</option>
-                      <option value="forfeit">Forfait</option>
-                      <option value="title">Titre</option>
-                    </select>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                      className="px-2"
-                    >
-                      {sortOrder === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
-                    </Button>
-                  </div>
+                <div className="flex items-center space-x-2">
+                  <Search className="h-4 w-4 text-gray-500" />
+                  <Input
+                    placeholder="Rechercher une mission..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="flex items-center space-x-2"
+                  >
+                    <Filter className="h-4 w-4" />
+                    {showFilters ? 'Masquer' : 'Filtres'}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
+
+            {/* Filtres avancés */}
+            {showFilters && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    <div className="flex space-x-2">
+                      <select
+                        value={selectedType}
+                        onChange={(e) => setSelectedType(e.target.value)}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      >
+                        <option value="all">Tous les types</option>
+                        {missionTypes.map(type => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
+                      
+                      <select
+                        value={selectedStatus}
+                        onChange={(e) => setSelectedStatus(e.target.value)}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      >
+                        <option value="all">Tous les statuts</option>
+                        <option value="complete">Complètes</option>
+                        <option value="partial">Partiellement assignées</option>
+                        <option value="pending">En attente</option>
+                        <option value="empty">Non assignées</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium text-gray-600">Trier par:</span>
+                      <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value as 'date' | 'forfeit' | 'title')}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      >
+                        <option value="date">Date</option>
+                        <option value="forfeit">Forfait</option>
+                        <option value="title">Titre</option>
+                      </select>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                        className="px-2"
+                      >
+                        {sortOrder === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Liste des missions */}
             <Card className="flex-1">

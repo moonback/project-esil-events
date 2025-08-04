@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { UserPlus, Users, Check, X, Clock, AlertTriangle, Calendar } from 'lucide-react'
+import { UserPlus, Users, Check, X, Clock, AlertTriangle, Calendar, Mail } from 'lucide-react'
 import { formatCurrency, getMissionTypeColor, getStatusColor } from '@/lib/utils'
 import type { Mission, User, MissionAssignment, Availability, Unavailability } from '@/types/database'
+import { emailClient } from '@/lib/emailClient'
+import { useToast } from '@/lib/useToast'
 
 interface AssignTechniciansDialogProps {
   mission?: Mission | null
@@ -26,8 +28,10 @@ interface TechnicianWithAssignment extends User {
 export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignTechniciansDialogProps) {
   const { fetchMissions } = useAdminStore()
   const [loading, setLoading] = useState(false)
+  const [sendingEmails, setSendingEmails] = useState(false)
   const [technicians, setTechnicians] = useState<TechnicianWithAssignment[]>([])
   const [selectedTechnicians, setSelectedTechnicians] = useState<string[]>([])
+  const { addNotification } = useToast()
 
   useEffect(() => {
     if (open && mission) {
@@ -209,6 +213,44 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
           .insert(assignments)
 
         if (error) throw error
+
+        // Envoyer les emails de notification
+        setSendingEmails(true)
+        try {
+          const selectedTechnicianData = technicians.filter(t => selectedTechnicians.includes(t.id))
+          
+          const emailResults = await emailClient.sendBulkAssignmentNotifications(
+            selectedTechnicianData,
+            mission,
+            'L\'équipe Esil-events'
+          )
+
+          // Afficher les résultats des emails
+          if (emailResults.success.length > 0) {
+            addNotification({
+              type: 'success',
+              title: 'Emails envoyés',
+              message: `${emailResults.success.length} email(s) envoyé(s) avec succès`
+            })
+          }
+
+          if (emailResults.failed.length > 0) {
+            addNotification({
+              type: 'warning',
+              title: 'Erreurs d\'envoi',
+              message: `${emailResults.failed.length} email(s) n\'ont pas pu être envoyé(s)`
+            })
+          }
+        } catch (emailError) {
+          console.error('Erreur lors de l\'envoi des emails:', emailError)
+          addNotification({
+            type: 'error',
+            title: 'Erreur emails',
+            message: 'Erreur lors de l\'envoi des notifications par email'
+          })
+        } finally {
+          setSendingEmails(false)
+        }
       }
 
       // Rafraîchir les données dans le store admin
@@ -216,6 +258,11 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
       onOpenChange(false)
     } catch (error) {
       console.error('Erreur lors de l\'assignation:', error)
+      addNotification({
+        type: 'error',
+        title: 'Erreur assignation',
+        message: 'Erreur lors de l\'assignation des techniciens'
+      })
     } finally {
       setLoading(false)
     }
@@ -486,15 +533,18 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                disabled={loading}
+                disabled={loading || sendingEmails}
               >
                 Annuler
               </Button>
               <Button 
                 onClick={handleAssign} 
-                disabled={loading || selectedTechnicians.length === 0}
+                disabled={loading || sendingEmails || selectedTechnicians.length === 0}
               >
-                {loading ? 'Assignation...' : `Assigner ${selectedTechnicians.length} technicien(s)`}
+                {loading ? 'Assignation...' : 
+                 sendingEmails ? 'Envoi des emails...' : 
+                 `Assigner ${selectedTechnicians.length} technicien(s)`}
+                {sendingEmails && <Mail className="h-4 w-4 ml-2" />}
               </Button>
             </div>
           </div>

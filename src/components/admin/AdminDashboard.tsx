@@ -8,6 +8,7 @@ import { MissionsWithAssignmentsTab } from './MissionsWithAssignmentsTab'
 import { MissionsMapTab } from './MissionsMapTab'
 import { TestNotifications } from './TestNotifications'
 import { DebugNotifications } from './DebugNotifications'
+import { TestEmailDialog } from './TestEmailDialog'
 
 import { MissionDialog } from './MissionDialog'
 import { MissionViewDialog } from './MissionViewDialog'
@@ -34,6 +35,7 @@ export function AdminDashboard() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [viewDialogOpen, setViewDialogOpen] = useState(false)
   const [missionToView, setMissionToView] = useState<MissionWithAssignments | null>(null)
+  const [testEmailDialogOpen, setTestEmailDialogOpen] = useState(false)
   
   // Activer la synchronisation en temps réel
   useRealtimeSync()
@@ -286,6 +288,18 @@ export function AdminDashboard() {
            <div className="animate-slide-in-right space-y-6">
              <TestNotifications />
              <DebugNotifications />
+             <div className="bg-white border border-gray-200 rounded-lg p-6">
+               <h3 className="text-lg font-semibold mb-4">Test de configuration SMTP</h3>
+               <p className="text-gray-600 mb-4">
+                 Testez la configuration SMTP pour l'envoi d'emails de notification aux techniciens.
+               </p>
+               <button
+                 onClick={() => setTestEmailDialogOpen(true)}
+                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+               >
+                 Tester l'envoi d'emails
+               </button>
+             </div>
            </div>
          )}
       </div>
@@ -329,6 +343,12 @@ export function AdminDashboard() {
         open={viewDialogOpen}
         onOpenChange={setViewDialogOpen}
         onEdit={handleEditFromView}
+      />
+
+      {/* Dialogue de test d'email */}
+      <TestEmailDialog
+        open={testEmailDialogOpen}
+        onOpenChange={setTestEmailDialogOpen}
       />
     </div>
   )

@@ -281,8 +281,8 @@ export function AdminAgendaTab() {
       
       try {
         // Conversion des dates UTC en heure locale
-        startDate = convertUTCToLocal(mission.date_start)
-        endDate = convertUTCToLocal(mission.date_end)
+        startDate = parseISO(convertUTCToLocal(mission.date_start).toISOString())
+        endDate = parseISO(convertUTCToLocal(mission.date_end).toISOString())
         
         if (endDate < startDate) {
           endDate = addHours(startDate, 2)
@@ -609,8 +609,8 @@ export function AdminAgendaTab() {
                                     <span>
                                       {(() => {
                                         try {
-                                          const startDate = convertUTCToLocal(mission.date_start)
-                                          const endDate = convertUTCToLocal(mission.date_end)
+                                          const startDate = parseISO(convertUTCToLocal(mission.date_start).toISOString())
+                                          const endDate = parseISO(convertUTCToLocal(mission.date_end).toISOString())
                                           return `${format(startDate, 'dd/MM HH:mm', { locale: fr })} - ${format(endDate, 'HH:mm', { locale: fr })}`
                                         } catch (error) {
                                           return 'Heures non disponibles'
@@ -795,8 +795,8 @@ export function AdminAgendaTab() {
                     <span>
                       {(() => {
                         try {
-                          const startDate = convertUTCToLocal(selectedEvent.resource.date_start)
-                          const endDate = convertUTCToLocal(selectedEvent.resource.date_end)
+                          const startDate = parseISO(convertUTCToLocal(selectedEvent.resource.date_start).toISOString())
+                          const endDate = parseISO(convertUTCToLocal(selectedEvent.resource.date_end).toISOString())
                           return `${format(startDate, 'dd/MM/yyyy HH:mm', { locale: fr })} - ${format(endDate, 'HH:mm', { locale: fr })}`
                         } catch (error) {
                           return 'Heures non disponibles'
@@ -994,10 +994,10 @@ export function AdminAgendaTab() {
                             </div>
                             <div className="text-right">
                               <div className="font-medium">
-                                Du {format(convertUTCToLocal(availability.start_time), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                                Du {format(parseISO(availability.start_time), 'dd/MM/yyyy HH:mm', { locale: fr })}
                               </div>
                               <div className="text-green-600">
-                                Au {format(convertUTCToLocal(availability.end_time), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                                Au {format(parseISO(availability.end_time), 'dd/MM/yyyy HH:mm', { locale: fr })}
                               </div>
                             </div>
                           </div>
@@ -1050,10 +1050,10 @@ export function AdminAgendaTab() {
                             </div>
                             <div className="text-right">
                               <div className="font-medium">
-                                Du {format(convertUTCToLocal(unavailability.start_time), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                                Du {format(parseISO(unavailability.start_time), 'dd/MM/yyyy HH:mm', { locale: fr })}
                               </div>
                               <div className="text-red-600">
-                                Au {format(convertUTCToLocal(unavailability.end_time), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                                Au {format(parseISO(unavailability.end_time), 'dd/MM/yyyy HH:mm', { locale: fr })}
                               </div>
                               {unavailability.reason && (
                                 <div className="text-red-500 text-xs mt-1">
@@ -1217,7 +1217,7 @@ export function AdminAgendaTab() {
                                     return futureAvailabilities.length > 0 ? (
                                       futureAvailabilities.map((availability) => (
                                         <Badge key={availability.id} variant="secondary" className="text-xs bg-green-100 text-green-800">
-                                          {format(convertUTCToLocal(availability.start_time), 'dd/MM', { locale: fr })}
+                                          {format(parseISO(availability.start_time), 'dd/MM', { locale: fr })}
                                         </Badge>
                                       ))
                                     ) : (

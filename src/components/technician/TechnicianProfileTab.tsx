@@ -36,6 +36,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import type { User, Mission, MissionAssignment, Billing, Notification, BillingWithDetails } from '@/types/database'
 import { useToast } from '@/lib/useToast'
+import { parseISO, isValid } from 'date-fns'
 
 interface TechnicianStats {
   totalMissions: number
@@ -230,6 +231,19 @@ export function TechnicianProfileTab({ onTabChange }: TechnicianProfileTabProps)
       style: 'currency',
       currency: 'EUR'
     }).format(amount)
+  }
+
+  const convertUTCToLocal = (dateString: string): string => {
+    try {
+      const utcDate = parseISO(dateString)
+      if (!isValid(utcDate)) {
+        return dateString
+      }
+      const localDate = new Date(utcDate.getTime() + (utcDate.getTimezoneOffset() * 60000))
+      return localDate.toISOString()
+    } catch {
+      return dateString
+    }
   }
 
   if (!profile) {

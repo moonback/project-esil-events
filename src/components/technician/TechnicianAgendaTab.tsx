@@ -8,12 +8,17 @@ import { format, parseISO, isValid, addHours, startOfDay } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 // Fonction utilitaire pour convertir les dates UTC en heure locale
-const convertUTCToLocal = (dateString: string): Date => {
-  const utcDate = parseISO(dateString)
-  if (!isValid(utcDate)) {
-    throw new Error('Date invalide')
+const convertUTCToLocal = (dateString: string): string => {
+  try {
+    const utcDate = parseISO(dateString)
+    if (!isValid(utcDate)) {
+      return dateString
+    }
+    const localDate = new Date(utcDate.getTime() + (utcDate.getTimezoneOffset() * 60000))
+    return localDate.toISOString()
+  } catch {
+    return dateString
   }
-  return new Date(utcDate.getTime() + (utcDate.getTimezoneOffset() * 60000))
 }
 
 import { useAuthStore } from '@/store/authStore'
@@ -107,8 +112,8 @@ export function TechnicianAgendaTab() {
       
       try {
         // Conversion des dates UTC en heure locale
-        startDate = convertUTCToLocal(assignment.missions.date_start)
-        endDate = convertUTCToLocal(assignment.missions.date_end)
+        startDate = parseISO(convertUTCToLocal(assignment.missions.date_start))
+        endDate = parseISO(convertUTCToLocal(assignment.missions.date_end))
         
         if (endDate < startDate) {
           endDate = addHours(startDate, 2)
@@ -140,8 +145,8 @@ export function TechnicianAgendaTab() {
       
       try {
         // Conversion des dates UTC en heure locale
-        startDate = convertUTCToLocal(availability.start_time)
-        endDate = convertUTCToLocal(availability.end_time)
+        startDate = parseISO(convertUTCToLocal(availability.start_time))
+        endDate = parseISO(convertUTCToLocal(availability.end_time))
         
         if (endDate < startDate) {
           endDate = addHours(startDate, 2)
@@ -173,8 +178,8 @@ export function TechnicianAgendaTab() {
       
       try {
         // Conversion des dates UTC en heure locale
-        startDate = convertUTCToLocal(unavailability.start_time)
-        endDate = convertUTCToLocal(unavailability.end_time)
+        startDate = parseISO(convertUTCToLocal(unavailability.start_time))
+        endDate = parseISO(convertUTCToLocal(unavailability.end_time))
         
         if (endDate < startDate) {
           endDate = addHours(startDate, 2)
@@ -215,8 +220,8 @@ export function TechnicianAgendaTab() {
 
   const handleMissionClick = useCallback((assignment: AcceptedMission) => {
     try {
-      const missionDate = convertUTCToLocal(assignment.missions.date_start)
-      const endDate = convertUTCToLocal(assignment.missions.date_end)
+      const missionDate = parseISO(convertUTCToLocal(assignment.missions.date_start))
+      const endDate = parseISO(convertUTCToLocal(assignment.missions.date_end))
       
       setSelectedEvent({
         resource: assignment,
@@ -238,7 +243,7 @@ export function TechnicianAgendaTab() {
   const totalRevenue = acceptedMissions.reduce((sum, assignment) => sum + assignment.missions.forfeit, 0)
   const upcomingMissions = acceptedMissions.filter(assignment => {
     try {
-      const missionDate = convertUTCToLocal(assignment.missions.date_start)
+      const missionDate = parseISO(convertUTCToLocal(assignment.missions.date_start))
       return isValid(missionDate) && missionDate > new Date()
     } catch (error) {
       return false
@@ -589,7 +594,7 @@ export function TechnicianAgendaTab() {
                 <div className="space-y-3">
                   {acceptedMissions.map((assignment) => {
                     try {
-                      const missionDate = convertUTCToLocal(assignment.missions.date_start)
+                      const missionDate = parseISO(convertUTCToLocal(assignment.missions.date_start))
                       const isUpcoming = isValid(missionDate) && missionDate > new Date()
                     
                                           return (

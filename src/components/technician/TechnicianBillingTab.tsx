@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils'
 import type { BillingWithDetails } from '@/types/database'
+import { parseISO, isValid } from 'date-fns'
 
 export function TechnicianBillingTab() {
   const profile = useAuthStore(state => state.profile)
@@ -137,6 +138,19 @@ export function TechnicianBillingTab() {
         return <CreditCard className="h-4 w-4" />
       default:
         return <AlertCircle className="h-4 w-4" />
+    }
+  }
+
+  const convertUTCToLocal = (dateString: string): string => {
+    try {
+      const utcDate = parseISO(dateString)
+      if (!isValid(utcDate)) {
+        return dateString
+      }
+      const localDate = new Date(utcDate.getTime() + (utcDate.getTimezoneOffset() * 60000))
+      return localDate.toISOString()
+    } catch {
+      return dateString
     }
   }
 

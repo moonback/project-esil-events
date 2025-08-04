@@ -19,12 +19,17 @@ import type { Mission, MissionWithAssignments } from '@/types/database'
 import { useAdminStore } from '@/store/adminStore'
 
 // Fonction utilitaire pour convertir les dates UTC en heure locale
-const convertUTCToLocal = (dateString: string): Date => {
-  const utcDate = parseISO(dateString)
-  if (!isValid(utcDate)) {
-    throw new Error('Date invalide')
+const convertUTCToLocal = (dateString: string): string => {
+  try {
+    const utcDate = parseISO(dateString)
+    if (!isValid(utcDate)) {
+      return dateString
+    }
+    const localDate = new Date(utcDate.getTime() + (utcDate.getTimezoneOffset() * 60000))
+    return localDate.toISOString()
+  } catch {
+    return dateString
   }
-  return new Date(utcDate.getTime() + (utcDate.getTimezoneOffset() * 60000))
 }
 
 // Fonction pour formater les dates avec conversion UTC

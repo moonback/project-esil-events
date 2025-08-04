@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { ChevronLeft, ChevronRight, Calendar, DollarSign, Clock, CheckCircle, AlertCircle } from 'lucide-react'
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils'
 import type { BillingWithDetails } from '@/types/database'
+import { parseISO, isValid } from 'date-fns'
 
 interface BillingCalendarViewProps {
   billings: BillingWithDetails[]
@@ -124,6 +125,19 @@ export function BillingCalendarView({ billings, onBillingClick }: BillingCalenda
     'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ]
+
+  const convertUTCToLocal = (dateString: string): string => {
+    try {
+      const utcDate = parseISO(dateString)
+      if (!isValid(utcDate)) {
+        return dateString
+      }
+      const localDate = new Date(utcDate.getTime() + (utcDate.getTimezoneOffset() * 60000))
+      return localDate.toISOString()
+    } catch {
+      return dateString
+    }
+  }
 
   return (
     <div className="space-y-4">

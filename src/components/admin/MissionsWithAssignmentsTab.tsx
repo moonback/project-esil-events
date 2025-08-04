@@ -20,7 +20,7 @@ import {
   CheckCircle2,
   Target
 } from 'lucide-react'
-import { format, parseISO } from 'date-fns'
+import { format, parseISO, addHours, isValid } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import type { MissionWithAssignments, User } from '@/types/database'
 import { AssignTechniciansDialog } from './AssignTechniciansDialog'
@@ -43,6 +43,37 @@ export function MissionsWithAssignmentsTab() {
     console.log('📊 MissionsWithAssignmentsTab: missions reçues:', missions)
     console.log('📊 MissionsWithAssignmentsTab: loading:', loading)
   }, [missions, loading])
+
+  const convertUTCToLocal = (dateString: string): string => {
+    try {
+      const utcDate = parseISO(dateString)
+      if (!isValid(utcDate)) {
+        return dateString
+      }
+      const localDate = new Date(utcDate.getTime() + (utcDate.getTimezoneOffset() * 60000))
+      return localDate.toISOString()
+    } catch {
+      return dateString
+    }
+  }
+
+  const formatDateTimeUTC = (dateString: string): string => {
+    try {
+      const localDate = convertUTCToLocal(dateString)
+      return format(parseISO(localDate), 'dd/MM/yyyy', { locale: fr })
+    } catch {
+      return 'Date invalide'
+    }
+  }
+
+  const formatTimeUTC = (dateString: string): string => {
+    try {
+      const localDate = convertUTCToLocal(dateString)
+      return format(parseISO(localDate), 'HH:mm', { locale: fr })
+    } catch {
+      return 'Heure invalide'
+    }
+  }
 
   const handleCancelPendingAssignments = async (missionId: string) => {
     try {
@@ -169,10 +200,10 @@ export function MissionsWithAssignmentsTab() {
                             </div>
                             <div>
                               <p className="font-medium text-gray-900">
-                                {format(parseISO(mission.date_start), 'dd/MM/yyyy', { locale: fr })}
+                                {formatDateTimeUTC(mission.date_start)}
                               </p>
                               <p className="text-xs text-gray-500">
-                                {format(parseISO(mission.date_start), 'HH:mm', { locale: fr })} - {format(parseISO(mission.date_end), 'HH:mm', { locale: fr })}
+                                {formatTimeUTC(mission.date_start)} - {formatTimeUTC(mission.date_end)}
                               </p>
                             </div>
                           </div>
@@ -301,11 +332,11 @@ export function MissionsWithAssignmentsTab() {
                                   <div className="text-xs text-gray-500">
                                     {assignment.cancelled_by_admin ? (
                                       <span className="text-orange-600 font-medium">
-                                        Annulé le {format(parseISO(assignment.responded_at), 'dd/MM/yyyy', { locale: fr })}
+                                        Annulé le {formatDateTimeUTC(assignment.responded_at)}
                                       </span>
                                     ) : (
                                       <span>
-                                        Répondu le {format(parseISO(assignment.responded_at), 'dd/MM/yyyy', { locale: fr })}
+                                        Répondu le {formatDateTimeUTC(assignment.responded_at)}
                                       </span>
                                     )}
                                   </div>

@@ -472,14 +472,14 @@ export function TechniciansTab() {
                               <Trash2 className="h-4 w-4" />
                             )}
                           </Button>
-                          <Button
+                          {/* <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => setSelectedTechnician(selectedTechnician?.id === technician.id ? null : technician)}
                             className="hover:bg-gray-50"
                           >
                             <MoreHorizontal className="h-4 w-4" />
-                          </Button>
+                          </Button> */}
                         </div>
                       </div>
 

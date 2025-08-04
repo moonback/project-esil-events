@@ -12,36 +12,31 @@ import { CreatePaymentDialog } from './CreatePaymentDialog'
 import { 
   Phone, 
   Users, 
-  Calendar, 
+  Calendar,
   CheckCircle, 
   XCircle, 
   Clock, 
   Euro,
   MapPin,
-  TrendingUp,
   AlertTriangle,
   Star,
-  Eye,
-  EyeOff,
   Search,
   Filter,
   MoreHorizontal,
-  CalendarDays,
   DollarSign,
   Activity,
   Award,
   UserCheck,
   UserX,
   Clock3,
-  CalendarCheck,
-  CalendarX,
   Contact,
   Mail,
   Ban,
   CheckCircle2,
   Clock4,
   Plus,
-  Trash2
+  Trash2,
+  Target
 } from 'lucide-react'
 import { format, parseISO, isValid } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -50,7 +45,6 @@ import type { User, MissionAssignment, Mission, Availability, Unavailability, Bi
 export function TechniciansTab() {
   const { technicians, loading, stats, validateTechnician, fetchTechnicians, deleteTechnician } = useAdminStore()
   const [searchTerm, setSearchTerm] = useState('')
-  const [showDetailedView, setShowDetailedView] = useState(false)
   const [selectedTechnician, setSelectedTechnician] = useState<TechnicianWithStats | null>(null)
   const [showFilters, setShowFilters] = useState(false)
   const [sortBy, setSortBy] = useState<'name' | 'missions' | 'revenue' | 'rating'>('name')
@@ -138,6 +132,8 @@ export function TechniciansTab() {
     }
   }
 
+
+
   // Les données sont maintenant gérées par le store admin avec les statistiques calculées
 
   const filteredTechnicians = technicians.filter(tech => {
@@ -196,10 +192,6 @@ export function TechniciansTab() {
       return aValue < bValue ? 1 : -1
     }
   })
-
-
-
-
 
   const handleOpenContact = (technician: User) => {
     setSelectedTechnicianForContact(technician)
@@ -264,9 +256,9 @@ export function TechniciansTab() {
 
   if (loading.technicians) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-center space-y-2">
-          <div className="w-6 h-6 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto"></div>
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-3 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto"></div>
           <p className="text-sm text-gray-600">Chargement des techniciens...</p>
         </div>
       </div>
@@ -274,31 +266,33 @@ export function TechniciansTab() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+
       {/* En-tête avec recherche et filtres */}
-      <div className="flex items-center justify-between bg-white border-b border-gray-200 px-6 py-3">
+      <div className="flex items-center justify-between bg-white border-b border-gray-200 px-6 py-4 rounded-lg shadow-sm">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Techniciens</h2>
-          <p className="text-sm text-gray-500">{technicians.length} technicien{technicians.length > 1 ? 's' : ''} au total</p>
+          <h2 className="text-xl font-semibold text-gray-900">Gestion des Techniciens</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            {technicians.length} technicien{technicians.length > 1 ? 's' : ''} au total • 
+            <span className="text-green-600 font-medium ml-1">
+              {technicians.filter(tech => tech.is_validated).length} validé{technicians.filter(tech => tech.is_validated).length > 1 ? 's' : ''}
+            </span>
+          </p>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowDetailedView(!showDetailedView)}
-          >
-            {showDetailedView ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
-            {showDetailedView ? 'Vue compacte' : 'Vue détaillée'}
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="h-4 w-4 mr-2" />
-            Filtres
-          </Button>
-        </div>
+                 <div className="flex items-center space-x-2">
+           <Badge variant="outline" className="bg-blue-50 text-blue-700">
+             <Target className="h-3 w-3 mr-1" />
+             Gestion des équipes
+           </Badge>
+           <Button 
+             variant="outline" 
+             size="sm"
+             onClick={() => setShowFilters(!showFilters)}
+           >
+             <Filter className="h-4 w-4 mr-2" />
+             Filtres
+           </Button>
+         </div>
       </div>
 
       {/* Barre de recherche */}
@@ -375,118 +369,32 @@ export function TechniciansTab() {
         </div>
       )}
 
-      {/* Informations sur l'annulation automatique */}
-      {/* <div className="px-6">
-        <Card className="border-blue-200 bg-blue-50">
-          <CardContent className="p-4">
-            <div className="flex items-start space-x-3">
-              <AlertTriangle className="h-5 w-5 text-blue-600 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="text-sm font-semibold text-blue-900 mb-1">
-                  Annulation automatique des demandes
-                </h3>
-                <p className="text-xs text-blue-700">
-                  Lorsqu'un technicien validé accepte une mission, les demandes en attente pour cette mission sont automatiquement annulées 
-                  si le nombre de techniciens validés requis est atteint.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div> */}
-
-      {/* Statistiques globales */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 px-6">
-        <div className="bg-white rounded-lg p-3 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-600">Total missions</p>
-              <p className="text-lg font-bold text-gray-900">
-                {technicians.reduce((sum, tech) => sum + (tech.stats?.totalAssignments || 0), 0)}
-              </p>
-            </div>
-            <Calendar className="h-5 w-5 text-blue-600" />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg p-3 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-600">Revenus totaux</p>
-              <p className="text-lg font-bold text-green-600">
-                {technicians.reduce((sum, tech) => sum + (tech.stats?.totalRevenue || 0), 0)}€
-              </p>
-            </div>
-            <Euro className="h-5 w-5 text-green-600" />
-          </div>
-        </div>
-
-        
-
-        <div className="bg-white rounded-lg p-3 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-600">Heures totales</p>
-              <p className="text-lg font-bold text-orange-600">
-                {technicians.reduce((sum, tech) => sum + (tech.stats?.totalHours || 0), 0)}h
-              </p>
-            </div>
-            <Clock3 className="h-5 w-5 text-orange-600" />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg p-3 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-600">Disponibles</p>
-              <p className="text-lg font-bold text-green-600">
-                {technicians.filter(tech => {
-                  const status = getAvailabilityStatus(tech).status
-                  // Considérer comme disponible tous les techniciens sauf ceux qui sont explicitement indisponibles
-                  return status !== 'indisponible'
-                }).length}
-              </p>
-            </div>
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg p-3 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-600">Validés</p>
-              <p className="text-lg font-bold text-blue-600">
-                {technicians.filter(tech => tech.is_validated).length}
-              </p>
-            </div>
-            <UserCheck className="h-5 w-5 text-blue-600" />
-          </div>
-        </div>
-      </div>
-
       {/* Liste des techniciens */}
       <div className="px-6">
         {sortedTechnicians.length === 0 ? (
-          <div className="text-center py-12">
-            <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-sm">Aucun technicien trouvé</p>
+          <div className="text-center py-16">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun technicien trouvé</h3>
+            <p className="text-gray-500 text-sm">Les techniciens apparaîtront ici une fois ajoutés</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {sortedTechnicians.map((technician) => (
-              <Card key={technician.id} className="border border-gray-200 hover:border-indigo-200 transition-colors">
-                <CardContent className="p-4">
+              <Card key={technician.id} className="border border-gray-200 hover:border-indigo-200 transition-all duration-200 shadow-sm hover:shadow-md">
+                <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       {/* En-tête du technicien */}
-                      <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
+                          <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold shadow-sm">
                             {technician.name.charAt(0)}
                           </div>
                           <div>
-                            <h3 className="text-base font-semibold text-gray-900">{technician.name}</h3>
-                            <div className="flex items-center space-x-2 text-xs text-gray-500">
+                            <h3 className="text-lg font-semibold text-gray-900">{technician.name}</h3>
+                            <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
                               <Badge variant="secondary" className="text-xs">Technicien</Badge>
                               {technician.is_validated && (
                                 <Badge variant="default" className="text-xs bg-blue-100 text-blue-800">
@@ -521,6 +429,7 @@ export function TechniciansTab() {
                             size="sm"
                             onClick={() => handleOpenContact(technician)}
                             title="Voir les informations de contact"
+                            className="hover:bg-blue-50"
                           >
                             <Contact className="h-4 w-4" />
                           </Button>
@@ -529,7 +438,7 @@ export function TechniciansTab() {
                             size="sm"
                             onClick={() => handleCreatePayment(technician)}
                             title="Créer un paiement"
-                            className="text-green-600 hover:text-green-700"
+                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
                           >
                             <Plus className="h-4 w-4" />
                           </Button>
@@ -539,7 +448,7 @@ export function TechniciansTab() {
                             onClick={() => handleValidateTechnician(technician.id, !technician.is_validated)}
                             title={technician.is_validated ? 'Dévalider le technicien' : 'Valider le technicien'}
                             disabled={validationLoading === technician.id}
-                            className={technician.is_validated ? 'text-red-600 hover:text-red-700' : 'text-blue-600 hover:text-blue-700'}
+                            className={technician.is_validated ? 'text-red-600 hover:text-red-700 hover:bg-red-50' : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'}
                           >
                             {validationLoading === technician.id ? (
                               <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -555,7 +464,7 @@ export function TechniciansTab() {
                             onClick={() => handleDeleteTechnician(technician.id, technician.name)}
                             title="Supprimer le technicien"
                             disabled={deleteLoading === technician.id}
-                            className="text-red-600 hover:text-red-700"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
                           >
                             {deleteLoading === technician.id ? (
                               <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -567,6 +476,7 @@ export function TechniciansTab() {
                             variant="ghost"
                             size="sm"
                             onClick={() => setSelectedTechnician(selectedTechnician?.id === technician.id ? null : technician)}
+                            className="hover:bg-gray-50"
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
@@ -574,29 +484,42 @@ export function TechniciansTab() {
                       </div>
 
                       {/* Statistiques principales */}
-                      <div className="grid grid-cols-2 gap-3 text-xs text-gray-600 mb-3">
-                        <div className="flex items-center space-x-1">
-                          <Calendar className="h-3 w-3 text-blue-500" />
-                          <span>{technician.stats?.totalAssignments || 0} missions</span>
+                      <div className="grid grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <Calendar className="h-4 w-4 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">{technician.stats?.totalAssignments || 0}</p>
+                            <p className="text-xs text-gray-500">Missions</p>
+                          </div>
                         </div>
                         
-                        <div className="flex items-center space-x-1">
-                          <Euro className="h-3 w-3 text-green-500" />
-                          <span>{technician.stats?.totalRevenue || 0}€</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                            <Euro className="h-4 w-4 text-green-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">{technician.stats?.totalRevenue || 0}€</p>
+                            <p className="text-xs text-gray-500">Revenus</p>
+                          </div>
                         </div>
                         
-                        
-                        
-                        <div className="flex items-center space-x-1">
-                          <Clock3 className="h-3 w-3 text-orange-500" />
-                          <span>{technician.stats?.totalHours || 0}h</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                            <Clock3 className="h-4 w-4 text-orange-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">{technician.stats?.totalHours || 0}h</p>
+                            <p className="text-xs text-gray-500">Heures</p>
+                          </div>
                         </div>
                       </div>
 
                       {/* Barre de progression */}
                       {(technician.stats?.totalAssignments || 0) > 0 && (
-                        <div className="mb-3">
-                          <div className="flex items-center justify-between text-xs mb-1">
+                        <div className="mb-4">
+                          <div className="flex items-center justify-between text-xs mb-2">
                             <span className="text-gray-500">Taux d'acceptation</span>
                             <span className="font-medium">
                               {Math.round(((technician.stats?.acceptedAssignments || 0) / (technician.stats?.totalAssignments || 1)) * 100)}%
@@ -613,159 +536,7 @@ export function TechniciansTab() {
                         </div>
                       )}
 
-                      {/* Vue détaillée */}
-                      {showDetailedView && selectedTechnician?.id === technician.id && (
-                        <div className="mt-4 pt-4 border-t border-gray-100 space-y-4">
-                          {/* Missions récentes */}
-                          <div>
-                            <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
-                              <CalendarDays className="h-4 w-4 mr-2" />
-                              Missions récentes
-                            </h4>
-                            <div className="space-y-2">
-                              {technician.recentMissions && technician.recentMissions.length > 0 ? (
-                                technician.recentMissions.map((mission) => (
-                                  <div key={mission.id} className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
-                                    <div className="flex-1">
-                                      <div className="font-medium">{mission.title}</div>
-                                      <div className="text-gray-500">{mission.location}</div>
-                                    </div>
-                                    <div className="text-right">
-                                      <div className="font-medium">{mission.forfeit}€</div>
-                                      <div className="text-gray-500">
-                                        {format(parseISO(mission.date_start), 'dd/MM', { locale: fr })}
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))
-                              ) : (
-                                <div className="text-gray-500 text-xs">Aucune mission récente</div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Informations de contact */}
-                          <div>
-                            <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
-                              <Contact className="h-4 w-4 mr-2" />
-                              Informations de contact
-                            </h4>
-                            <div className="space-y-2">
-                              {technician.phone && (
-                                <div className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
-                                  <div className="flex items-center">
-                                    <Phone className="h-3 w-3 mr-2" />
-                                    <span className="text-gray-500">Téléphone</span>
-                                  </div>
-                                  <span className="font-medium">{technician.phone}</span>
-                                </div>
-                              )}
-                              {technician.email && (
-                                <div className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
-                                  <div className="flex items-center">
-                                    <Mail className="h-3 w-3 mr-2" />
-                                    <span className="text-gray-500">Email</span>
-                                  </div>
-                                  <span className="font-medium">{technician.email}</span>
-                                </div>
-                              )}
-                              {technician.address && (
-                                <div className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
-                                  <div className="flex items-center">
-                                    <MapPin className="h-3 w-3 mr-2" />
-                                    <span className="text-gray-500">Adresse</span>
-                                  </div>
-                                  <span className="font-medium">{technician.address}</span>
-                                </div>
-                              )}
-                              {(!technician.phone && !technician.email && !technician.address) && (
-                                <div className="text-gray-500 text-xs">Aucune information de contact</div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Disponibilités */}
-                          <div>
-                            <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
-                              <CalendarCheck className="h-4 w-4 mr-2" />
-                              Disponibilités ({technician.availabilities?.length || 0})
-                            </h4>
-                            <div className="space-y-1">
-                              {technician.availabilities && technician.availabilities.length > 0 ? (
-                                technician.availabilities.slice(0, 3).map((availability) => (
-                                  <div key={availability.id} className="flex items-center justify-between p-2 bg-blue-50 rounded text-xs">
-                                    <div>
-                                      {format(parseISO(availability.start_time), 'dd/MM HH:mm', { locale: fr })} - 
-                                      {format(parseISO(availability.end_time), 'HH:mm', { locale: fr })}
-                                    </div>
-                                  </div>
-                                ))
-                              ) : (
-                                <div className="text-gray-500 text-xs">Aucune disponibilité</div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Indisponibilités */}
-                          <div>
-                            <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
-                              <CalendarX className="h-4 w-4 mr-2" />
-                              Indisponibilités ({technician.unavailabilities?.length || 0})
-                            </h4>
-                            <div className="space-y-1">
-                              {technician.unavailabilities && technician.unavailabilities.length > 0 ? (
-                                technician.unavailabilities.slice(0, 3).map((unavailability) => (
-                                  <div key={unavailability.id} className="flex items-center justify-between p-2 bg-red-50 rounded text-xs">
-                                    <div>
-                                      <div>
-                                        {format(parseISO(unavailability.start_time), 'dd/MM HH:mm', { locale: fr })} - 
-                                        {format(parseISO(unavailability.end_time), 'HH:mm', { locale: fr })}
-                                      </div>
-                                      {unavailability.reason && (
-                                        <div className="text-gray-600 mt-1">
-                                          <Ban className="h-3 w-3 inline mr-1" />
-                                          {unavailability.reason}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                ))
-                              ) : (
-                                <div className="text-gray-500 text-xs">Aucune indisponibilité</div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Statistiques détaillées */}
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">Acceptées</span>
-                                <span className="font-medium text-green-600">{technician.stats?.acceptedAssignments || 0}</span>
-                              </div>
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">En attente</span>
-                                <span className="font-medium text-orange-600">{technician.stats?.pendingAssignments || 0}</span>
-                              </div>
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">Refusées</span>
-                                <span className="font-medium text-red-600">{technician.stats?.rejectedAssignments || 0}</span>
-                              </div>
-                            </div>
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">Revenus</span>
-                                <span className="font-medium text-green-600">{technician.stats?.totalRevenue || 0}€</span>
-                              </div>
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">Heures</span>
-                                <span className="font-medium text-blue-600">{technician.stats?.totalHours || 0}h</span>
-                              </div>
-                              
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                      
                     </div>
                   </div>
                 </CardContent>

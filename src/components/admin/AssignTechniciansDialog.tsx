@@ -31,7 +31,7 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
   const [sendingEmails, setSendingEmails] = useState(false)
   const [technicians, setTechnicians] = useState<TechnicianWithAssignment[]>([])
   const [selectedTechnicians, setSelectedTechnicians] = useState<string[]>([])
-  const { addNotification } = useToast()
+  const { addToast } = useToast()
 
   useEffect(() => {
     if (open && mission) {
@@ -227,7 +227,7 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
 
           // Afficher les résultats des emails
           if (emailResults.success.length > 0) {
-            addNotification({
+            addToast({
               type: 'success',
               title: 'Emails envoyés',
               message: `${emailResults.success.length} email(s) envoyé(s) avec succès`
@@ -235,7 +235,7 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
           }
 
           if (emailResults.failed.length > 0) {
-            addNotification({
+            addToast({
               type: 'warning',
               title: 'Erreurs d\'envoi',
               message: `${emailResults.failed.length} email(s) n\'ont pas pu être envoyé(s)`
@@ -243,7 +243,7 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
           }
         } catch (emailError) {
           console.error('Erreur lors de l\'envoi des emails:', emailError)
-          addNotification({
+          addToast({
             type: 'error',
             title: 'Erreur emails',
             message: 'Erreur lors de l\'envoi des notifications par email'
@@ -258,7 +258,7 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
       onOpenChange(false)
     } catch (error) {
       console.error('Erreur lors de l\'assignation:', error)
-      addNotification({
+      addToast({
         type: 'error',
         title: 'Erreur assignation',
         message: 'Erreur lors de l\'assignation des techniciens'

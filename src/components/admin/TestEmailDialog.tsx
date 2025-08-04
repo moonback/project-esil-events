@@ -21,11 +21,11 @@ export function TestEmailDialog({ open, onOpenChange }: TestEmailDialogProps) {
     success: boolean
     message: string
   } | null>(null)
-  const { addNotification } = useToast()
+  const { addToast } = useToast()
 
   const handleTestEmail = async () => {
     if (!testEmail.trim()) {
-      addNotification({
+      addToast({
         type: 'error',
         title: 'Email requis',
         message: 'Veuillez saisir une adresse email de test'
@@ -74,7 +74,7 @@ export function TestEmailDialog({ open, onOpenChange }: TestEmailDialogProps) {
           success: true,
           message: `Email de test envoyé avec succès à ${testEmail}`
         })
-        addNotification({
+        addToast({
           type: 'success',
           title: 'Test réussi',
           message: 'Email de test envoyé avec succès'
@@ -84,7 +84,7 @@ export function TestEmailDialog({ open, onOpenChange }: TestEmailDialogProps) {
           success: false,
           message: `Erreur lors de l'envoi: ${result.error}`
         })
-        addNotification({
+        addToast({
           type: 'error',
           title: 'Test échoué',
           message: result.error || 'Erreur lors de l\'envoi de l\'email de test'
@@ -96,7 +96,7 @@ export function TestEmailDialog({ open, onOpenChange }: TestEmailDialogProps) {
         success: false,
         message: `Erreur: ${errorMessage}`
       })
-      addNotification({
+      addToast({
         type: 'error',
         title: 'Erreur de test',
         message: 'Erreur lors du test d\'envoi d\'email'

@@ -11,13 +11,28 @@ const AuthCallback: React.FC = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Récupérer les paramètres de l'URL (gérer à la fois hash et query params)
-        const hash = window.location.hash.substring(1)
-        const search = window.location.search.substring(1)
-        const urlParams = new URLSearchParams(hash || search)
+        // Récupérer les paramètres de l'URL
+        console.log('URL complète:', window.location.href)
+        console.log('Hash:', window.location.hash)
+        console.log('Search:', window.location.search)
+        
+        // Essayer d'abord le hash, puis les query params
+        let urlParams: URLSearchParams
+        if (window.location.hash) {
+          urlParams = new URLSearchParams(window.location.hash.substring(1))
+        } else if (window.location.search) {
+          urlParams = new URLSearchParams(window.location.search.substring(1))
+        } else {
+          throw new Error('Aucun paramètre trouvé dans l\'URL')
+        }
+        
         const accessToken = urlParams.get('access_token')
         const refreshToken = urlParams.get('refresh_token')
         const type = urlParams.get('type')
+        
+        console.log('Access Token:', accessToken ? 'Présent' : 'Absent')
+        console.log('Refresh Token:', refreshToken ? 'Présent' : 'Absent')
+        console.log('Type:', type)
 
         if (type === 'signup' && accessToken) {
           // Définir la session avec les tokens
@@ -49,7 +64,7 @@ const AuthCallback: React.FC = () => {
           }
         } else {
           setStatus('error')
-          setMessage('Lien de vérification invalide.')
+          setMessage(`Lien de vérification invalide. Type: ${type}, Token: ${accessToken ? 'Présent' : 'Absent'}`)
         }
       } catch (error) {
         console.error('Erreur lors du callback d\'authentification:', error)

@@ -6,6 +6,16 @@ import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
 import { format, parseISO, isValid, addHours, startOfDay } from 'date-fns'
 import { fr } from 'date-fns/locale'
+
+// Fonction utilitaire pour convertir les dates UTC en heure locale
+const convertUTCToLocal = (dateString: string): Date => {
+  const utcDate = parseISO(dateString)
+  if (!isValid(utcDate)) {
+    throw new Error('Date invalide')
+  }
+  return new Date(utcDate.getTime() + (utcDate.getTimezoneOffset() * 60000))
+}
+
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -96,20 +106,12 @@ export function TechnicianAgendaTab() {
       let endDate: Date
       
       try {
-        const startMoment = parseISO(assignment.missions.date_start)
-        const endMoment = parseISO(assignment.missions.date_end)
+        // Conversion des dates UTC en heure locale
+        startDate = convertUTCToLocal(assignment.missions.date_start)
+        endDate = convertUTCToLocal(assignment.missions.date_end)
         
-        if (!isValid(startMoment) || !isValid(endMoment)) {
-          console.error(`Dates invalides pour la mission ${assignment.missions.title}`)
-          startDate = addHours(startOfDay(new Date()), 9)
-          endDate = addHours(startOfDay(new Date()), 17)
-        } else {
-          startDate = startMoment
-          endDate = endMoment
-          
-          if (endDate < startDate) {
-            endDate = addHours(startDate, 2)
-          }
+        if (endDate < startDate) {
+          endDate = addHours(startDate, 2)
         }
       } catch (error) {
         console.error(`Erreur parsing dates pour ${assignment.missions.title}:`, error)
@@ -137,20 +139,12 @@ export function TechnicianAgendaTab() {
       let endDate: Date
       
       try {
-        const startMoment = parseISO(availability.start_time)
-        const endMoment = parseISO(availability.end_time)
+        // Conversion des dates UTC en heure locale
+        startDate = convertUTCToLocal(availability.start_time)
+        endDate = convertUTCToLocal(availability.end_time)
         
-        if (!isValid(startMoment) || !isValid(endMoment)) {
-          console.error(`Dates invalides pour la disponibilité ${availability.id}`)
-          startDate = addHours(startOfDay(new Date()), 9)
-          endDate = addHours(startOfDay(new Date()), 17)
-        } else {
-          startDate = startMoment
-          endDate = endMoment
-          
-          if (endDate < startDate) {
-            endDate = addHours(startDate, 2)
-          }
+        if (endDate < startDate) {
+          endDate = addHours(startDate, 2)
         }
       } catch (error) {
         console.error(`Erreur parsing dates pour la disponibilité ${availability.id}:`, error)
@@ -178,20 +172,12 @@ export function TechnicianAgendaTab() {
       let endDate: Date
       
       try {
-        const startMoment = parseISO(unavailability.start_time)
-        const endMoment = parseISO(unavailability.end_time)
+        // Conversion des dates UTC en heure locale
+        startDate = convertUTCToLocal(unavailability.start_time)
+        endDate = convertUTCToLocal(unavailability.end_time)
         
-        if (!isValid(startMoment) || !isValid(endMoment)) {
-          console.error(`Dates invalides pour l'indisponibilité ${unavailability.id}`)
-          startDate = addHours(startOfDay(new Date()), 9)
-          endDate = addHours(startOfDay(new Date()), 17)
-        } else {
-          startDate = startMoment
-          endDate = endMoment
-          
-          if (endDate < startDate) {
-            endDate = addHours(startDate, 2)
-          }
+        if (endDate < startDate) {
+          endDate = addHours(startDate, 2)
         }
       } catch (error) {
         console.error(`Erreur parsing dates pour l'indisponibilité ${unavailability.id}:`, error)
@@ -228,16 +214,20 @@ export function TechnicianAgendaTab() {
   }, [])
 
   const handleMissionClick = useCallback((assignment: AcceptedMission) => {
-    const missionDate = parseISO(assignment.missions.date_start)
-    const endDate = parseISO(assignment.missions.date_end)
-    
-    setSelectedEvent({
-      resource: assignment,
-      title: assignment.missions.title,
-      start: missionDate,
-      end: endDate,
-      type: 'mission'
-    })
+    try {
+      const missionDate = convertUTCToLocal(assignment.missions.date_start)
+      const endDate = convertUTCToLocal(assignment.missions.date_end)
+      
+      setSelectedEvent({
+        resource: assignment,
+        title: assignment.missions.title,
+        start: missionDate,
+        end: endDate,
+        type: 'mission'
+      })
+    } catch (error) {
+      console.error('Erreur lors de la conversion des dates:', error)
+    }
   }, [])
 
   const handleDateSelect = useCallback((selectInfo: any) => {
@@ -247,8 +237,12 @@ export function TechnicianAgendaTab() {
 
   const totalRevenue = acceptedMissions.reduce((sum, assignment) => sum + assignment.missions.forfeit, 0)
   const upcomingMissions = acceptedMissions.filter(assignment => {
-    const missionDate = parseISO(assignment.missions.date_start)
-    return isValid(missionDate) && missionDate > new Date()
+    try {
+      const missionDate = convertUTCToLocal(assignment.missions.date_start)
+      return isValid(missionDate) && missionDate > new Date()
+    } catch (error) {
+      return false
+    }
   })
 
   if (loading) {
@@ -594,52 +588,57 @@ export function TechnicianAgendaTab() {
               ) : (
                 <div className="space-y-3">
                   {acceptedMissions.map((assignment) => {
-                    const missionDate = parseISO(assignment.missions.date_start)
-                    const isUpcoming = isValid(missionDate) && missionDate > new Date()
+                    try {
+                      const missionDate = convertUTCToLocal(assignment.missions.date_start)
+                      const isUpcoming = isValid(missionDate) && missionDate > new Date()
                     
-                    return (
-                      <div key={assignment.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h4 className="font-medium text-gray-900">{assignment.missions.title}</h4>
-                            <Badge className={getMissionTypeColor(assignment.missions.type)}>
-                              {assignment.missions.type}
-                            </Badge>
-                            {isUpcoming && (
-                              <Badge className="bg-green-100 text-green-700">
-                                À venir
+                                          return (
+                        <div key={assignment.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <h4 className="font-medium text-gray-900">{assignment.missions.title}</h4>
+                              <Badge className={getMissionTypeColor(assignment.missions.type)}>
+                                {assignment.missions.type}
                               </Badge>
-                            )}
+                              {isUpcoming && (
+                                <Badge className="bg-green-100 text-green-700">
+                                  À venir
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 text-sm text-gray-600">
+                              <div className="flex items-center space-x-2">
+                                <MapPin className="h-4 w-4 flex-shrink-0" />
+                                <span className="truncate">{assignment.missions.location}</span>
+                              </div>
+                              
+                              <div className="flex items-center space-x-2">
+                                <Clock className="h-4 w-4 flex-shrink-0" />
+                                <span className="truncate">
+                                  {format(missionDate, 'dd/MM/yyyy HH:mm', { locale: fr })}
+                                </span>
+                              </div>
+                              
+                              <div className="flex items-center space-x-2">
+                                <Euro className="h-4 w-4 flex-shrink-0" />
+                                <span className="font-medium">{assignment.missions.forfeit}€</span>
+                              </div>
+                            </div>
                           </div>
                           
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 text-sm text-gray-600">
-                            <div className="flex items-center space-x-2">
-                              <MapPin className="h-4 w-4 flex-shrink-0" />
-                              <span className="truncate">{assignment.missions.location}</span>
-                            </div>
-                            
-                            <div className="flex items-center space-x-2">
-                              <Clock className="h-4 w-4 flex-shrink-0" />
-                              <span className="truncate">
-                                {format(missionDate, 'dd/MM/yyyy HH:mm', { locale: fr })}
-                              </span>
-                            </div>
-                            
-                            <div className="flex items-center space-x-2">
-                              <Euro className="h-4 w-4 flex-shrink-0" />
-                              <span className="font-medium">{assignment.missions.forfeit}€</span>
-                            </div>
+                          <div className="flex items-center space-x-2 mt-3 md:mt-0">
+                            <Button size="sm" variant="outline" className="border-blue-200 text-blue-600 hover:bg-blue-50 w-full md:w-auto" onClick={() => handleMissionClick(assignment)}>
+                              <Eye className="h-4 w-4 md:mr-1" />
+                              <span className="hidden md:inline">Voir</span>
+                            </Button>
                           </div>
                         </div>
-                        
-                        <div className="flex items-center space-x-2 mt-3 md:mt-0">
-                          <Button size="sm" variant="outline" className="border-blue-200 text-blue-600 hover:bg-blue-50 w-full md:w-auto" onClick={() => handleMissionClick(assignment)}>
-                            <Eye className="h-4 w-4 md:mr-1" />
-                            <span className="hidden md:inline">Voir</span>
-                          </Button>
-                        </div>
-                      </div>
-                    )
+                      )
+                    } catch (error) {
+                      console.error('Erreur lors de la conversion des dates:', error)
+                      return null
+                    }
                   })}
                 </div>
               )}

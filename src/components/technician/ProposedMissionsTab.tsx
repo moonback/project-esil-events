@@ -7,7 +7,30 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Check, X, Clock, MapPin, Calendar, DollarSign, AlertTriangle } from 'lucide-react'
 import { formatDateTime, formatCurrency, getMissionTypeColor } from '@/lib/utils'
+import { parseISO, isValid } from 'date-fns'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 import type { MissionAssignment, Mission } from '@/types/database'
+
+// Fonction utilitaire pour convertir les dates UTC en heure locale
+const convertUTCToLocal = (dateString: string): Date => {
+  const utcDate = parseISO(dateString)
+  if (!isValid(utcDate)) {
+    throw new Error('Date invalide')
+  }
+  return new Date(utcDate.getTime() + (utcDate.getTimezoneOffset() * 60000))
+}
+
+// Fonction pour formater les dates avec conversion UTC
+const formatDateTimeUTC = (dateString: string): string => {
+  try {
+    const localDate = convertUTCToLocal(dateString)
+    return format(localDate, 'dd/MM/yyyy HH:mm', { locale: fr })
+  } catch (error) {
+    console.error('Erreur lors de la conversion de la date:', error)
+    return 'Date invalide'
+  }
+}
 
 interface ProposedMission extends MissionAssignment {
   missions: Mission
@@ -79,14 +102,14 @@ export function ProposedMissionsTab() {
 
       if (!acceptedMissions) return false
 
-      const missionStart = new Date(missionToAccept.missions.date_start)
-      const missionEnd = new Date(missionToAccept.missions.date_end)
+      const missionStart = convertUTCToLocal(missionToAccept.missions.date_start)
+      const missionEnd = convertUTCToLocal(missionToAccept.missions.date_end)
 
       // Vérifier les conflits avec les missions acceptées
       for (const assignment of acceptedMissions) {
         const assignmentMission = assignment.missions as Mission
-        const assignmentStart = new Date(assignmentMission.date_start)
-        const assignmentEnd = new Date(assignmentMission.date_end)
+        const assignmentStart = convertUTCToLocal(assignmentMission.date_start)
+        const assignmentEnd = convertUTCToLocal(assignmentMission.date_end)
 
         // Vérifier si les périodes se chevauchent
         if (missionStart < assignmentEnd && missionEnd > assignmentStart) {
@@ -223,10 +246,10 @@ export function ProposedMissionsTab() {
                     <div className="min-w-0 flex-1">
                       <p className="text-xs md:text-sm font-medium">Période</p>
                       <p className="text-xs md:text-sm text-gray-600 truncate">
-                        {formatDateTime(assignment.missions.date_start)}
+                        {formatDateTimeUTC(assignment.missions.date_start)}
                       </p>
                       <p className="text-xs md:text-sm text-gray-600 truncate">
-                        → {formatDateTime(assignment.missions.date_end)}
+                        → {formatDateTimeUTC(assignment.missions.date_end)}
                       </p>
                     </div>
                   </div>

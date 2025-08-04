@@ -9,7 +9,30 @@ import {
   CheckCircle, XCircle, AlertCircle
 } from 'lucide-react'
 import { formatDateTime, formatCurrency, getMissionTypeColor } from '@/lib/utils'
+import { parseISO, isValid } from 'date-fns'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 import type { Mission, User, MissionAssignment } from '@/types/database'
+
+// Fonction utilitaire pour convertir les dates UTC en heure locale
+const convertUTCToLocal = (dateString: string): Date => {
+  const utcDate = parseISO(dateString)
+  if (!isValid(utcDate)) {
+    throw new Error('Date invalide')
+  }
+  return new Date(utcDate.getTime() + (utcDate.getTimezoneOffset() * 60000))
+}
+
+// Fonction pour formater les dates avec conversion UTC
+const formatDateTimeUTC = (dateString: string): string => {
+  try {
+    const localDate = convertUTCToLocal(dateString)
+    return format(localDate, 'dd/MM/yyyy HH:mm', { locale: fr })
+  } catch (error) {
+    console.error('Erreur lors de la conversion de la date:', error)
+    return 'Date invalide'
+  }
+}
 
 interface TechnicianContactDialogProps {
   mission?: Mission | null
@@ -140,7 +163,7 @@ export function TechnicianContactDialog({ mission, open, onOpenChange, onAssignT
                 {mission.type}
               </Badge>
               <span className="text-sm text-gray-600">
-                {formatDateTime(mission.date_start)}
+                {formatDateTimeUTC(mission.date_start)}
               </span>
               <span className="text-sm font-medium text-emerald-600">
                 {formatCurrency(mission.forfeit)}
@@ -238,7 +261,7 @@ export function TechnicianContactDialog({ mission, open, onOpenChange, onAssignT
                             {getStatusBadge(tech.status)}
                             {tech.assignment?.responded_at && (
                               <span className="text-xs text-gray-500">
-                                Répondu le {new Date(tech.assignment.responded_at).toLocaleDateString()}
+                                Répondu le {formatDateTimeUTC(tech.assignment.responded_at)}
                               </span>
                             )}
                           </div>
@@ -285,7 +308,7 @@ export function TechnicianContactDialog({ mission, open, onOpenChange, onAssignT
                             {getStatusBadge(tech.status)}
                             {tech.assignment?.assigned_at && (
                               <span className="text-xs text-gray-500">
-                                Proposé le {new Date(tech.assignment.assigned_at).toLocaleDateString()}
+                                Proposé le {formatDateTimeUTC(tech.assignment.assigned_at)}
                               </span>
                             )}
                           </div>
@@ -332,7 +355,7 @@ export function TechnicianContactDialog({ mission, open, onOpenChange, onAssignT
                             {getStatusBadge(tech.status)}
                             {tech.assignment?.responded_at && (
                               <span className="text-xs text-gray-500">
-                                Refusé le {new Date(tech.assignment.responded_at).toLocaleDateString()}
+                                Refusé le {formatDateTimeUTC(tech.assignment.responded_at)}
                               </span>
                             )}
                           </div>

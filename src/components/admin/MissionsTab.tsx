@@ -9,11 +9,34 @@ import {
   TrendingUp, Activity, X, Trash, Play,
   User, ArrowRight, Check} from 'lucide-react'
 import { formatDateTime, formatCurrency, getMissionTypeColor } from '@/lib/utils'
+import { parseISO, isValid } from 'date-fns'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 import { MissionDialog } from './MissionDialog'
 import { AssignTechniciansDialog } from './AssignTechniciansDialog'
 import { TechnicianContactDialog } from './TechnicianContactDialog'
 import type { Mission, MissionWithAssignments } from '@/types/database'
 import { useAdminStore } from '@/store/adminStore'
+
+// Fonction utilitaire pour convertir les dates UTC en heure locale
+const convertUTCToLocal = (dateString: string): Date => {
+  const utcDate = parseISO(dateString)
+  if (!isValid(utcDate)) {
+    throw new Error('Date invalide')
+  }
+  return new Date(utcDate.getTime() + (utcDate.getTimezoneOffset() * 60000))
+}
+
+// Fonction pour formater les dates avec conversion UTC
+const formatDateTimeUTC = (dateString: string): string => {
+  try {
+    const localDate = convertUTCToLocal(dateString)
+    return format(localDate, 'dd/MM/yyyy HH:mm', { locale: fr })
+  } catch (error) {
+    console.error('Erreur lors de la conversion de la date:', error)
+    return 'Date invalide'
+  }
+}
 
 // Composant pour afficher les détails des assignations
 const AssignmentDetails = memo(({ 
@@ -265,7 +288,7 @@ const MissionCard = memo(({
             <div className="flex items-center justify-between text-xs text-gray-600">
               <div className="flex items-center space-x-1">
                 <Calendar className="h-3 w-3 text-indigo-500" />
-                <span>{formatDateTime(mission.date_start)}</span>
+                <span>{formatDateTimeUTC(mission.date_start)}</span>
               </div>
               <div className="flex items-center space-x-1">
                 <Users className="h-3 w-3 text-blue-500" />
@@ -364,7 +387,7 @@ const MissionCard = memo(({
             <div className="space-y-2">
               <div className="flex items-center space-x-2 text-xs">
                 <Calendar className="h-3 w-3 text-indigo-500" />
-                <span className="font-medium text-gray-700">{formatDateTime(mission.date_start)}</span>
+                <span className="font-medium text-gray-700">{formatDateTimeUTC(mission.date_start)}</span>
               </div>
               
               <div className="flex items-center space-x-2 text-xs">

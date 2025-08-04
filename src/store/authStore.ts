@@ -102,11 +102,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   signUp: async (email: string, password: string, name: string, role: 'admin' | 'technicien') => {
     try {
-      // Utiliser l'URL de production pour les emails de vérification
-      const redirectUrl = import.meta.env.PROD 
-        ? 'https://esil-events.vercel.app/auth/callback'
-        : `${window.location.origin}/auth/callback`
-      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -115,7 +110,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             name,
             role
           },
-          emailRedirectTo: redirectUrl
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       })
 

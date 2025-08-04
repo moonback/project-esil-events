@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { DashboardCard } from '@/components/ui/dashboard-card'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { getMissionTypeColor } from '@/lib/utils'
 import { 
   Filter, 
@@ -35,9 +36,17 @@ import {
   List,
   CalendarDays,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  UserCheck,
+  UserX,
+  Ban,
+  CheckCircle2,
+  Clock4,
+  Phone,
+  Mail,
+  MapPin as MapPinIcon
 } from 'lucide-react'
-import type { MissionType, Mission, MissionWithAssignments, MissionAssignment } from '@/types/database'
+import type { MissionType, Mission, MissionWithAssignments, MissionAssignment, User, Availability, Unavailability, TechnicianWithStats } from '@/types/database'
 import { MissionDialog } from './MissionDialog'
 import { AssignTechniciansDialog } from './AssignTechniciansDialog'
 import { cn } from '@/lib/utils'
@@ -142,7 +151,7 @@ const useMissionFilters = (missions: MissionWithAssignments[]) => {
 }
 
 export function AdminAgendaTab() {
-  const { missions } = useAdminStore()
+  const { missions, technicians } = useAdminStore()
   const missionsWithAssignments = missions as MissionWithAssignments[]
   const [selectedEvent, setSelectedEvent] = useState<any>(null)
   const [showFilters, setShowFilters] = useState(false)
@@ -154,6 +163,10 @@ export function AdminAgendaTab() {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null)
   const [missionToAssign, setMissionToAssign] = useState<Mission | null>(null)
+  
+  // Nouveaux états pour les techniciens
+  const [techniciansDialogOpen, setTechniciansDialogOpen] = useState(false)
+  const [techniciansFilter, setTechniciansFilter] = useState<'all' | 'available' | 'unavailable'>('all')
 
   const stats = useMissionStats(missionsWithAssignments)
   const {
@@ -168,6 +181,89 @@ export function AdminAgendaTab() {
     filteredMissions,
     clearFilters
   } = useMissionFilters(missionsWithAssignments)
+
+  // Fonction pour déterminer le statut de disponibilité d'un technicien
+  const getAvailabilityStatus = (technician: TechnicianWithStats) => {
+    const now = new Date()
+    const currentTime = now.getTime()
+    
+    // Vérifier d'abord s'il y a une indisponibilité actuelle
+    const currentUnavailability = technician.unavailabilities?.find(unavail => {
+      const start = parseISO(unavail.start_time)
+      const end = parseISO(unavail.end_time)
+      return currentTime >= start.getTime() && currentTime <= end.getTime()
+    })
+    
+    if (currentUnavailability) {
+      return {
+        status: 'indisponible',
+        text: 'Indisponible',
+        color: 'bg-red-100 text-red-800',
+        icon: Ban,
+        reason: currentUnavailability.reason || 'Indisponible'
+      }
+    }
+    
+    // Vérifier s'il y a une disponibilité explicite actuelle
+    const currentAvailability = technician.availabilities?.find(avail => {
+      const start = parseISO(avail.start_time)
+      const end = parseISO(avail.end_time)
+      return currentTime >= start.getTime() && currentTime <= end.getTime()
+    })
+    
+    if (currentAvailability) {
+      return {
+        status: 'disponible',
+        text: 'Disponible',
+        color: 'bg-green-100 text-green-800',
+        icon: CheckCircle2,
+        reason: 'Disponible maintenant'
+      }
+    }
+    
+    // Vérifier s'il y a une disponibilité future dans les prochaines 24h
+    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000)
+    const futureAvailability = technician.availabilities?.find(avail => {
+      const start = parseISO(avail.start_time)
+      return start.getTime() <= tomorrow.getTime() && start.getTime() > currentTime
+    })
+    
+    if (futureAvailability) {
+      return {
+        status: 'disponible_soon',
+        text: 'Disponible bientôt',
+        color: 'bg-blue-100 text-blue-800',
+        icon: Clock4,
+        reason: `Disponible le ${format(parseISO(futureAvailability.start_time), 'dd/MM à HH:mm', { locale: fr })}`
+      }
+    }
+    
+    // Si le technicien n'a pas de disponibilités explicites, il est "Disponible sur demande"
+    return {
+      status: 'available_on_request',
+      text: 'Disponible sur demande',
+      color: 'bg-yellow-100 text-yellow-800',
+      icon: AlertTriangle,
+      reason: 'Contactez le technicien pour vérifier sa disponibilité'
+    }
+  }
+
+  // Filtrer les techniciens selon le filtre sélectionné
+  const filteredTechnicians = useMemo(() => {
+    return technicians.filter(tech => {
+      if (techniciansFilter === 'all') return true
+      
+      const availabilityStatus = getAvailabilityStatus(tech)
+      if (techniciansFilter === 'available') {
+        return availabilityStatus.status === 'disponible' || availabilityStatus.status === 'disponible_soon' || availabilityStatus.status === 'available_on_request'
+      }
+      if (techniciansFilter === 'unavailable') {
+        return availabilityStatus.status === 'indisponible'
+      }
+      
+      return true
+    })
+  }, [technicians, techniciansFilter])
 
   const events = useMemo(() => {
     return filteredMissions.map((mission) => {
@@ -368,6 +464,15 @@ export function AdminAgendaTab() {
           </div>
 
           <div className="flex items-center gap-2">
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={() => setTechniciansDialogOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Techniciens</span>
+            </Button>
             <Button 
               variant="outline"
               size="sm"
@@ -793,6 +898,364 @@ export function AdminAgendaTab() {
         open={assignDialogOpen}
         onOpenChange={setAssignDialogOpen}
       />
+
+      {/* Dialogue des techniciens */}
+      <Dialog open={techniciansDialogOpen} onOpenChange={setTechniciansDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Statut des techniciens</span>
+              <div className="flex items-center gap-2">
+                <select
+                  value={techniciansFilter}
+                  onChange={(e) => setTechniciansFilter(e.target.value as any)}
+                  className="text-sm border border-gray-300 rounded-md px-3 py-1"
+                >
+                  <option value="all">Tous</option>
+                  <option value="available">Disponibles</option>
+                  <option value="unavailable">Indisponibles</option>
+                </select>
+                <Badge variant="secondary" className="text-xs">
+                  {filteredTechnicians.length} technicien{filteredTechnicians.length > 1 ? 's' : ''}
+                </Badge>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Statistiques rapides */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-green-50 p-3 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-green-600">Disponibles</p>
+                    <p className="text-lg font-bold text-green-700">
+                      {technicians.filter(tech => {
+                        const status = getAvailabilityStatus(tech).status
+                        return status === 'disponible' || status === 'disponible_soon' || status === 'available_on_request'
+                      }).length}
+                    </p>
+                  </div>
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                </div>
+              </div>
+              
+              <div className="bg-red-50 p-3 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-red-600">Indisponibles</p>
+                    <p className="text-lg font-bold text-red-700">
+                      {technicians.filter(tech => {
+                        const status = getAvailabilityStatus(tech).status
+                        return status === 'indisponible'
+                      }).length}
+                    </p>
+                  </div>
+                  <Ban className="h-5 w-5 text-red-600" />
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-blue-600">Validés</p>
+                    <p className="text-lg font-bold text-blue-700">
+                      {technicians.filter(tech => tech.is_validated).length}
+                    </p>
+                  </div>
+                  <UserCheck className="h-5 w-5 text-blue-600" />
+                </div>
+              </div>
+            </div>
+
+            {/* Récapitulatif des dates */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center justify-between">
+                  <span>Récapitulatif des dates</span>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                      Disponibilités futures
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs bg-red-100 text-red-800">
+                      Indisponibilités futures
+                    </Badge>
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Disponibilités futures */}
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                    <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+                    Prochaines disponibilités
+                  </h4>
+                  <div className="space-y-2">
+                    {(() => {
+                      const now = new Date()
+                      const allFutureAvailabilities = technicians.flatMap(tech => 
+                        tech.availabilities?.filter(avail => parseISO(avail.start_time) > now).map(avail => ({
+                          ...avail,
+                          technicianName: tech.name,
+                          technicianId: tech.id
+                        })) || []
+                      ).sort((a, b) => parseISO(a.start_time).getTime() - parseISO(b.start_time).getTime())
+                      
+                      return allFutureAvailabilities.length > 0 ? (
+                        allFutureAvailabilities.slice(0, 10).map((availability) => (
+                          <div key={`${availability.technicianId}-${availability.id}`} className="flex items-center justify-between p-2 bg-green-50 rounded text-xs">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-medium text-xs">
+                                {availability.technicianName.charAt(0)}
+                              </div>
+                              <span className="font-medium">{availability.technicianName}</span>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-medium">
+                                Du {format(parseISO(availability.start_time), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                              </div>
+                              <div className="text-green-600">
+                                Au {format(parseISO(availability.end_time), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-gray-500 text-xs p-2 bg-gray-50 rounded">
+                          Aucune disponibilité future programmée
+                        </div>
+                      )
+                    })()}
+                    {(() => {
+                      const now = new Date()
+                      const allFutureAvailabilities = technicians.flatMap(tech => 
+                        tech.availabilities?.filter(avail => parseISO(avail.start_time) > now) || []
+                      )
+                      return allFutureAvailabilities.length > 10 && (
+                        <div className="text-xs text-gray-500 text-center py-1">
+                          +{allFutureAvailabilities.length - 10} autres disponibilités futures
+                        </div>
+                      )
+                    })()}
+                  </div>
+                </div>
+
+                {/* Indisponibilités futures */}
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                    <Ban className="h-4 w-4 mr-2 text-red-600" />
+                    Prochaines indisponibilités
+                  </h4>
+                  <div className="space-y-2">
+                    {(() => {
+                      const now = new Date()
+                      const allFutureUnavailabilities = technicians.flatMap(tech => 
+                        tech.unavailabilities?.filter(unavail => parseISO(unavail.start_time) > now).map(unavail => ({
+                          ...unavail,
+                          technicianName: tech.name,
+                          technicianId: tech.id
+                        })) || []
+                      ).sort((a, b) => parseISO(a.start_time).getTime() - parseISO(b.start_time).getTime())
+                      
+                      return allFutureUnavailabilities.length > 0 ? (
+                        allFutureUnavailabilities.slice(0, 10).map((unavailability) => (
+                          <div key={`${unavailability.technicianId}-${unavailability.id}`} className="flex items-center justify-between p-2 bg-red-50 rounded text-xs">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center text-red-700 font-medium text-xs">
+                                {unavailability.technicianName.charAt(0)}
+                              </div>
+                              <span className="font-medium">{unavailability.technicianName}</span>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-medium">
+                                Du {format(parseISO(unavailability.start_time), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                              </div>
+                              <div className="text-red-600">
+                                Au {format(parseISO(unavailability.end_time), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                              </div>
+                              {unavailability.reason && (
+                                <div className="text-red-500 text-xs mt-1">
+                                  Raison: {unavailability.reason}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-gray-500 text-xs p-2 bg-gray-50 rounded">
+                          Aucune indisponibilité future programmée
+                        </div>
+                      )
+                    })()}
+                    {(() => {
+                      const now = new Date()
+                      const allFutureUnavailabilities = technicians.flatMap(tech => 
+                        tech.unavailabilities?.filter(unavail => parseISO(unavail.start_time) > now) || []
+                      )
+                      return allFutureUnavailabilities.length > 10 && (
+                        <div className="text-xs text-gray-500 text-center py-1">
+                          +{allFutureUnavailabilities.length - 10} autres indisponibilités futures
+                        </div>
+                      )
+                    })()}
+                  </div>
+                </div>
+
+                {/* Statistiques des dates */}
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-green-600">
+                      {(() => {
+                        const now = new Date()
+                        return technicians.reduce((total, tech) => 
+                          total + (tech.availabilities?.filter(avail => parseISO(avail.start_time) > now).length || 0), 0
+                        )
+                      })()}
+                    </div>
+                    <div className="text-xs text-gray-500">Disponibilités futures</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-red-600">
+                      {(() => {
+                        const now = new Date()
+                        return technicians.reduce((total, tech) => 
+                          total + (tech.unavailabilities?.filter(unavail => parseISO(unavail.start_time) > now).length || 0), 0
+                        )
+                      })()}
+                    </div>
+                    <div className="text-xs text-gray-500">Indisponibilités futures</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Liste des techniciens */}
+            <div className="space-y-3">
+              {filteredTechnicians.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 text-sm">Aucun technicien trouvé</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {filteredTechnicians.map((technician) => {
+                    const availabilityStatus = getAvailabilityStatus(technician)
+                    const Icon = availabilityStatus.icon
+                    
+                    return (
+                      <Card key={technician.id} className="border border-gray-200 hover:border-indigo-200 transition-colors">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              {/* En-tête du technicien */}
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
+                                    {technician.name.charAt(0)}
+                                  </div>
+                                  <div>
+                                    <h3 className="text-base font-semibold text-gray-900">{technician.name}</h3>
+                                    <div className="flex items-center space-x-2 text-xs text-gray-500">
+                                      <Badge variant="secondary" className="text-xs">Technicien</Badge>
+                                      {technician.is_validated && (
+                                        <Badge variant="default" className="text-xs bg-blue-100 text-blue-800">
+                                          <UserCheck className="h-3 w-3 mr-1" />
+                                          Validé
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <Badge className={availabilityStatus.color} title={availabilityStatus.reason}>
+                                  <Icon className="h-3 w-3 mr-1" />
+                                  {availabilityStatus.text}
+                                </Badge>
+                              </div>
+
+                              {/* Informations de contact */}
+                              <div className="space-y-2 text-xs text-gray-600">
+                                {technician.phone && (
+                                  <div className="flex items-center space-x-1">
+                                    <Phone className="h-3 w-3" />
+                                    <span>{technician.phone}</span>
+                                  </div>
+                                )}
+                                {technician.email && (
+                                  <div className="flex items-center space-x-1">
+                                    <Mail className="h-3 w-3" />
+                                    <span>{technician.email}</span>
+                                  </div>
+                                )}
+                                {technician.address && (
+                                  <div className="flex items-center space-x-1">
+                                    <MapPinIcon className="h-3 w-3" />
+                                    <span className="truncate">{technician.address}</span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Statistiques */}
+                              <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
+                                <div className="text-center">
+                                  <div className="font-medium text-blue-600">{technician.stats?.totalAssignments || 0}</div>
+                                  <div className="text-gray-500">Missions</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="font-medium text-green-600">{technician.stats?.totalRevenue || 0}€</div>
+                                  <div className="text-gray-500">Revenus</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="font-medium text-orange-600">{technician.stats?.totalHours || 0}h</div>
+                                  <div className="text-gray-500">Heures</div>
+                                </div>
+                              </div>
+
+                              {/* Disponibilités futures */}
+                              <div className="mt-3">
+                                <div className="flex items-center justify-between text-xs mb-1">
+                                  <span className="text-gray-500">Prochaines disponibilités</span>
+                                  <span className="font-medium">
+                                    {(() => {
+                                      const now = new Date()
+                                      const futureAvailabilities = technician.availabilities?.filter(avail => 
+                                        parseISO(avail.start_time) > now
+                                      ) || []
+                                      return futureAvailabilities.length
+                                    })()}
+                                  </span>
+                                </div>
+                                <div className="flex flex-wrap gap-1">
+                                  {(() => {
+                                    const now = new Date()
+                                    const futureAvailabilities = technician.availabilities?.filter(avail => 
+                                      parseISO(avail.start_time) > now
+                                    ).slice(0, 2) || []
+                                    
+                                    return futureAvailabilities.length > 0 ? (
+                                      futureAvailabilities.map((availability) => (
+                                        <Badge key={availability.id} variant="secondary" className="text-xs bg-green-100 text-green-800">
+                                          {format(parseISO(availability.start_time), 'dd/MM', { locale: fr })}
+                                        </Badge>
+                                      ))
+                                    ) : (
+                                      <span className="text-xs text-gray-500">Aucune disponibilité future</span>
+                                    )
+                                  })()}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

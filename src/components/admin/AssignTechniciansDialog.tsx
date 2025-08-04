@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { UserPlus, Users, Check, X, Clock, AlertTriangle, Calendar } from 'lucide-react'
 import { formatCurrency, getMissionTypeColor, getStatusColor } from '@/lib/utils'
 import type { Mission, User, MissionAssignment, Availability, Unavailability } from '@/types/database'
@@ -301,15 +302,15 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
     return true
   }
 
-  if (!open || !mission) return null
+  if (!mission) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <CardHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
           <div className="flex items-center space-x-2">
             <UserPlus className="h-5 w-5" />
-            <CardTitle>Assigner des Techniciens</CardTitle>
+            <DialogTitle>Assigner des Techniciens</DialogTitle>
           </div>
           <div className="space-y-2">
             <h3 className="font-medium">{mission.title}</h3>
@@ -322,9 +323,9 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
               </span>
             </div>
           </div>
-        </CardHeader>
+        </DialogHeader>
         
-        <CardContent>
+        <div className="space-y-4">
           <div className="space-y-4">
             <div>
               <Label className="text-base font-medium">
@@ -498,8 +499,8 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

@@ -23,10 +23,13 @@ import {
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import type { MissionWithAssignments, User } from '@/types/database'
+import { AssignTechniciansDialog } from './AssignTechniciansDialog'
 
 export function MissionsWithAssignmentsTab() {
   const { missions, loading, cancelPendingAssignmentsForMission, fetchMissions } = useMissionsStore()
   const [cancellingMissions, setCancellingMissions] = useState<Set<string>>(new Set())
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false)
+  const [selectedMission, setSelectedMission] = useState<MissionWithAssignments | null>(null)
   const { showSuccess, showError } = useToast()
 
   // Charger les missions au montage du composant
@@ -83,6 +86,11 @@ export function MissionsWithAssignmentsTab() {
       return <Badge className="bg-blue-100 text-blue-800 text-xs"><UserCheck className="h-3 w-3 mr-1" />Validé</Badge>
     }
     return <Badge className="bg-gray-100 text-gray-800 text-xs"><UserX className="h-3 w-3 mr-1" />Non validé</Badge>
+  }
+
+  const handleAssignTechnicians = (mission: MissionWithAssignments) => {
+    setSelectedMission(mission)
+    setAssignDialogOpen(true)
   }
 
   if (loading) {
@@ -191,7 +199,16 @@ export function MissionsWithAssignmentsTab() {
                         </div>
                       </div>
                       
-                      <div className="flex items-center space-x-2 ml-4">
+                                             <div className="flex items-center space-x-2 ml-4">
+                         <Button
+                           variant="default"
+                           size="sm"
+                           onClick={() => handleAssignTechnicians(mission)}
+                           className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                         >
+                           <Users className="h-4 w-4 mr-1" />
+                           Assigner des techniciens
+                         </Button>
                         {pendingAssignments.length > 0 && (
                           <Button
                             variant="outline"
@@ -308,8 +325,15 @@ export function MissionsWithAssignmentsTab() {
               )
             })}
           </div>
-        )}
-      </div>
-    </div>
-  )
-} 
+                 )}
+       </div>
+       
+       {/* Dialogue d'assignation de techniciens */}
+       <AssignTechniciansDialog
+         mission={selectedMission}
+         open={assignDialogOpen}
+         onOpenChange={setAssignDialogOpen}
+       />
+     </div>
+   )
+ }  

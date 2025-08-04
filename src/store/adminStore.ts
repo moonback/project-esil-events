@@ -431,12 +431,12 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           title: 'Livraison jeux - Anniversaire',
           description: 'Installation et animation de jeux en bois pour anniversaire enfants',
           type: 'Livraison jeux',
-          location: 'Paris 15ème - Parc André Citroën',
-          latitude: 48.8417,
-          longitude: 2.2744,
+          location: 'Boulogne-Billancourt - Parc Edmond de Rothschild',
+          latitude: 48.8333,
+          longitude: 2.2500,
           date_start: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // +5 jours
           date_end: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000).toISOString(), // +4h
-          forfeit: 800,
+          forfeit: 120,
           required_people: 2,
           created_by: user?.id
         },
@@ -444,12 +444,12 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           title: 'Soirée DJ - Club',
           description: 'Animation DJ pour soirée en club',
           type: 'DJ',
-          location: 'Paris 11ème - Bastille',
-          latitude: 48.8532,
-          longitude: 2.3698,
+          location: 'Saint-Denis - Stade de France',
+          latitude: 48.9244,
+          longitude: 2.3604,
           date_start: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // +7 jours
           date_end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000 + 6 * 60 * 60 * 1000).toISOString(), // +6h
-          forfeit: 450,
+          forfeit: 200,
           required_people: 1,
           created_by: user?.id
         },
@@ -457,12 +457,12 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           title: 'Sonorisation - Concert',
           description: 'Installation et gestion son pour concert live',
           type: 'Presta sono',
-          location: 'Paris 19ème - La Villette',
-          latitude: 48.8938,
-          longitude: 2.3910,
+          location: 'Versailles - Château de Versailles',
+          latitude: 48.8044,
+          longitude: 2.1232,
           date_start: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString(), // +12 jours
           date_end: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000 + 5 * 60 * 60 * 1000).toISOString(), // +5h
-          forfeit: 1100,
+          forfeit: 350,
           required_people: 3,
           created_by: user?.id
         },
@@ -470,12 +470,12 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           title: 'Déménagement matériel',
           description: 'Transport de matériel entre deux entrepôts',
           type: 'Manutention',
-          location: 'Paris 18ème - La Chapelle',
-          latitude: 48.8853,
-          longitude: 2.3598,
+          location: 'Nanterre - La Défense',
+          latitude: 48.8900,
+          longitude: 2.2400,
           date_start: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // +3 jours
           date_end: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 8 * 60 * 60 * 1000).toISOString(), // +8h
-          forfeit: 600,
+          forfeit: 180,
           required_people: 4,
           created_by: user?.id
         },
@@ -483,12 +483,12 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           title: 'Transport sono - Festival',
           description: 'Transport et installation système son pour festival',
           type: 'Déplacement',
-          location: 'Paris 16ème - Bois de Boulogne',
-          latitude: 48.8621,
-          longitude: 2.2497,
+          location: 'Créteil - Centre commercial Créteil Soleil',
+          latitude: 48.7911,
+          longitude: 2.4658,
           date_start: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString(), // +8 jours
           date_end: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000).toISOString(), // +3h
-          forfeit: 350,
+          forfeit: 150,
           required_people: 2,
           created_by: user?.id
         },
@@ -496,12 +496,12 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           title: 'Animation DJ - Mariage',
           description: 'Animation musicale pour mariage avec système son et éclairage',
           type: 'DJ',
-          location: 'Paris 8ème - Champs-Élysées',
-          latitude: 48.8738,
-          longitude: 2.2950,
+          location: 'Fontainebleau - Château de Fontainebleau',
+          latitude: 48.4026,
+          longitude: 2.6997,
           date_start: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // +10 jours
           date_end: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000 + 8 * 60 * 60 * 1000).toISOString(), // +8h
-          forfeit: 1200,
+          forfeit: 300,
           required_people: 2,
           created_by: user?.id
         },
@@ -509,12 +509,12 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           title: 'Livraison jeux - Festival',
           description: 'Installation et animation de jeux en bois pour festival familial',
           type: 'Livraison jeux',
-          location: 'Paris 12ème - Bois de Vincennes',
-          latitude: 48.8338,
-          longitude: 2.4346,
+          location: 'Saint-Germain-en-Laye - Château de Saint-Germain',
+          latitude: 48.8974,
+          longitude: 2.0954,
           date_start: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(), // +21 jours
           date_end: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000 + 10 * 60 * 60 * 1000).toISOString(), // +10h
-          forfeit: 1500,
+          forfeit: 250,
           required_people: 4,
           created_by: user?.id
         },
@@ -522,12 +522,12 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           title: 'Sonorisation - Conférence',
           description: 'Installation et gestion du système son pour conférence d\'entreprise',
           type: 'Presta sono',
-          location: 'Paris 17ème - Palais des Congrès',
-          latitude: 48.8789,
-          longitude: 2.2833,
+          location: 'Évry - Cathédrale de la Résurrection',
+          latitude: 48.6300,
+          longitude: 2.4300,
           date_start: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(), // +4 jours
           date_end: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000 + 6 * 60 * 60 * 1000).toISOString(), // +6h
-          forfeit: 900,
+          forfeit: 280,
           required_people: 2,
           created_by: user?.id
         },
@@ -535,12 +535,12 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           title: 'Manutention - Festival',
           description: 'Installation et démontage des structures pour festival de musique',
           type: 'Manutention',
-          location: 'Paris 13ème - Bibliothèque François Mitterrand',
-          latitude: 48.8297,
-          longitude: 2.3758,
+          location: 'Melun - Île Saint-Étienne',
+          latitude: 48.5400,
+          longitude: 2.6600,
           date_start: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // +2 jours
           date_end: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000).toISOString(), // +12h
-          forfeit: 1800,
+          forfeit: 400,
           required_people: 6,
           created_by: user?.id
         },
@@ -548,12 +548,12 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           title: 'Transport matériel - Salon',
           description: 'Transport et installation du matériel pour salon professionnel',
           type: 'Déplacement',
-          location: 'Paris 15ème - Parc des Expositions',
-          latitude: 48.8325,
-          longitude: 2.2789,
+          location: 'Villepinte - Parc des Expositions',
+          latitude: 48.9583,
+          longitude: 2.5417,
           date_start: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(), // +15 jours
           date_end: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000 + 5 * 60 * 60 * 1000).toISOString(), // +5h
-          forfeit: 750,
+          forfeit: 220,
           required_people: 3,
           created_by: user?.id
         }

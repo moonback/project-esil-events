@@ -447,10 +447,10 @@ export function AdminAgendaTab() {
               <Eye className="h-4 w-4" />
               <span className="hidden sm:inline">{showDetailedView ? 'Calendrier' : 'Liste'}</span>
             </Button>
-            <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white">
+            {/* <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white">
               <Plus className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Nouvelle mission</span>
-            </Button>
+            </Button> */}
           </div>
         </div>
 

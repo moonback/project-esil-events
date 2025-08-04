@@ -591,56 +591,6 @@ export function MissionsMapTab({ onViewMission, onEditMission, isModalOpen = fal
         ) : (
           // Affichage de la liste des missions (code existant)
           <>
-            {/* En-tête avec statistiques */}
-            <div className="grid grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="p-3">
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="h-4 w-4 text-blue-600" />
-                    <div>
-                      <p className="text-xs font-medium text-gray-600">Total</p>
-                      <p className="text-lg font-bold text-gray-900">{stats.total}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-3">
-                  <div className="flex items-center space-x-2">
-                    <UsersIcon className="h-4 w-4 text-green-600" />
-                    <div>
-                      <p className="text-xs font-medium text-gray-600">Complètes</p>
-                      <p className="text-lg font-bold text-gray-900">{stats.complete}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-3">
-                  <div className="flex items-center space-x-2">
-                    <AlertTriangle className="h-4 w-4 text-red-600" />
-                    <div>
-                      <p className="text-xs font-medium text-gray-600">Urgentes</p>
-                      <p className="text-lg font-bold text-gray-900">{stats.urgent}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-3">
-                  <div className="flex items-center space-x-2">
-                    <Warehouse className="h-4 w-4 text-gray-600" />
-                    <div>
-                      <p className="text-xs font-medium text-gray-600">Dépôts</p>
-                      <p className="text-lg font-bold text-gray-900">{stats.depots}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
 
             {/* Filtres et tri */}
             <Card>

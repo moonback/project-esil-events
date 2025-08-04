@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, memo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { DateFilter } from '@/components/ui/date-filter'
+
 import { 
   Plus, Edit, Trash2, Users, UserPlus, Calendar, MapPin, 
   Clock, Search, CheckCircle, XCircle, AlertCircle,
@@ -429,10 +429,7 @@ export function MissionsTab({
   onSortChange?: (sort: string) => void
   onViewModeChange?: (mode: 'kanban' | 'list' | 'grid') => void
 } = {}) {
-  const [dateRange, setDateRange] = useState<{ start: string | null; end: string | null }>({
-    start: null,
-    end: null
-  })
+
   const { missions, loading, stats, deleteAllMissions, createTestMissions } = useAdminStore()
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -543,26 +540,9 @@ export function MissionsTab({
                            mission.description?.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesType = filterType === 'all' || mission.type === filterType
       
-      // Filtrage par date
-      let matchesDate = true
-      if (dateRange.start || dateRange.end) {
-        const missionStartDate = new Date(mission.date_start)
-        const missionEndDate = new Date(mission.date_end)
-        
-        if (dateRange.start) {
-          const startFilterDate = new Date(dateRange.start)
-          matchesDate = matchesDate && missionStartDate >= startFilterDate
-        }
-        
-        if (dateRange.end) {
-          const endFilterDate = new Date(dateRange.end)
-          matchesDate = matchesDate && missionEndDate <= endFilterDate
-        }
-      }
-      
-      return matchesSearch && matchesType && matchesDate
+      return matchesSearch && matchesType
     })
-  }, [missions, searchTerm, filterType, dateRange])
+  }, [missions, searchTerm, filterType])
 
   // Grouper les missions par statut pour la vue Kanban
   const groupedMissions = useMemo(() => {
@@ -689,27 +669,10 @@ export function MissionsTab({
         </div>
       </div>
 
-      {/* Barre d'outils pour la recherche et le filtrage */}
+      {/* Barre d'outils pour la recherche et les modes d'affichage */}
       <div className="bg-gray-50 p-4 rounded-lg mx-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            {/* Indicateur de filtres actifs */}
-            {(dateRange.start || dateRange.end) && (
-              <div className="flex items-center space-x-2 bg-blue-50 border border-blue-200 rounded-md px-3 py-1">
-                <Calendar className="h-4 w-4 text-blue-600" />
-                <span className="text-sm text-blue-700 font-medium">
-                  Filtre par date actif
-                </span>
-                <Button
-                  onClick={() => setDateRange({ start: null, end: null })}
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 hover:bg-blue-100"
-                >
-                  <X className="h-3 w-3 text-blue-600" />
-                </Button>
-              </div>
-            )}
             {/* Recherche */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -721,38 +684,6 @@ export function MissionsTab({
                 className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-64"
               />
             </div>
-            
-            {/* Filtres */}
-            <select 
-              value={filterType}
-              onChange={(e) => onFilterChange?.(e.target.value)}
-              className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="all">Toutes les missions</option>
-              <option value="pending">En attente</option>
-              <option value="in-progress">En cours</option>
-              <option value="completed">Terminées</option>
-              <option value="urgent">Urgentes</option>
-            </select>
-            
-            {/* Filtre par date */}
-            <DateFilter
-              onDateRangeChange={(startDate, endDate) => {
-                setDateRange({ start: startDate, end: endDate })
-              }}
-            />
-            
-            {/* Tri */}
-            <select 
-              value={sortBy}
-              onChange={(e) => onSortChange?.(e.target.value)}
-              className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="date">Par date</option>
-              <option value="priority">Par priorité</option>
-              <option value="status">Par statut</option>
-              <option value="technician">Par technicien</option>
-            </select>
           </div>
           
           {/* Modes d'affichage */}
@@ -773,7 +704,6 @@ export function MissionsTab({
             >
               Liste
             </Button>
-            
           </div>
         </div>
       </div>

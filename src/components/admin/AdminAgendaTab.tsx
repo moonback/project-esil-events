@@ -366,41 +366,6 @@ export function AdminAgendaTab() {
 
   return (
     <div className="space-y-6">
-      {/* En-tête avec statistiques */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <DashboardCard
-          title="Total Missions"
-          value={stats.total}
-          subtitle="Toutes les missions"
-          icon={<CalendarIcon className="h-6 w-6" />}
-          variant="default"
-        />
-
-        <DashboardCard
-          title="Terminées"
-          value={stats.completed}
-          subtitle="Missions acceptées"
-          icon={<CheckCircle className="h-6 w-6" />}
-          variant="success"
-        />
-
-        <DashboardCard
-          title="En attente"
-          value={stats.pending}
-          subtitle="Missions proposées"
-          icon={<Clock className="h-6 w-6" />}
-          variant="warning"
-        />
-
-        <DashboardCard
-          title="Revenus"
-          value={`${stats.revenue}€`}
-          subtitle={`Moyenne: ${Math.round(stats.avgRevenue)}€`}
-          icon={<Euro className="h-6 w-6" />}
-          variant="info"
-        />
-      </div>
-
       {/* Barre d'outils responsive */}
       <div className="bg-white rounded-lg border border-gray-200 p-4">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">

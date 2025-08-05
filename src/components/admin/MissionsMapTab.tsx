@@ -565,15 +565,7 @@ export function MissionsMapTab({ onViewMission, onEditMission, isModalOpen = fal
                         {formatMissionTimeRange(selectedMission.date_start, selectedMission.date_end)}
                       </p>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <Clock className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm font-medium">Heures uniquement</span>
-                      </div>
-                      <p className="text-gray-600 font-medium">
-                        {formatMissionHours(selectedMission.date_start, selectedMission.date_end)}
-                      </p>
-                    </div>
+                    
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
                         <Clock className="h-4 w-4 text-gray-500" />
@@ -583,15 +575,7 @@ export function MissionsMapTab({ onViewMission, onEditMission, isModalOpen = fal
                         {getMissionDuration(selectedMission.date_start, selectedMission.date_end)}
                       </p>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <Info className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm font-medium">Fuseau horaire</span>
-                      </div>
-                      <p className="text-gray-600">
-                        Heure locale (conversion automatique UTC)
-                      </p>
-                    </div>
+                    
                   </div>
                 </div>
 

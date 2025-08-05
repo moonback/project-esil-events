@@ -820,22 +820,22 @@ export function AdminAgendaTab() {
                         {formatMissionTimeRange(selectedEvent.resource.date_start, selectedEvent.resource.date_end)}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
+                    {/* <div className="flex items-center justify-between">
                       <span className="text-gray-600">Heures uniquement:</span>
                       <span className="font-medium">
                         {formatMissionHours(selectedEvent.resource.date_start, selectedEvent.resource.date_end)}
                       </span>
-                    </div>
+                    </div> */}
                     <div className="flex items-center justify-between">
                       <span className="text-gray-600">Durée totale:</span>
                       <span className="font-medium">
                         {getMissionDuration(selectedEvent.resource.date_start, selectedEvent.resource.date_end)}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
+                    {/* <div className="flex items-center justify-between">
                       <span className="text-gray-600">Fuseau horaire:</span>
                       <span className="text-xs text-gray-500">Heure locale (UTC converti)</span>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
 

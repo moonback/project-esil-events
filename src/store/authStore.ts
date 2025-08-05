@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
 import type { User as UserProfile } from '@/types/database'
+import { useAdminStore } from './adminStore'
 
 interface AuthState {
   user: User | null
@@ -146,14 +147,35 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   signOut: async () => {
     try {
+      // Mettre à jour l'état immédiatement pour une meilleure UX
+      set({
+        user: null,
+        profile: null,
+        loading: true // Indiquer que la déconnexion est en cours
+      })
+
+      // Nettoyer le store admin
+      useAdminStore.getState().clearData()
+
+      // Appeler la déconnexion Supabase
       await supabase.auth.signOut()
+      
+      // Mettre à jour l'état final
       set({
         user: null,
         profile: null,
         loading: false
       })
+
+      console.log('Déconnexion réussie')
     } catch (error) {
       console.error('Erreur de déconnexion:', error)
+      // En cas d'erreur, s'assurer que l'état est quand même réinitialisé
+      set({
+        user: null,
+        profile: null,
+        loading: false
+      })
     }
   },
 

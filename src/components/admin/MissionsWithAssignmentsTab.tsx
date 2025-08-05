@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { useMissionsStore } from '@/store/missionsStore'
+import React, { useState, useEffect, useRef } from 'react'
+import { useAdminStore } from '@/store/adminStore'
 import { useToast } from '@/lib/useToast'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -18,7 +18,9 @@ import {
   UserX,
   AlertCircle,
   CheckCircle2,
-  Target
+  Target,
+  Wifi,
+  WifiOff
 } from 'lucide-react'
 import { format, parseISO, addHours, isValid } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -26,23 +28,13 @@ import type { MissionWithAssignments, User } from '@/types/database'
 import { AssignTechniciansDialog } from './AssignTechniciansDialog'
 
 export function MissionsWithAssignmentsTab() {
-  const { missions, loading, cancelPendingAssignmentsForMission, fetchMissions } = useMissionsStore()
+  const { missions, loading, fetchMissions, isConnected } = useAdminStore()
   const [cancellingMissions, setCancellingMissions] = useState<Set<string>>(new Set())
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
   const [selectedMission, setSelectedMission] = useState<MissionWithAssignments | null>(null)
   const { showSuccess, showError } = useToast()
 
-  // Charger les missions au montage du composant
-  useEffect(() => {
-    console.log('🚀 MissionsWithAssignmentsTab: fetchMissions appelé')
-    fetchMissions()
-  }, [fetchMissions])
-
-  // Log des données reçues
-  useEffect(() => {
-    console.log('📊 MissionsWithAssignmentsTab: missions reçues:', missions)
-    console.log('📊 MissionsWithAssignmentsTab: loading:', loading)
-  }, [missions, loading])
+  // Suppression du useEffect - AdminDashboard appelle déjà fetchAllData()
 
   const convertUTCToLocal = (dateString: string): string => {
     try {
@@ -78,7 +70,7 @@ export function MissionsWithAssignmentsTab() {
   const handleCancelPendingAssignments = async (missionId: string) => {
     try {
       setCancellingMissions(prev => new Set(prev).add(missionId))
-      await cancelPendingAssignmentsForMission(missionId)
+      await useAdminStore.getState().cancelPendingAssignments(missionId)
       
       showSuccess(
         'Demandes annulées',
@@ -124,7 +116,7 @@ export function MissionsWithAssignmentsTab() {
     setAssignDialogOpen(true)
   }
 
-  if (loading) {
+  if (loading.missions) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center space-y-4">
@@ -144,8 +136,45 @@ export function MissionsWithAssignmentsTab() {
           <p className="text-sm text-gray-500 mt-1">
             {missions.length} mission{missions.length > 1 ? 's' : ''} au total
           </p>
+          <p className="text-xs text-blue-600 mt-1">
+            💡 Les données se mettent à jour automatiquement en temps réel
+          </p>
         </div>
         <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              console.log('🔄 Rafraîchissement manuel des missions')
+              fetchMissions()
+            }}
+            disabled={loading.missions}
+            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+          >
+            {loading.missions ? (
+              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
+            )}
+            <span className="ml-1">Actualiser</span>
+          </Button>
+          <Badge 
+            variant="outline" 
+            className={`flex items-center space-x-1 ${
+              isConnected 
+                ? 'bg-green-50 text-green-700 border-green-200' 
+                : 'bg-red-50 text-red-700 border-red-200'
+            }`}
+          >
+            {isConnected ? (
+              <Wifi className="h-3 w-3" />
+            ) : (
+              <WifiOff className="h-3 w-3" />
+            )}
+            <span className="text-xs">
+              {isConnected ? 'Synchronisé' : 'Hors ligne'}
+            </span>
+          </Badge>
           <Badge variant="outline" className="bg-blue-50 text-blue-700">
             <Target className="h-3 w-3 mr-1" />
             Gestion des assignations
@@ -230,16 +259,16 @@ export function MissionsWithAssignmentsTab() {
                         </div>
                       </div>
                       
-                                             <div className="flex items-center space-x-2 ml-4">
-                         <Button
-                           variant="default"
-                           size="sm"
-                           onClick={() => handleAssignTechnicians(mission)}
-                           className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                         >
-                           <Users className="h-4 w-4 mr-1" />
-                           Assigner des techniciens
-                         </Button>
+                      <div className="flex items-center space-x-2 ml-4">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => handleAssignTechnicians(mission)}
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                        >
+                          <Users className="h-4 w-4 mr-1" />
+                          Assigner des techniciens
+                        </Button>
                         {pendingAssignments.length > 0 && (
                           <Button
                             variant="outline"
@@ -356,15 +385,15 @@ export function MissionsWithAssignmentsTab() {
               )
             })}
           </div>
-                 )}
-       </div>
-       
-       {/* Dialogue d'assignation de techniciens */}
-       <AssignTechniciansDialog
-         mission={selectedMission}
-         open={assignDialogOpen}
-         onOpenChange={setAssignDialogOpen}
-       />
-     </div>
-   )
- }  
+        )}
+      </div>
+      
+      {/* Dialogue d'assignation de techniciens */}
+      <AssignTechniciansDialog
+        mission={selectedMission}
+        open={assignDialogOpen}
+        onOpenChange={setAssignDialogOpen}
+      />
+    </div>
+  )
+}  

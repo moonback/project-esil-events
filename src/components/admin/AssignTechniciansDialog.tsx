@@ -261,7 +261,7 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
         return (
           <Badge className="bg-gray-100 text-gray-800 text-xs">
             <Calendar className="h-3 w-3 mr-1" />
-            Pas de disponibilités
+            Demander disponibilité
           </Badge>
         )
       default:
@@ -336,28 +336,7 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
               </p>
             </div>
 
-            {/* Légende des statuts */}
-            <div className="bg-gray-50 p-3 rounded-md mb-3">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Légende des statuts :</h4>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span>Disponible</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <span>Indisponible</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                  <span>Conflit de planning</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
-                  <span>Pas de disponibilités définies</span>
-                </div>
-              </div>
-            </div>
+            
 
             <div className="space-y-2 max-h-64 overflow-y-auto border rounded-md p-3">
               {technicians.length === 0 ? (

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useMissionsStore } from '@/store/missionsStore'
 import { useToast } from '@/lib/useToast'
+import { useTabPersistence } from '@/lib/useTabPersistence'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -18,31 +19,70 @@ import {
   UserX,
   AlertCircle,
   CheckCircle2,
-  Target
+  Target,
+  RefreshCw
 } from 'lucide-react'
 import { format, parseISO, addHours, isValid } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import type { MissionWithAssignments, User } from '@/types/database'
 import { AssignTechniciansDialog } from './AssignTechniciansDialog'
+import { PersistenceNotification } from '@/components/ui/persistence-notification'
 
 export function MissionsWithAssignmentsTab() {
-  const { missions, loading, cancelPendingAssignmentsForMission, fetchMissions } = useMissionsStore()
+  const { missions, loading, cancelPendingAssignmentsForMission, fetchMissions, cacheValid, isDataStale } = useMissionsStore()
   const [cancellingMissions, setCancellingMissions] = useState<Set<string>>(new Set())
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
   const [selectedMission, setSelectedMission] = useState<MissionWithAssignments | null>(null)
+  const [lastRefresh, setLastRefresh] = useState<number>(Date.now())
   const { showSuccess, showError } = useToast()
 
-  // Charger les missions au montage du composant
+  // Utiliser le hook de persistance d'onglet
+  const { isActive } = useTabPersistence({
+    tabId: 'missions-with-assignments',
+    autoRefresh: true,
+    refreshInterval: 60000, // 1 minute
+    onTabActivate: () => {
+      console.log('📱 Onglet Missions avec Assignations activé')
+      const shouldForceRefresh = !cacheValid || isDataStale()
+      fetchMissions(shouldForceRefresh)
+    },
+    onTabDeactivate: () => {
+      console.log('📱 Onglet Missions avec Assignations désactivé')
+    }
+  })
+
+  // Charger les missions au montage du composant avec gestion du cache
   useEffect(() => {
     console.log('🚀 MissionsWithAssignmentsTab: fetchMissions appelé')
-    fetchMissions()
-  }, [fetchMissions])
+    const shouldForceRefresh = !cacheValid || isDataStale()
+    fetchMissions(shouldForceRefresh)
+  }, [fetchMissions, cacheValid, isDataStale])
 
   // Log des données reçues
   useEffect(() => {
     console.log('📊 MissionsWithAssignmentsTab: missions reçues:', missions)
     console.log('📊 MissionsWithAssignmentsTab: loading:', loading)
-  }, [missions, loading])
+    console.log('📊 MissionsWithAssignmentsTab: cacheValid:', cacheValid)
+    console.log('📊 MissionsWithAssignmentsTab: isDataStale:', isDataStale())
+  }, [missions, loading, cacheValid, isDataStale])
+
+  // Fonction pour forcer le rafraîchissement
+  const handleForceRefresh = async () => {
+    console.log('🔄 Forçage du rafraîchissement des missions')
+    setLastRefresh(Date.now())
+    await fetchMissions(true)
+    showSuccess('Données mises à jour', 'Les missions ont été rechargées avec succès.')
+  }
+
+  // Mémoisation des missions pour éviter les re-renders inutiles
+  const memoizedMissions = useMemo(() => {
+    return missions.map(mission => ({
+      ...mission,
+      pendingAssignments: mission.mission_assignments?.filter((a: any) => a.status === 'proposé') || [],
+      acceptedAssignments: mission.mission_assignments?.filter((a: any) => a.status === 'accepté') || [],
+      validatedAcceptedAssignments: mission.mission_assignments?.filter((a: any) => a.status === 'accepté' && a.users.is_validated) || []
+    }))
+  }, [missions])
 
   const convertUTCToLocal = (dateString: string): string => {
     try {
@@ -137,6 +177,9 @@ export function MissionsWithAssignmentsTab() {
 
   return (
     <div className="space-y-6">
+      {/* Notification d'amélioration */}
+      <PersistenceNotification />
+      
       {/* En-tête */}
       <div className="flex items-center justify-between bg-white border-b border-gray-200 px-6 py-4 rounded-lg shadow-sm">
         <div>
@@ -150,6 +193,38 @@ export function MissionsWithAssignmentsTab() {
             <Target className="h-3 w-3 mr-1" />
             Gestion des assignations
           </Badge>
+          
+          {/* Indicateur de statut du cache */}
+          <div className="flex items-center space-x-2">
+            {isActive && (
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse mr-1" />
+                Actif
+              </Badge>
+            )}
+            {cacheValid && !isDataStale() ? (
+              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Données à jour
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                <AlertCircle className="h-3 w-3 mr-1" />
+                Données obsolètes
+              </Badge>
+            )}
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleForceRefresh}
+              disabled={loading}
+              className="text-gray-600 hover:text-gray-700 hover:bg-gray-100 border-gray-300"
+            >
+              <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+              Rafraîchir
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -165,10 +240,10 @@ export function MissionsWithAssignmentsTab() {
           </div>
         ) : (
           <div className="space-y-6">
-            {missions.map((mission) => {
-              const pendingAssignments = mission.mission_assignments?.filter((a: any) => a.status === 'proposé') || []
-              const acceptedAssignments = mission.mission_assignments?.filter((a: any) => a.status === 'accepté') || []
-              const validatedAcceptedAssignments = acceptedAssignments.filter((a: any) => a.users.is_validated)
+            {memoizedMissions.map((mission) => {
+              const pendingAssignments = mission.pendingAssignments || []
+              const acceptedAssignments = mission.acceptedAssignments || []
+              const validatedAcceptedAssignments = mission.validatedAcceptedAssignments || []
               const hasEnoughValidatedTechnicians = validatedAcceptedAssignments.length >= mission.required_people
 
               return (

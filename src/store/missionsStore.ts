@@ -6,7 +6,9 @@ interface MissionsState {
   missions: MissionWithAssignments[]
   loading: boolean
   error: string | null
-  fetchMissions: () => Promise<void>
+  lastFetched: number | null
+  cacheValid: boolean
+  fetchMissions: (force?: boolean) => Promise<void>
   createMission: (mission: Omit<Mission, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => Promise<void>
   updateMission: (id: string, data: Partial<Mission>) => Promise<void>
   deleteMission: (id: string) => Promise<void>
@@ -14,14 +16,38 @@ interface MissionsState {
   updateAssignmentStatus: (assignmentId: string, status: MissionAssignment['status']) => Promise<void>
   cancelPendingAssignmentsForMission: (missionId: string) => Promise<void>
   clearError: () => void
+  invalidateCache: () => void
+  isDataStale: () => boolean
 }
+
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
 export const useMissionsStore = create<MissionsState>((set, get) => ({
   missions: [],
   loading: false,
   error: null,
+  lastFetched: null,
+  cacheValid: false,
 
-  fetchMissions: async () => {
+  isDataStale: () => {
+    const { lastFetched } = get()
+    if (!lastFetched) return true
+    return Date.now() - lastFetched > CACHE_DURATION
+  },
+
+  invalidateCache: () => {
+    set({ cacheValid: false, lastFetched: null })
+  },
+
+  fetchMissions: async (force = false) => {
+    const { cacheValid, isDataStale } = get()
+    
+    // Si les données sont en cache et pas expirées, ne pas recharger
+    if (!force && cacheValid && !isDataStale()) {
+      console.log('📊 Utilisation du cache pour les missions')
+      return
+    }
+
     set({ loading: true, error: null })
     try {
       const { data, error } = await supabase
@@ -37,7 +63,13 @@ export const useMissionsStore = create<MissionsState>((set, get) => ({
 
       if (error) throw error
 
-      set({ missions: data || [], loading: false })
+      set({ 
+        missions: data || [], 
+        loading: false, 
+        lastFetched: Date.now(),
+        cacheValid: true
+      })
+      console.log('📊 Missions chargées et mises en cache')
     } catch (error) {
       console.error('Erreur lors du chargement des missions:', error)
       set({ 
@@ -89,8 +121,9 @@ export const useMissionsStore = create<MissionsState>((set, get) => ({
 
       console.log('Mission created:', data)
       
-      // Rafraîchir la liste
-      get().fetchMissions()
+      // Invalider le cache et rafraîchir la liste
+      get().invalidateCache()
+      get().fetchMissions(true)
       
       return data
     } catch (error) {
@@ -133,8 +166,9 @@ export const useMissionsStore = create<MissionsState>((set, get) => ({
 
       if (error) throw error
 
-      // Rafraîchir la liste
-      get().fetchMissions()
+      // Invalider le cache et rafraîchir la liste
+      get().invalidateCache()
+      get().fetchMissions(true)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la mise à jour de la mission'
       console.error('Erreur lors de la mise à jour de la mission:', error)
@@ -156,8 +190,9 @@ export const useMissionsStore = create<MissionsState>((set, get) => ({
 
       if (error) throw error
 
-      // Rafraîchir la liste
-      get().fetchMissions()
+      // Invalider le cache et rafraîchir la liste
+      get().invalidateCache()
+      get().fetchMissions(true)
     } catch (error) {
       console.error('Erreur lors de la suppression de la mission:', error)
       set({ 
@@ -192,8 +227,9 @@ export const useMissionsStore = create<MissionsState>((set, get) => ({
         if (error) throw error
       }
 
-      // Rafraîchir la liste
-      get().fetchMissions()
+      // Invalider le cache et rafraîchir la liste
+      get().invalidateCache()
+      get().fetchMissions(true)
     } catch (error) {
       console.error('Erreur lors de l\'assignation des techniciens:', error)
       set({ 
@@ -217,8 +253,9 @@ export const useMissionsStore = create<MissionsState>((set, get) => ({
 
       if (error) throw error
 
-      // Rafraîchir la liste
-      get().fetchMissions()
+      // Invalider le cache et rafraîchir la liste
+      get().invalidateCache()
+      get().fetchMissions(true)
     } catch (error) {
       console.error('Erreur lors de la mise à jour du statut:', error)
       set({ 
@@ -248,8 +285,9 @@ export const useMissionsStore = create<MissionsState>((set, get) => ({
 
       if (error) throw error
 
-      // Rafraîchir la liste
-      get().fetchMissions()
+      // Invalider le cache et rafraîchir la liste
+      get().invalidateCache()
+      get().fetchMissions(true)
     } catch (error) {
       console.error('Erreur lors de l\'annulation des demandes en attente:', error)
       set({ 

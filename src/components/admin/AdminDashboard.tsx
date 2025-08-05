@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useAdminStore } from '@/store/adminStore'
 import { MissionsTab } from './MissionsTab'
 import { TechniciansTab } from './TechniciansTab'
@@ -38,21 +38,11 @@ export function AdminDashboard() {
   // Activer la synchronisation en temps réel
   useRealtimeSync()
 
+  // Charger les données initiales une seule fois
   useEffect(() => {
+    console.log('🚀 AdminDashboard: Chargement initial des données')
     fetchAllData()
-  }, [fetchAllData])
-
-  // Recharger les données quand le composant devient visible
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        refreshData()
-      }
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-  }, [refreshData])
+  }, []) // Dépendances vides pour ne s'exécuter qu'une fois
 
   // Gestionnaires pour les missions
   const handleViewMission = (mission: MissionWithAssignments) => {

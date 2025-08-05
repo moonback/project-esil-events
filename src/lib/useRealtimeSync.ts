@@ -9,16 +9,19 @@ export function useRealtimeSync() {
 
   useEffect(() => {
     if (isSubscribed.current) {
+      console.log('🔄 useRealtimeSync: Déjà souscrit, ignoré')
       return
     }
 
     isSubscribed.current = true
+    console.log('🔄 Initialisation de la synchronisation en temps réel')
 
     // Fonction helper pour éviter les appels trop fréquents
     const debouncedRefresh = (key: string, refreshFn: () => void) => {
       const now = Date.now()
       const lastTime = lastRefreshTime.current[key] || 0
       if (now - lastTime > 1000) { // Debounce de 1 seconde
+        console.log(`🔄 Changement détecté sur ${key}`)
         lastRefreshTime.current[key] = now
         refreshFn()
       }
@@ -31,6 +34,7 @@ export function useRealtimeSync() {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'missions' },
         (payload) => {
+          console.log('🔄 Changement détecté sur les missions:', payload.eventType)
           debouncedRefresh('missions', refreshMissions)
         }
       )
@@ -43,6 +47,7 @@ export function useRealtimeSync() {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'mission_assignments' },
         (payload) => {
+          console.log('🔄 Changement détecté sur les assignations:', payload.eventType)
           debouncedRefresh('assignments', refreshMissions)
         }
       )
@@ -55,6 +60,7 @@ export function useRealtimeSync() {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'users' },
         (payload) => {
+          console.log('🔄 Changement détecté sur les utilisateurs:', payload.eventType)
           debouncedRefresh('users', refreshData)
         }
       )
@@ -67,6 +73,7 @@ export function useRealtimeSync() {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'billing' },
         (payload) => {
+          console.log('🔄 Changement détecté sur les facturations:', payload.eventType)
           debouncedRefresh('billing', refreshData)
         }
       )
@@ -79,6 +86,7 @@ export function useRealtimeSync() {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'availability' },
         (payload) => {
+          console.log('🔄 Changement détecté sur les disponibilités:', payload.eventType)
           debouncedRefresh('availability', refreshData)
         }
       )
@@ -91,12 +99,14 @@ export function useRealtimeSync() {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'unavailability' },
         (payload) => {
+          console.log('🔄 Changement détecté sur les indisponibilités:', payload.eventType)
           debouncedRefresh('unavailability', refreshData)
         }
       )
       .subscribe()
 
     return () => {
+      console.log('🔄 Nettoyage de la synchronisation en temps réel')
       isSubscribed.current = false
       supabase.removeChannel(missionsSubscription)
       supabase.removeChannel(assignmentsSubscription)

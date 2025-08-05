@@ -380,7 +380,7 @@ export function TechniciansTab() {
             <p className="text-gray-500 text-sm">Les techniciens apparaîtront ici une fois ajoutés</p>
           </div>
         ) : (
-                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
              {sortedTechnicians.map((technician) => (
                <Card key={technician.id} className="group relative overflow-hidden border-0 bg-gradient-to-br from-white to-gray-50 hover:from-white hover:to-indigo-50 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1">
                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>

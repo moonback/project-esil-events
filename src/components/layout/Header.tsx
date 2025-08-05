@@ -288,19 +288,7 @@ export function Header() {
               )}
             </Button> */}
 
-            {/* Bouton de rafraîchissement - Admin seulement */}
-            {isAdmin && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="hidden sm:flex p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200 disabled:opacity-50"
-                title="Actualiser les données"
-              >
-                <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
-              </Button>
-            )}
+
 
             {/* Plein écran - Admin seulement */}
             {isAdmin && (

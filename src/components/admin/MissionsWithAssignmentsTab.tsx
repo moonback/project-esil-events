@@ -201,34 +201,50 @@ export function MissionsWithAssignmentsTab() {
               const hasEnoughValidatedTechnicians = validatedAcceptedAssignments.length >= mission.required_people
 
               return (
-                <Card key={mission.id} className="border border-gray-200 hover:border-indigo-200 transition-all duration-200 shadow-sm hover:shadow-md">
+                <Card key={mission.id} className={`border transition-all duration-200 shadow-sm hover:shadow-md ${
+                  hasEnoughValidatedTechnicians 
+                    ? 'border-gray-300 bg-gray-50 opacity-75 hover:border-gray-400' 
+                    : 'border-gray-200 hover:border-indigo-200'
+                }`}>
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-3">
-                          <CardTitle className="text-lg text-gray-900">{mission.title}</CardTitle>
-                          <Badge variant="outline" className="bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border-indigo-200">
+                          <CardTitle className={`text-lg ${hasEnoughValidatedTechnicians ? 'text-gray-500' : 'text-gray-900'}`}>
+                            {mission.title}
+                          </CardTitle>
+                          <Badge variant="outline" className={`${
+                            hasEnoughValidatedTechnicians 
+                              ? 'bg-gray-100 text-gray-600 border-gray-300' 
+                              : 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border-indigo-200'
+                          }`}>
                             {mission.type}
                           </Badge>
                         </div>
                         
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
                           <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                              <MapPin className="h-4 w-4 text-blue-600" />
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                              hasEnoughValidatedTechnicians ? 'bg-gray-200' : 'bg-blue-100'
+                            }`}>
+                              <MapPin className={`h-4 w-4 ${hasEnoughValidatedTechnicians ? 'text-gray-500' : 'text-blue-600'}`} />
                             </div>
                             <div>
-                              <p className="font-medium text-gray-900">{mission.location}</p>
+                              <p className={`font-medium ${hasEnoughValidatedTechnicians ? 'text-gray-500' : 'text-gray-900'}`}>
+                                {mission.location}
+                              </p>
                               <p className="text-xs text-gray-500">Localisation</p>
                             </div>
                           </div>
                           
                           <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                              <Calendar className="h-4 w-4 text-green-600" />
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                              hasEnoughValidatedTechnicians ? 'bg-gray-200' : 'bg-green-100'
+                            }`}>
+                              <Calendar className={`h-4 w-4 ${hasEnoughValidatedTechnicians ? 'text-gray-500' : 'text-green-600'}`} />
                             </div>
                             <div>
-                              <p className="font-medium text-gray-900">
+                              <p className={`font-medium ${hasEnoughValidatedTechnicians ? 'text-gray-500' : 'text-gray-900'}`}>
                                 {formatDateTimeUTC(mission.date_start)}
                               </p>
                               <p className="text-xs text-gray-500">
@@ -238,21 +254,29 @@ export function MissionsWithAssignmentsTab() {
                           </div>
                           
                           <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                              <Euro className="h-4 w-4 text-yellow-600" />
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                              hasEnoughValidatedTechnicians ? 'bg-gray-200' : 'bg-yellow-100'
+                            }`}>
+                              <Euro className={`h-4 w-4 ${hasEnoughValidatedTechnicians ? 'text-gray-500' : 'text-yellow-600'}`} />
                             </div>
                             <div>
-                              <p className="font-medium text-gray-900">{mission.forfeit}€</p>
+                              <p className={`font-medium ${hasEnoughValidatedTechnicians ? 'text-gray-500' : 'text-gray-900'}`}>
+                                {mission.forfeit}€
+                              </p>
                               <p className="text-xs text-gray-500">Forfait</p>
                             </div>
                           </div>
                           
                           <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                              <Users className="h-4 w-4 text-purple-600" />
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                              hasEnoughValidatedTechnicians ? 'bg-gray-200' : 'bg-purple-100'
+                            }`}>
+                              <Users className={`h-4 w-4 ${hasEnoughValidatedTechnicians ? 'text-gray-500' : 'text-purple-600'}`} />
                             </div>
                             <div>
-                              <p className="font-medium text-gray-900">{mission.required_people}</p>
+                              <p className={`font-medium ${hasEnoughValidatedTechnicians ? 'text-gray-500' : 'text-gray-900'}`}>
+                                {mission.required_people}
+                              </p>
                               <p className="text-xs text-gray-500">Personne{mission.required_people > 1 ? 's' : ''} requise{mission.required_people > 1 ? 's' : ''}</p>
                             </div>
                           </div>
@@ -264,10 +288,15 @@ export function MissionsWithAssignmentsTab() {
                           variant="default"
                           size="sm"
                           onClick={() => handleAssignTechnicians(mission)}
-                          className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                          disabled={hasEnoughValidatedTechnicians}
+                          className={`${
+                            hasEnoughValidatedTechnicians 
+                              ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
+                              : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                          }`}
                         >
                           <Users className="h-4 w-4 mr-1" />
-                          Assigner des techniciens
+                          {hasEnoughValidatedTechnicians ? 'Mission complète' : 'Assigner des techniciens'}
                         </Button>
                         {pendingAssignments.length > 0 && (
                           <Button

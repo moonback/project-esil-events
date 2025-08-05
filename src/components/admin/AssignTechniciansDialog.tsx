@@ -306,196 +306,200 @@ export function AssignTechniciansDialog({ mission, open, onOpenChange }: AssignT
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center space-x-2">
-            <UserPlus className="h-5 w-5" />
-            <DialogTitle>Assigner des Techniciens</DialogTitle>
-          </div>
-          <div className="space-y-2">
-            <h3 className="font-medium">{mission.title}</h3>
-            <div className="flex items-center space-x-2">
-              <Badge className={getMissionTypeColor(mission.type)}>
+      <DialogContent className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="pb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <UserPlus className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-bold text-gray-900">Assigner des Techniciens</DialogTitle>
+                <p className="text-sm text-gray-600 mt-1">Sélectionnez les techniciens pour cette mission</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Badge className={`${getMissionTypeColor(mission.type)} text-xs font-medium px-3 py-1.5`}>
                 {mission.type}
               </Badge>
-              <span className="text-sm text-gray-600">
-                Rémunération: {formatCurrency(mission.forfeit)}
-              </span>
+              <div className="text-right">
+                <p className="text-sm font-semibold text-gray-900">{mission.title}</p>
+                <p className="text-xs text-gray-600">
+                  Rémunération: <span className="font-semibold text-emerald-600">{formatCurrency(mission.forfeit)}</span>
+                </p>
+              </div>
             </div>
           </div>
         </DialogHeader>
         
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="space-y-4">
-            <div>
-              <Label className="text-base font-medium">
-                Sélectionner les techniciens à assigner
-              </Label>
-              <p className="text-sm text-gray-600 mt-1">
-                Les techniciens sélectionnés recevront une proposition de mission
-              </p>
-            </div>
+            
 
-            {/* Légende des statuts */}
-            <div className="bg-gray-50 p-3 rounded-md mb-3">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Légende des statuts :</h4>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span>Disponible</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <span>Indisponible</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                  <span>Conflit de planning</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
-                  <span>Pas de disponibilités définies</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2 max-h-64 overflow-y-auto border rounded-md p-3">
+            <div className="space-y-3 max-h-96 overflow-y-auto border border-gray-200 rounded-xl p-4 bg-gray-50/30">
               {technicians.length === 0 ? (
-                <p className="text-center text-gray-500 py-4">
-                  Aucun technicien disponible
-                </p>
+                <div className="text-center py-8">
+                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Users className="h-6 w-6 text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 font-medium">Aucun technicien disponible</p>
+                </div>
               ) : (
-                technicians.map((tech) => {
-                  const isSelected = selectedTechnicians.includes(tech.id)
-                  const isAssigned = tech.assignment?.status === 'accepté'
-                  const isDisabled = !canSelectTechnician(tech)
-                  
-                  // Déterminer la couleur de fond selon le statut
-                  const getBackgroundColor = () => {
-                    switch (tech.availabilityStatus) {
-                      case 'available':
-                        return 'border-green-300 bg-green-50'
-                      case 'unavailable':
-                        return 'border-red-300 bg-red-50'
-                      case 'conflict':
-                        return 'border-orange-300 bg-orange-50'
-                      case 'no_availability':
-                        return 'border-gray-300 bg-gray-50'
-                      default:
-                        return 'border-gray-200 bg-white'
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  {technicians.map((tech) => {
+                    const isSelected = selectedTechnicians.includes(tech.id)
+                    const isAssigned = tech.assignment?.status === 'accepté'
+                    const isDisabled = !canSelectTechnician(tech)
+                    
+                    // Déterminer la couleur de fond selon le statut
+                    const getBackgroundColor = () => {
+                      switch (tech.availabilityStatus) {
+                        case 'available':
+                          return 'border-green-300 bg-gradient-to-br from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100'
+                        case 'unavailable':
+                          return 'border-red-300 bg-gradient-to-br from-red-50 to-pink-50 hover:from-red-100 hover:to-pink-100'
+                        case 'conflict':
+                          return 'border-orange-300 bg-gradient-to-br from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100'
+                        case 'no_availability':
+                          return 'border-gray-300 bg-gradient-to-br from-gray-50 to-slate-50 hover:from-gray-100 hover:to-slate-100'
+                        default:
+                          return 'border-gray-200 bg-gradient-to-br from-white to-gray-50 hover:from-gray-50 hover:to-gray-100'
+                      }
                     }
-                  }
-                  
-                  return (
-                    <div key={tech.id} className={`flex items-center justify-between p-3 border rounded hover:bg-gray-50 ${
-                      getBackgroundColor()
-                    } ${isDisabled ? 'opacity-60 cursor-not-allowed' : ''}`}>
-                      <div className="flex items-center space-x-3">
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => handleTechnicianToggle(tech.id)}
-                          disabled={isDisabled}
-                          className="rounded"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <span className="font-medium">{tech.name}</span>
-                            {getAvailabilityStatusBadge(tech)}
-                          </div>
-                          
-                          {tech.phone && (
-                            <p className="text-xs text-gray-500 mb-1">{tech.phone}</p>
-                          )}
-                          
-                          {/* Informations de disponibilité */}
-                          <div className="text-xs text-gray-600 space-y-1">
-                            {tech.availabilities.length > 0 && (
-                              <div>
-                                <span className="font-medium text-green-600">Disponibilités:</span>
-                                {tech.availabilities.slice(0, 2).map((avail, index) => (
-                                  <div key={avail.id} className="ml-2">
-                                    {new Date(avail.start_time).toLocaleDateString()} - {new Date(avail.end_time).toLocaleDateString()}
-                                  </div>
-                                ))}
-                                {tech.availabilities.length > 2 && (
-                                  <div className="ml-2 text-gray-500">+{tech.availabilities.length - 2} autres</div>
-                                )}
+                    
+                    return (
+                      <Card key={tech.id} className={`border-2 transition-all duration-200 shadow-sm hover:shadow-md ${
+                        getBackgroundColor()
+                      } ${isDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start space-x-3 flex-1">
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => handleTechnicianToggle(tech.id)}
+                                  disabled={isDisabled}
+                                  className="rounded border-2 border-gray-300 checked:bg-indigo-600 checked:border-indigo-600 focus:ring-indigo-500"
+                                />
+                                <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
+                                  {tech.name.charAt(0)}
+                                </div>
                               </div>
-                            )}
-                            
-                            {tech.unavailabilities.length > 0 && (
-                              <div>
-                                <span className="font-medium text-red-600">Indisponibilités:</span>
-                                {tech.unavailabilities.slice(0, 2).map((unavail, index) => (
-                                  <div key={unavail.id} className="ml-2">
-                                    {new Date(unavail.start_time).toLocaleDateString()} - {new Date(unavail.end_time).toLocaleDateString()}
-                                    {unavail.reason && ` (${unavail.reason})`}
-                                  </div>
-                                ))}
-                                {tech.unavailabilities.length > 2 && (
-                                  <div className="ml-2 text-gray-500">+{tech.unavailabilities.length - 2} autres</div>
+                              
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center space-x-2 mb-2">
+                                  <span className="font-semibold text-gray-900 truncate">{tech.name}</span>
+                                  {getAvailabilityStatusBadge(tech)}
+                                </div>
+                                
+                                {tech.phone && (
+                                  <p className="text-xs text-gray-600 mb-2">{tech.phone}</p>
                                 )}
-                              </div>
-                            )}
-                          </div>
-                          
-                          {/* Conflits de missions */}
-                          {tech.conflictingMissions && tech.conflictingMissions.length > 0 && (
-                            <div className="mt-2">
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                                Conflit de planning
-                              </span>
-                              <div className="text-xs text-orange-600 mt-1">
-                                {tech.conflictingMissions.map((conflictMission) => (
-                                  <div key={conflictMission.id}>
-                                    Mission "{conflictMission.title}" du {new Date(conflictMission.date_start).toLocaleDateString()} au {new Date(conflictMission.date_end).toLocaleDateString()}
-                                  </div>
-                                ))}
+                                
+                                {/* Informations de disponibilité compactes */}
+                                <div className="space-y-1">
+                                  {tech.availabilities.length > 0 && (
+                                    <div className="flex items-center space-x-1">
+                                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                      <span className="text-xs font-medium text-green-700">Disponibilités:</span>
+                                      <span className="text-xs text-gray-600">
+                                        {tech.availabilities.length} période{tech.availabilities.length > 1 ? 's' : ''}
+                                      </span>
+                                    </div>
+                                  )}
+                                  
+                                  {tech.unavailabilities.length > 0 && (
+                                    <div className="flex items-center space-x-1">
+                                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                      <span className="text-xs font-medium text-red-700">Indisponibilités:</span>
+                                      <span className="text-xs text-gray-600">
+                                        {tech.unavailabilities.length} période{tech.unavailabilities.length > 1 ? 's' : ''}
+                                      </span>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Conflits de missions */}
+                                  {tech.conflictingMissions && tech.conflictingMissions.length > 0 && (
+                                    <div className="flex items-center space-x-1">
+                                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                      <span className="text-xs font-medium text-orange-700">Conflit:</span>
+                                      <span className="text-xs text-gray-600">
+                                        {tech.conflictingMissions.length} mission{tech.conflictingMissions.length > 1 ? 's' : ''}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        {getAssignmentStatusBadge(tech.assignment)}
-                        {tech.assignment?.status === 'accepté' && (
-                          <Check className="h-4 w-4 text-green-600" />
-                        )}
-                        {tech.assignment?.status === 'refusé' && (
-                          <X className="h-4 w-4 text-red-600" />
-                        )}
-                      </div>
-                    </div>
-                  )
-                })
+                            
+                            <div className="flex flex-col items-end space-y-2">
+                              {getAssignmentStatusBadge(tech.assignment)}
+                              {tech.assignment?.status === 'accepté' && (
+                                <Check className="h-4 w-4 text-green-600" />
+                              )}
+                              {tech.assignment?.status === 'refusé' && (
+                                <X className="h-4 w-4 text-red-600" />
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
               )}
             </div>
 
             {selectedTechnicians.length > 0 && (
-              <div className="bg-blue-50 p-3 rounded-md">
-                <p className="text-sm text-blue-800">
-                  <Users className="h-4 w-4 inline mr-1" />
-                  {selectedTechnicians.length} technicien(s) sélectionné(s)
-                </p>
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                      <Users className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-blue-900">
+                        {selectedTechnicians.length} technicien{selectedTechnicians.length > 1 ? 's' : ''} sélectionné{selectedTechnicians.length > 1 ? 's' : ''}
+                      </p>
+                      <p className="text-xs text-blue-700">
+                        Prêt à envoyer les propositions de mission
+                      </p>
+                    </div>
+                  </div>
+                  <Badge className="bg-blue-100 text-blue-800 text-xs font-medium">
+                    {selectedTechnicians.length} sélectionné{selectedTechnicians.length > 1 ? 's' : ''}
+                  </Badge>
+                </div>
               </div>
             )}
 
-            <div className="flex justify-end space-x-2 pt-4 border-t">
+            <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
                 disabled={loading}
+                className="px-6 py-2"
               >
                 Annuler
               </Button>
               <Button 
                 onClick={handleAssign} 
                 disabled={loading || selectedTechnicians.length === 0}
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl px-6 py-2"
               >
-                {loading ? 'Assignation...' : `Assigner ${selectedTechnicians.length} technicien(s)`}
+                {loading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Assignation...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <UserPlus className="h-4 w-4" />
+                    <span>Assigner {selectedTechnicians.length} technicien{selectedTechnicians.length > 1 ? 's' : ''}</span>
+                  </div>
+                )}
               </Button>
             </div>
           </div>

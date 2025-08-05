@@ -380,98 +380,106 @@ export function TechniciansTab() {
             <p className="text-gray-500 text-sm">Les techniciens apparaîtront ici une fois ajoutés</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {sortedTechnicians.map((technician) => (
-              <Card key={technician.id} className="border border-gray-200 hover:border-indigo-200 transition-all duration-200 shadow-sm hover:shadow-md">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      {/* En-tête du technicien */}
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold shadow-sm">
-                            {technician.name.charAt(0)}
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-gray-900">{technician.name}</h3>
-                            <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
-                              <Badge variant="secondary" className="text-xs">Technicien</Badge>
-                              {technician.is_validated && (
-                                <Badge variant="default" className="text-xs bg-blue-100 text-blue-800">
-                                  <UserCheck className="h-3 w-3 mr-1" />
-                                  Validé
-                                </Badge>
-                              )}
-                              {technician.phone && (
-                                <div className="flex items-center space-x-1">
-                                  <Phone className="h-3 w-3" />
-                                  <span>{technician.phone}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+             {sortedTechnicians.map((technician) => (
+               <Card key={technician.id} className="group relative overflow-hidden border-0 bg-gradient-to-br from-white to-gray-50 hover:from-white hover:to-indigo-50 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1">
+                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                 <CardContent className="relative p-6">
+                   <div className="flex items-start justify-between">
+                     <div className="flex-1 min-w-0">
+                       {/* En-tête du technicien */}
+                       <div className="flex items-center justify-between mb-6">
+                         <div className="flex items-center space-x-4">
+                           <div className="relative">
+                             <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:shadow-xl transition-all duration-300">
+                               {technician.name.charAt(0)}
+                             </div>
+                             {technician.is_validated && (
+                               <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-md">
+                                 <UserCheck className="h-3 w-3 text-white" />
+                               </div>
+                             )}
+                           </div>
+                           <div>
+                             <h3 className="text-xl font-bold text-gray-900 group-hover:text-indigo-900 transition-colors duration-300">{technician.name}</h3>
+                             <div className="flex items-center space-x-2 text-xs text-gray-500 mt-2">
+                               <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-700 border-0">Technicien</Badge>
+                               {technician.phone && (
+                                 <div className="flex items-center space-x-1 text-gray-400">
+                                   <Phone className="h-3 w-3" />
+                                   <span className="text-xs">{technician.phone}</span>
+                                 </div>
+                               )}
+                             </div>
+                           </div>
+                         </div>
                         
-                        <div className="flex items-center space-x-2">
-                          {(() => {
-                            const availabilityStatus = getAvailabilityStatus(technician)
-                            const Icon = availabilityStatus.icon
-                            return (
-                              <Badge className={availabilityStatus.color} title={availabilityStatus.reason}>
-                                <Icon className="h-3 w-3 mr-1" />
-                                {availabilityStatus.text}
-                              </Badge>
-                            )
-                          })()}
-                          
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleOpenContact(technician)}
-                            title="Voir les informations de contact"
-                            className="hover:bg-blue-50"
-                          >
-                            <Contact className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleCreatePayment(technician)}
-                            title="Créer un paiement"
-                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleValidateTechnician(technician.id, !technician.is_validated)}
-                            title={technician.is_validated ? 'Dévalider le technicien' : 'Valider le technicien'}
-                            disabled={validationLoading === technician.id}
-                            className={technician.is_validated ? 'text-red-600 hover:text-red-700 hover:bg-red-50' : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'}
-                          >
-                            {validationLoading === technician.id ? (
-                              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                            ) : technician.is_validated ? (
-                              <UserX className="h-4 w-4" />
-                            ) : (
-                              <UserCheck className="h-4 w-4" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteTechnician(technician.id, technician.name)}
-                            title="Supprimer le technicien"
-                            disabled={deleteLoading === technician.id}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            {deleteLoading === technician.id ? (
-                              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                            ) : (
-                              <Trash2 className="h-4 w-4" />
-                            )}
-                          </Button>
+                                                 <div className="flex items-center space-x-1">
+                           {(() => {
+                             const availabilityStatus = getAvailabilityStatus(technician)
+                             const Icon = availabilityStatus.icon
+                             return (
+                               <Badge className={`${availabilityStatus.color} text-xs font-medium px-2 py-1 rounded-full shadow-sm`} title={availabilityStatus.reason}>
+                                 <Icon className="h-3 w-3 mr-1" />
+                                 {availabilityStatus.text}
+                               </Badge>
+                             )
+                           })()}
+                           
+                           <div className="flex items-center space-x-1 ml-2">
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               onClick={() => handleOpenContact(technician)}
+                               title="Voir les informations de contact"
+                               className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
+                             >
+                               <Contact className="h-4 w-4" />
+                             </Button>
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               onClick={() => handleCreatePayment(technician)}
+                               title="Créer un paiement"
+                               className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 transition-all duration-200"
+                             >
+                               <Plus className="h-4 w-4" />
+                             </Button>
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               onClick={() => handleValidateTechnician(technician.id, !technician.is_validated)}
+                               title={technician.is_validated ? 'Dévalider le technicien' : 'Valider le technicien'}
+                               disabled={validationLoading === technician.id}
+                               className={`h-8 w-8 p-0 transition-all duration-200 ${
+                                 technician.is_validated 
+                                   ? 'text-red-600 hover:text-red-700 hover:bg-red-50' 
+                                   : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
+                               }`}
+                             >
+                               {validationLoading === technician.id ? (
+                                 <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                               ) : technician.is_validated ? (
+                                 <UserX className="h-4 w-4" />
+                               ) : (
+                                 <UserCheck className="h-4 w-4" />
+                               )}
+                             </Button>
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               onClick={() => handleDeleteTechnician(technician.id, technician.name)}
+                               title="Supprimer le technicien"
+                               disabled={deleteLoading === technician.id}
+                               className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200"
+                             >
+                               {deleteLoading === technician.id ? (
+                                 <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                               ) : (
+                                 <Trash2 className="h-4 w-4" />
+                               )}
+                             </Button>
+                           </div>
                           {/* <Button
                             variant="ghost"
                             size="sm"
@@ -483,58 +491,52 @@ export function TechniciansTab() {
                         </div>
                       </div>
 
-                      {/* Statistiques principales */}
-                      <div className="grid grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <Calendar className="h-4 w-4 text-blue-600" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{technician.stats?.totalAssignments || 0}</p>
-                            <p className="text-xs text-gray-500">Missions</p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center space-x-2">
-                          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                            <Euro className="h-4 w-4 text-green-600" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{technician.stats?.totalRevenue || 0}€</p>
-                            <p className="text-xs text-gray-500">Revenus</p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center space-x-2">
-                          <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                            <Clock3 className="h-4 w-4 text-orange-600" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{technician.stats?.totalHours || 0}h</p>
-                            <p className="text-xs text-gray-500">Heures</p>
-                          </div>
-                        </div>
-                      </div>
+                                             {/* Statistiques principales */}
+                       <div className="grid grid-cols-3 gap-4 mb-6">
+                         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 text-center group-hover:from-blue-100 group-hover:to-blue-200 transition-all duration-300">
+                           <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md">
+                             <Calendar className="h-5 w-5 text-white" />
+                           </div>
+                           <p className="text-2xl font-bold text-blue-900">{technician.stats?.totalAssignments || 0}</p>
+                           <p className="text-xs text-blue-700 font-medium">Missions</p>
+                         </div>
+                         
+                         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 text-center group-hover:from-green-100 group-hover:to-green-200 transition-all duration-300">
+                           <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md">
+                             <Euro className="h-5 w-5 text-white" />
+                           </div>
+                           <p className="text-2xl font-bold text-green-900">{technician.stats?.totalRevenue || 0}€</p>
+                           <p className="text-xs text-green-700 font-medium">Revenus</p>
+                         </div>
+                         
+                         <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 text-center group-hover:from-orange-100 group-hover:to-orange-200 transition-all duration-300">
+                           <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md">
+                             <Clock3 className="h-5 w-5 text-white" />
+                           </div>
+                           <p className="text-2xl font-bold text-orange-900">{technician.stats?.totalHours || 0}h</p>
+                           <p className="text-xs text-orange-700 font-medium">Heures</p>
+                         </div>
+                       </div>
 
-                      {/* Barre de progression */}
-                      {(technician.stats?.totalAssignments || 0) > 0 && (
-                        <div className="mb-4">
-                          <div className="flex items-center justify-between text-xs mb-2">
-                            <span className="text-gray-500">Taux d'acceptation</span>
-                            <span className="font-medium">
-                              {Math.round(((technician.stats?.acceptedAssignments || 0) / (technician.stats?.totalAssignments || 1)) * 100)}%
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                              style={{
-                                width: `${((technician.stats?.acceptedAssignments || 0) / (technician.stats?.totalAssignments || 1)) * 100}%`
-                              }}
-                            />
-                          </div>
-                        </div>
-                      )}
+                                             {/* Barre de progression */}
+                       {(technician.stats?.totalAssignments || 0) > 0 && (
+                         <div className="mb-4">
+                           <div className="flex items-center justify-between text-sm mb-3">
+                             <span className="text-gray-600 font-medium">Taux d'acceptation</span>
+                             <span className="font-bold text-green-600">
+                               {Math.round(((technician.stats?.acceptedAssignments || 0) / (technician.stats?.totalAssignments || 1)) * 100)}%
+                             </span>
+                           </div>
+                           <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
+                             <div
+                               className="bg-gradient-to-r from-green-400 to-green-500 h-3 rounded-full transition-all duration-500 shadow-sm"
+                               style={{
+                                 width: `${((technician.stats?.acceptedAssignments || 0) / (technician.stats?.totalAssignments || 1)) * 100}%`
+                               }}
+                             />
+                           </div>
+                         </div>
+                       )}
 
                       
                     </div>

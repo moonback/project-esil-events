@@ -657,20 +657,6 @@ export function MissionsTab({
           {/* Boutons d'action regroupés */}
           <div className="flex items-center space-x-2">
             <Button 
-              onClick={handleCreateTest}
-              disabled={createTestLoading}
-              size="sm"
-              variant="outline"
-              className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200"
-            >
-              {createTestLoading ? (
-                <div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin mr-2" />
-              ) : (
-                <Play className="h-4 w-4 mr-2" />
-              )}
-              Tests
-            </Button>
-            <Button 
               onClick={handleDeleteAll}
               disabled={deleteAllLoading || missions.length === 0}
               size="sm"

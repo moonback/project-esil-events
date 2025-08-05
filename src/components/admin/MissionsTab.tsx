@@ -7,7 +7,7 @@ import {
   Plus, Edit, Trash2, Users, UserPlus, Calendar, MapPin, 
   Clock, Search, CheckCircle, XCircle, AlertCircle,
   TrendingUp, Activity, X, Trash, Play,
-  User, ArrowRight, Check} from 'lucide-react'
+  User, ArrowRight, Check, List} from 'lucide-react'
 import { formatDateTime, formatCurrency, getMissionTypeColor } from '@/lib/utils'
 import { parseISO, isValid } from 'date-fns'
 import { format } from 'date-fns'
@@ -248,79 +248,16 @@ const MissionCard = memo(({
   const requiredPeople = mission.required_people || 1
 
   return (
-    <Card className="border border-gray-200 hover:border-indigo-200 transition-all duration-200 hover:shadow-md group">
-      <CardContent className="p-3">
+    <Card className="border border-gray-200 hover:border-indigo-200 transition-all duration-300 hover:shadow-lg group bg-gradient-to-br from-white to-gray-50/30">
+      <CardContent className="p-4">
         {/* Vue compacte par défaut */}
         {!isExpanded ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {/* En-tête compacte avec statut et bouton d'expansion */}
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full ${missionStatus.color}`} />
-                <Badge className={`${missionStatus.color} text-white text-xs px-2 py-0.5`}>
-                  <StatusIcon className="h-2.5 w-2.5 mr-1" />
-                  {missionStatus.status.replace('_', ' ')}
-                </Badge>
-              </div>
-              
-              <div className="flex items-center space-x-1">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setIsExpanded(true)}
-                  className="h-6 w-6 p-0 hover:bg-gray-100"
-                  title="Développer"
-                >
-                  <ArrowRight className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Titre et type */}
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900 line-clamp-1" title={mission.title}>
-                {mission.title}
-              </h3>
-              <div className="flex items-center justify-between mt-1">
-                <Badge className={`${getMissionTypeColor(mission.type)} text-xs`}>
-                  {mission.type}
-                </Badge>
-                <span className="text-xs font-bold text-emerald-600">{formatCurrency(mission.forfeit)}</span>
-              </div>
-            </div>
-
-            {/* Informations essentielles */}
-            <div className="flex items-center justify-between text-xs text-gray-600">
-              <div className="flex items-center space-x-1">
-                <Calendar className="h-3 w-3 text-indigo-500" />
-                <span>{formatDateTimeUTC(mission.date_start)}</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <Users className="h-3 w-3 text-blue-500" />
-                <span>{acceptedAssignments.length}/{requiredPeople}</span>
-              </div>
-            </div>
-
-            {/* Barre de progression compacte */}
-            {mission.mission_assignments && mission.mission_assignments.length > 0 && (
-              <div className="w-full bg-gray-200 rounded-full h-1">
-                <div
-                  className="bg-emerald-500 h-1 rounded-full transition-all duration-300"
-                  style={{
-                    width: `${Math.min(100, (acceptedAssignments.length / requiredPeople) * 100)}%`
-                  }}
-                />
-              </div>
-            )}
-          </div>
-        ) : (
-          /* Vue développée */
-          <div className="space-y-3">
-            {/* En-tête avec statut et actions */}
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-2">
-                <div className={`w-3 h-3 rounded-full ${missionStatus.color}`} />
-                <Badge className={`${missionStatus.color} text-white text-xs px-2 py-1`}>
+                <div className={`w-3 h-3 rounded-full ${missionStatus.color} shadow-sm`} />
+                <Badge className={`${missionStatus.color} text-white text-xs px-3 py-1 font-medium`}>
                   <StatusIcon className="h-3 w-3 mr-1" />
                   {missionStatus.status.replace('_', ' ')}
                 </Badge>
@@ -330,105 +267,200 @@ const MissionCard = memo(({
                 <Button 
                   variant="ghost" 
                   size="sm" 
+                  onClick={() => setIsExpanded(true)}
+                  className="h-8 w-8 p-0 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                  title="Développer"
+                >
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Titre et type avec design amélioré */}
+            <div className="space-y-2">
+              <h3 className="text-sm font-bold text-gray-900 line-clamp-2 leading-tight" title={mission.title}>
+                {mission.title}
+              </h3>
+              <div className="flex items-center justify-between">
+                <Badge className={`${getMissionTypeColor(mission.type)} text-xs font-medium px-2 py-1`}>
+                  {mission.type}
+                </Badge>
+                <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">
+                  {formatCurrency(mission.forfeit)}
+                </span>
+              </div>
+            </div>
+
+            {/* Informations essentielles avec icônes améliorées */}
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center space-x-2 bg-blue-50 px-3 py-1.5 rounded-lg">
+                <Calendar className="h-3 w-3 text-blue-600" />
+                <span className="font-medium text-blue-700">
+                  {formatDateTimeUTC(mission.date_start)} - {formatDateTimeUTC(mission.date_end)}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2 bg-indigo-50 px-3 py-1.5 rounded-lg">
+                <Users className="h-3 w-3 text-indigo-600" />
+                <span className="font-medium text-indigo-700">{acceptedAssignments.length}/{requiredPeople}</span>
+              </div>
+            </div>
+
+            {/* Barre de progression compacte améliorée */}
+            {mission.mission_assignments && mission.mission_assignments.length > 0 && (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-xs text-gray-600">
+                  <span>Progression</span>
+                  <span className="font-medium">{Math.round((acceptedAssignments.length / requiredPeople) * 100)}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-emerald-400 to-emerald-600 h-2 rounded-full transition-all duration-500 ease-out"
+                    style={{
+                      width: `${Math.min(100, (acceptedAssignments.length / requiredPeople) * 100)}%`
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Vue développée avec design amélioré */
+          <div className="space-y-4">
+            {/* En-tête avec statut et actions améliorées */}
+            <div className="flex items-start justify-between">
+              <div className="flex items-center space-x-3">
+                <div className={`w-4 h-4 rounded-full ${missionStatus.color} shadow-md`} />
+                <Badge className={`${missionStatus.color} text-white text-xs px-3 py-1.5 font-medium`}>
+                  <StatusIcon className="h-3 w-3 mr-1" />
+                  {missionStatus.status.replace('_', ' ')}
+                </Badge>
+              </div>
+              
+              <div className="flex items-center space-x-1 bg-gray-50 p-1 rounded-lg">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
                   onClick={() => setIsExpanded(false)}
-                  className="h-7 w-7 p-0 hover:bg-gray-100"
+                  className="h-8 w-8 p-0 hover:bg-white hover:shadow-sm transition-all"
                   title="Réduire"
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-4 w-4" />
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={() => onViewTechnicianDetails(mission)}
-                  className="h-7 w-7 p-0 hover:bg-blue-50 hover:text-blue-600"
+                  className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 hover:shadow-sm transition-all"
                   title="Voir les techniciens assignés"
                 >
-                  <Users className="h-3 w-3" />
+                  <Users className="h-4 w-4" />
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={() => onQuickAssign(mission)}
-                  className="h-7 w-7 p-0 hover:bg-emerald-50 hover:text-emerald-600"
+                  className="h-8 w-8 p-0 hover:bg-emerald-50 hover:text-emerald-600 hover:shadow-sm transition-all"
                   title="Assigner rapidement"
                 >
-                  <UserPlus className="h-3 w-3" />
+                  <UserPlus className="h-4 w-4" />
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={() => onEdit(mission)}
-                  className="h-7 w-7 p-0 hover:bg-indigo-50 hover:text-indigo-600"
+                  className="h-8 w-8 p-0 hover:bg-indigo-50 hover:text-indigo-600 hover:shadow-sm transition-all"
                   title="Modifier"
                 >
-                  <Edit className="h-3 w-3" />
+                  <Edit className="h-4 w-4" />
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={() => onDelete(mission.id)}
                   disabled={deleteLoading === mission.id}
-                  className="h-7 w-7 p-0 hover:bg-red-50 hover:text-red-600"
+                  className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 hover:shadow-sm transition-all"
                   title="Supprimer"
                 >
                   {deleteLoading === mission.id ? (
-                    <div className="w-3 h-3 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
                   ) : (
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-4 w-4" />
                   )}
                 </Button>
               </div>
             </div>
 
-            {/* Titre et type */}
-            <div>
-              <h3 className="text-sm font-bold text-gray-900 mb-1">{mission.title}</h3>
-              <Badge className={`${getMissionTypeColor(mission.type)} text-xs`}>
-                {mission.type}
-              </Badge>
-            </div>
-
-            {/* Date et lieu mis en avant */}
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2 text-xs">
-                <Calendar className="h-3 w-3 text-indigo-500" />
-                <span className="font-medium text-gray-700">{formatDateTimeUTC(mission.date_start)}</span>
-              </div>
-              
-              <div className="flex items-center space-x-2 text-xs">
-                <MapPin className="h-3 w-3 text-emerald-500" />
-                <span className="font-medium text-gray-700 truncate" title={mission.location}>
-                  {mission.location}
+            {/* Titre et type avec design amélioré */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-bold text-gray-900 leading-tight">{mission.title}</h3>
+              <div className="flex items-center space-x-3">
+                <Badge className={`${getMissionTypeColor(mission.type)} text-xs font-medium px-3 py-1.5`}>
+                  {mission.type}
+                </Badge>
+                <span className="text-lg font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg">
+                  {formatCurrency(mission.forfeit)}
                 </span>
               </div>
             </div>
 
-            {/* Montant et techniciens */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-bold text-emerald-600">{formatCurrency(mission.forfeit)}</span>
+            {/* Informations détaillées avec design moderne */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-700">Date & Heure</span>
+                </div>
+                <p className="text-sm text-blue-800 mt-1 font-semibold">{formatDateTimeUTC(mission.date_start)}</p>
               </div>
               
-              <div className="flex items-center space-x-2">
-                <Users className="h-3 w-3 text-blue-500" />
-                <span className="text-xs text-gray-600">{requiredPeople} pers.</span>
+              <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
+                <div className="flex items-center space-x-2">
+                  <MapPin className="h-4 w-4 text-emerald-600" />
+                  <span className="text-sm font-medium text-emerald-700">Lieu</span>
+                </div>
+                <p className="text-sm text-emerald-800 mt-1 font-semibold truncate" title={mission.location}>
+                  {mission.location}
+                </p>
               </div>
             </div>
 
-            {/* Détails des assignations */}
-            <AssignmentDetails mission={mission} onViewTechnicianDetails={onViewTechnicianDetails} />
-
-            {/* Barre de progression */}
-            {mission.mission_assignments && mission.mission_assignments.length > 0 && (
-              <div className="w-full bg-gray-200 rounded-full h-1.5">
-                <div
-                  className="bg-emerald-500 h-1.5 rounded-full transition-all duration-300"
-                  style={{
-                    width: `${Math.min(100, (acceptedAssignments.length / requiredPeople) * 100)}%`
-                  }}
-                />
+            {/* Section techniciens avec design amélioré */}
+            <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center space-x-2">
+                  <Users className="h-4 w-4 text-indigo-600" />
+                  <span className="text-sm font-medium text-indigo-700">Équipe requise</span>
+                </div>
+                <span className="text-sm font-bold text-indigo-800">{requiredPeople} personne(s)</span>
               </div>
-            )}
+              
+              {/* Barre de progression améliorée */}
+              {mission.mission_assignments && mission.mission_assignments.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs text-indigo-600">
+                    <span>Progression de l'équipe</span>
+                    <span className="font-bold">{Math.round((acceptedAssignments.length / requiredPeople) * 100)}%</span>
+                  </div>
+                  <div className="w-full bg-indigo-200 rounded-full h-2.5 overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-indigo-400 to-indigo-600 h-2.5 rounded-full transition-all duration-700 ease-out"
+                      style={{
+                        width: `${Math.min(100, (acceptedAssignments.length / requiredPeople) * 100)}%`
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-indigo-600">
+                    <span>{acceptedAssignments.length} accepté(s)</span>
+                    <span>{requiredPeople - acceptedAssignments.length} restant(s)</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Détails des assignations avec design amélioré */}
+            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+              <AssignmentDetails mission={mission} onViewTechnicianDetails={onViewTechnicianDetails} />
+            </div>
           </div>
         )}
       </CardContent>
@@ -646,126 +678,165 @@ export function MissionsTab({
 
   return (
     <div className="space-y-6">
-      {/* En-tête compact */}
-      <div className="flex items-center justify-between bg-white border-b border-gray-200 px-6 py-4">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">Missions</h2>
-          <p className="text-sm text-gray-600 mt-1">{missionStats.total} missions au total</p>
-        </div>
-        
-        <div className="flex items-center space-x-3">
-          {/* Boutons d'action regroupés */}
-          <div className="flex items-center space-x-2">
-            <Button 
-              onClick={handleDeleteAll}
-              disabled={deleteAllLoading || missions.length === 0}
-              size="sm"
-              variant="outline"
-              className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
-            >
-              {deleteAllLoading ? (
-                <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin mr-2" />
-              ) : (
-                <Trash className="h-4 w-4 mr-2" />
-              )}
-              Effacer
-            </Button>
+      {/* En-tête moderne avec design amélioré */}
+      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-indigo-200 px-6 py-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-3">
+              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                <Activity className="h-5 w-5 text-white" />
+              </div>
+              <span>Gestion des Missions</span>
+            </h2>
+            <p className="text-sm text-gray-600 flex items-center space-x-2">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+              <span>{missionStats.total} missions au total</span>
+              <span className="text-gray-400">•</span>
+              <span className="text-emerald-600 font-medium">
+                {missions.filter(m => {
+                  const acceptedCount = m.mission_assignments?.filter((a: any) => a.status === 'accepté').length || 0
+                  return acceptedCount >= (m.required_people || 1)
+                }).length} complètes
+              </span>
+            </p>
           </div>
           
-          <Button 
-            onClick={handleCreate} 
-            size="sm"
-            className="bg-indigo-600 hover:bg-indigo-700 text-white"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Nouvelle mission
-          </Button>
+          <div className="flex items-center space-x-3">
+            {/* Boutons d'action avec design moderne */}
+            <div className="flex items-center space-x-2">
+              <Button 
+                onClick={handleDeleteAll}
+                disabled={deleteAllLoading || missions.length === 0}
+                size="sm"
+                variant="outline"
+                className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200 hover:shadow-md transition-all duration-200"
+              >
+                {deleteAllLoading ? (
+                  <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin mr-2" />
+                ) : (
+                  <Trash className="h-4 w-4 mr-2" />
+                )}
+                Effacer tout
+              </Button>
+            </div>
+            
+            <Button 
+              onClick={handleCreate} 
+              size="sm"
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Nouvelle mission
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Barre d'outils pour la recherche et les modes d'affichage */}
-      <div className="bg-gray-50 p-4 rounded-lg mx-6">
+      {/* Barre d'outils moderne avec design amélioré */}
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm mx-6 p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            {/* Recherche */}
+            {/* Recherche avec design moderne */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Rechercher missions..."
+                placeholder="Rechercher missions, lieux, types..."
                 value={searchTerm}
                 onChange={(e) => onSearchChange?.(e.target.value)}
-                className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-64"
+                className="pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white transition-all duration-200 w-72"
               />
             </div>
           </div>
           
-          {/* Modes d'affichage */}
-          <div className="flex items-center space-x-2">
+          {/* Modes d'affichage avec design moderne */}
+          <div className="flex items-center space-x-2 bg-gray-50 p-1 rounded-lg">
             <Button
               onClick={() => onViewModeChange?.('kanban')}
-              variant={currentViewMode === 'kanban' ? 'default' : 'outline'}
+              variant={currentViewMode === 'kanban' ? 'default' : 'ghost'}
               size="sm"
-              className="h-8 px-3"
+              className={`h-8 px-4 font-medium transition-all duration-200 ${
+                currentViewMode === 'kanban' 
+                  ? 'bg-indigo-600 text-white shadow-md' 
+                  : 'hover:bg-white hover:shadow-sm'
+              }`}
             >
+              <Activity className="h-4 w-4 mr-2" />
               Prestations
             </Button>
             <Button
               onClick={() => onViewModeChange?.('list')}
-              variant={currentViewMode === 'list' ? 'default' : 'outline'}
+              variant={currentViewMode === 'list' ? 'default' : 'ghost'}
               size="sm"
-              className="h-8 px-3"
+              className={`h-8 px-4 font-medium transition-all duration-200 ${
+                currentViewMode === 'list' 
+                  ? 'bg-indigo-600 text-white shadow-md' 
+                  : 'hover:bg-white hover:shadow-sm'
+              }`}
             >
+              <List className="h-4 w-4 mr-2" />
               Liste
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Statistiques compactes */}
-      <div className="grid grid-cols-4 gap-6 px-6">
-        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+      {/* Statistiques modernes avec design amélioré */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-6">
+        <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl p-6 border border-indigo-200 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-600">Total</p>
-              <p className="text-xl font-bold text-gray-900">{missionStats.total}</p>
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-indigo-700">Total Missions</p>
+              <p className="text-2xl font-bold text-indigo-900">{missionStats.total}</p>
+              <p className="text-xs text-indigo-600">Toutes missions</p>
             </div>
-            <Activity className="h-6 w-6 text-indigo-600" />
+            <div className="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center shadow-md">
+              <Activity className="h-6 w-6 text-white" />
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-6 border border-emerald-200 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-600">Complètes</p>
-              <p className="text-xl font-bold text-emerald-600">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-emerald-700">Complètes</p>
+              <p className="text-2xl font-bold text-emerald-900">
                 {missions.filter(m => {
                   const acceptedCount = m.mission_assignments?.filter((a: any) => a.status === 'accepté').length || 0
                   return acceptedCount >= (m.required_people || 1)
                 }).length}
               </p>
+              <p className="text-xs text-emerald-600">Équipes complètes</p>
             </div>
-            <CheckCircle className="h-6 w-6 text-emerald-600" />
+            <div className="w-12 h-12 bg-emerald-600 rounded-lg flex items-center justify-center shadow-md">
+              <CheckCircle className="h-6 w-6 text-white" />
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-600">Revenus</p>
-              <p className="text-xl font-bold text-blue-600">{formatCurrency(missionStats.totalRevenue)}</p>
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-blue-700">Revenus</p>
+              <p className="text-2xl font-bold text-blue-900">{formatCurrency(missionStats.totalRevenue)}</p>
+              <p className="text-xs text-blue-600">Chiffre d'affaires</p>
             </div>
-            <TrendingUp className="h-6 w-6 text-blue-600" />
+            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-md">
+              <TrendingUp className="h-6 w-6 text-white" />
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-6 border border-amber-200 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-600">En attente</p>
-              <p className="text-xl font-bold text-amber-600">{missionStats.total - missionStats.assignedCount}</p>
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-amber-700">En attente</p>
+              <p className="text-2xl font-bold text-amber-900">{missionStats.total - missionStats.assignedCount}</p>
+              <p className="text-xs text-amber-600">À assigner</p>
             </div>
-            <Clock className="h-6 w-6 text-amber-600" />
+            <div className="w-12 h-12 bg-amber-600 rounded-lg flex items-center justify-center shadow-md">
+              <Clock className="h-6 w-6 text-white" />
+            </div>
           </div>
         </div>
       </div>
@@ -775,57 +846,90 @@ export function MissionsTab({
       {/* Contenu des missions */}
       <div className="px-6">
         {filteredMissions.length === 0 ? (
-          <div className="text-center py-12">
-            <Activity className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-sm">
+          <div className="text-center py-16">
+            <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <Activity className="h-10 w-10 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">
               {searchTerm || filterType !== 'all' ? 'Aucune mission trouvée' : 'Aucune mission créée'}
+            </h3>
+            <p className="text-gray-500 text-sm max-w-md mx-auto">
+              {searchTerm || filterType !== 'all' 
+                ? 'Essayez de modifier vos critères de recherche ou de filtres'
+                : 'Commencez par créer votre première mission pour organiser vos prestations'
+              }
             </p>
+            {!searchTerm && filterType === 'all' && (
+              <Button 
+                onClick={handleCreate}
+                className="mt-6 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Créer ma première mission
+              </Button>
+            )}
           </div>
         ) : currentViewMode === 'kanban' ? (
-          /* Vue Kanban */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          /* Vue Kanban moderne */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {kanbanColumns.map((column) => (
-              <div key={column.id} className="space-y-4">
-                <div className={`${column.color} ${column.textColor} px-4 py-2 rounded-lg`}>
+              <div key={column.id} className="space-y-6">
+                {/* En-tête de colonne avec design moderne */}
+                <div className={`${column.color} ${column.textColor} px-6 py-4 rounded-xl shadow-sm border border-opacity-20`}>
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-sm">{column.title}</h3>
-                    <span className="text-xs font-medium bg-white bg-opacity-50 px-2 py-1 rounded">
-                      {column.missions.length}
-                    </span>
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-3 h-3 rounded-full ${column.textColor.replace('text-', 'bg-')} shadow-sm`}></div>
+                      <h3 className="font-bold text-sm">{column.title}</h3>
+                    </div>
+                    <div className="bg-white bg-opacity-60 px-3 py-1.5 rounded-full shadow-sm">
+                      <span className="text-xs font-bold">{column.missions.length}</span>
+                    </div>
                   </div>
                 </div>
                 
-                <div className="space-y-3">
-                  {column.missions.map((mission) => (
-                    <MissionCard
-                      key={mission.id}
-                      mission={mission}
-                      onEdit={handlers.onEdit}
-                      onAssign={handlers.onAssign}
-                      onDelete={handlers.onDelete}
-                      onQuickAssign={handlers.onQuickAssign}
-                      onViewTechnicianDetails={handlers.onViewTechnicianDetails}
-                      deleteLoading={deleteLoading}
-                    />
-                  ))}
+                {/* Contenu de la colonne avec espacement amélioré */}
+                <div className="space-y-4 min-h-[400px]">
+                  {column.missions.length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <Activity className="h-6 w-6 text-gray-400" />
+                      </div>
+                      <p className="text-sm text-gray-500">Aucune mission</p>
+                    </div>
+                  ) : (
+                    column.missions.map((mission) => (
+                      <div key={mission.id} className="transform transition-all duration-200 hover:scale-105">
+                        <MissionCard
+                          mission={mission}
+                          onEdit={handlers.onEdit}
+                          onAssign={handlers.onAssign}
+                          onDelete={handlers.onDelete}
+                          onQuickAssign={handlers.onQuickAssign}
+                          onViewTechnicianDetails={handlers.onViewTechnicianDetails}
+                          deleteLoading={deleteLoading}
+                        />
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          /* Vue Liste */
+          /* Vue Liste moderne */
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredMissions.map((mission) => (
-              <MissionCard
-                key={mission.id}
-                mission={mission as MissionWithAssignments}
-                onEdit={handlers.onEdit}
-                onAssign={handlers.onAssign}
-                onDelete={handlers.onDelete}
-                onQuickAssign={handlers.onQuickAssign}
-                onViewTechnicianDetails={handlers.onViewTechnicianDetails}
-                deleteLoading={deleteLoading}
-              />
+              <div key={mission.id} className="transform transition-all duration-200 hover:scale-105">
+                <MissionCard
+                  mission={mission as MissionWithAssignments}
+                  onEdit={handlers.onEdit}
+                  onAssign={handlers.onAssign}
+                  onDelete={handlers.onDelete}
+                  onQuickAssign={handlers.onQuickAssign}
+                  onViewTechnicianDetails={handlers.onViewTechnicianDetails}
+                  deleteLoading={deleteLoading}
+                />
+              </div>
             ))}
           </div>
         )}

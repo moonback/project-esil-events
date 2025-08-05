@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAdminStore } from '@/store/adminStore'
 import { useToast } from '@/lib/useToast'
+import { useTabPersistence } from '@/lib/useTabPersistence'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -9,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { TechnicianContactDialog } from './TechnicianContactDialog'
 import { CreatePaymentDialog } from './CreatePaymentDialog'
+import { PersistenceNotification } from '@/components/ui/persistence-notification'
 import { 
   Phone, 
   Users, 
@@ -36,14 +38,16 @@ import {
   Clock4,
   Plus,
   Trash2,
-  Target
+  Target,
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react'
 import { format, parseISO, isValid } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import type { User, MissionAssignment, Mission, Availability, Unavailability, Billing, TechnicianWithStats } from '@/types/database'
 
 export function TechniciansTab() {
-  const { technicians, loading, stats, validateTechnician, fetchTechnicians, deleteTechnician } = useAdminStore()
+  const { technicians, loading, stats, validateTechnician, fetchTechnicians, deleteTechnician, cacheValid, isDataStale } = useAdminStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTechnician, setSelectedTechnician] = useState<TechnicianWithStats | null>(null)
   const [showFilters, setShowFilters] = useState(false)
@@ -59,12 +63,28 @@ export function TechniciansTab() {
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
   const { showSuccess, showError } = useToast()
 
-  // Charger les données des techniciens au montage du composant
+  // Utiliser le hook de persistance d'onglet
+  const { isActive } = useTabPersistence({
+    tabId: 'technicians',
+    autoRefresh: true,
+    refreshInterval: 60000, // 1 minute
+    onTabActivate: () => {
+      console.log('📱 Onglet Techniciens activé')
+      const shouldForceRefresh = !cacheValid.technicians || isDataStale('technicians')
+      fetchTechnicians(shouldForceRefresh)
+    },
+    onTabDeactivate: () => {
+      console.log('📱 Onglet Techniciens désactivé')
+    }
+  })
+
+  // Charger les données des techniciens au montage du composant avec gestion du cache
   useEffect(() => {
     if (technicians.length === 0 && !loading.technicians) {
-      fetchTechnicians()
+      const shouldForceRefresh = !cacheValid.technicians || isDataStale('technicians')
+      fetchTechnicians(shouldForceRefresh)
     }
-  }, [technicians.length, loading.technicians, fetchTechnicians])
+  }, [technicians.length, loading.technicians, fetchTechnicians, cacheValid.technicians, isDataStale])
 
   // Fonction pour déterminer le statut de disponibilité d'un technicien
   const getAvailabilityStatus = (technician: TechnicianWithStats) => {
@@ -132,66 +152,78 @@ export function TechniciansTab() {
     }
   }
 
+  // Mémoisation des techniciens filtrés pour éviter les re-renders inutiles
+  const filteredTechnicians = useMemo(() => {
+    let filtered = technicians
 
+    // Filtrage par recherche
+    if (searchTerm) {
+      filtered = filtered.filter(tech => 
+        tech.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        tech.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        tech.phone?.includes(searchTerm)
+      )
+    }
 
-  // Les données sont maintenant gérées par le store admin avec les statistiques calculées
-
-  const filteredTechnicians = technicians.filter(tech => {
-    // Filtre par recherche
-    const matchesSearch = tech.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         tech.phone?.includes(searchTerm)
-    
-    if (!matchesSearch) return false
-    
-    // Filtre par disponibilité
+    // Filtrage par disponibilité
     if (availabilityFilter !== 'all') {
-      const availabilityStatus = getAvailabilityStatus(tech)
-      if (availabilityFilter === 'available' && availabilityStatus.status !== 'disponible') return false
-      if (availabilityFilter === 'unavailable' && availabilityStatus.status !== 'indisponible') return false
-      if (availabilityFilter === 'available_on_request' && availabilityStatus.status !== 'available_on_request') return false
+      filtered = filtered.filter(tech => {
+        const status = getAvailabilityStatus(tech)
+        return status.status === availabilityFilter
+      })
     }
-    
-    // Filtre par validation
+
+    // Filtrage par validation
     if (validationFilter !== 'all') {
-      if (validationFilter === 'validated' && !tech.is_validated) return false
-      if (validationFilter === 'not_validated' && tech.is_validated) return false
-    }
-    
-    return true
-  })
-
-  const sortedTechnicians = [...filteredTechnicians].sort((a, b) => {
-    let aValue: any, bValue: any
-    
-    switch (sortBy) {
-      case 'name':
-        aValue = a.name
-        bValue = b.name
-        break
-      case 'missions':
-        aValue = a.stats?.totalAssignments || 0
-        bValue = b.stats?.totalAssignments || 0
-        break
-      case 'revenue':
-        aValue = a.stats?.totalRevenue || 0
-        bValue = b.stats?.totalRevenue || 0
-        break
-      case 'rating':
-        // Note moyenne temporairement désactivée
-        aValue = 0
-        bValue = 0
-        break
-      default:
-        aValue = a.name
-        bValue = b.name
+      filtered = filtered.filter(tech => {
+        if (validationFilter === 'validated') return tech.is_validated
+        return !tech.is_validated
+      })
     }
 
-    if (sortOrder === 'asc') {
-      return aValue > bValue ? 1 : -1
-    } else {
-      return aValue < bValue ? 1 : -1
-    }
-  })
+    // Tri
+    filtered.sort((a, b) => {
+      let aValue: any, bValue: any
+
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name
+          bValue = b.name
+          break
+        case 'missions':
+          aValue = a.stats?.totalAssignments || 0
+          bValue = b.stats?.totalAssignments || 0
+          break
+        case 'revenue':
+          aValue = a.stats?.totalRevenue || 0
+          bValue = b.stats?.totalRevenue || 0
+          break
+        case 'rating':
+          // Note moyenne temporairement désactivée
+          aValue = 0
+          bValue = 0
+          break
+        default:
+          aValue = a.name
+          bValue = b.name
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1
+      } else {
+        return aValue < bValue ? 1 : -1
+      }
+    })
+
+    return filtered
+  }, [technicians, searchTerm, availabilityFilter, validationFilter, sortBy, sortOrder])
+
+  // Fonction pour forcer le rafraîchissement
+  const handleForceRefresh = async () => {
+    console.log('🔄 Forçage du rafraîchissement des techniciens')
+    await fetchTechnicians(true)
+    showSuccess('Données mises à jour', 'Les techniciens ont été rechargés avec succès.')
+  }
 
   const handleOpenContact = (technician: User) => {
     setSelectedTechnicianForContact(technician)
@@ -284,14 +316,47 @@ export function TechniciansTab() {
              <Target className="h-3 w-3 mr-1" />
              Gestion des équipes
            </Badge>
-           <Button 
-             variant="outline" 
-             size="sm"
-             onClick={() => setShowFilters(!showFilters)}
-           >
-             <Filter className="h-4 w-4 mr-2" />
-             Filtres
-           </Button>
+           
+           {/* Indicateur de statut du cache */}
+           <div className="flex items-center space-x-2">
+             {isActive && (
+               <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse mr-1" />
+                 Actif
+               </Badge>
+             )}
+             {cacheValid.technicians && !isDataStale('technicians') ? (
+               <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                 <CheckCircle className="h-3 w-3 mr-1" />
+                 Données à jour
+               </Badge>
+             ) : (
+               <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                 <AlertCircle className="h-3 w-3 mr-1" />
+                 Données obsolètes
+               </Badge>
+             )}
+             
+             <Button
+               variant="outline"
+               size="sm"
+               onClick={handleForceRefresh}
+               disabled={loading.technicians}
+               className="text-gray-600 hover:text-gray-700 hover:bg-gray-100 border-gray-300"
+             >
+               <RefreshCw className={`h-4 w-4 mr-1 ${loading.technicians ? 'animate-spin' : ''}`} />
+               Rafraîchir
+             </Button>
+             
+             <Button 
+               variant="outline" 
+               size="sm"
+               onClick={() => setShowFilters(!showFilters)}
+             >
+               <Filter className="h-4 w-4 mr-2" />
+               Filtres
+             </Button>
+           </div>
          </div>
       </div>
 
@@ -371,7 +436,7 @@ export function TechniciansTab() {
 
       {/* Liste des techniciens */}
       <div className="px-6">
-        {sortedTechnicians.length === 0 ? (
+        {filteredTechnicians.length === 0 ? (
           <div className="text-center py-16">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="h-8 w-8 text-gray-400" />
@@ -381,7 +446,7 @@ export function TechniciansTab() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {sortedTechnicians.map((technician) => (
+            {filteredTechnicians.map((technician) => (
               <Card key={technician.id} className="border border-gray-200 hover:border-indigo-200 transition-all duration-200 shadow-sm hover:shadow-md">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
@@ -599,6 +664,9 @@ export function TechniciansTab() {
         open={createPaymentDialogOpen}
         onOpenChange={setCreatePaymentDialogOpen}
       />
+
+      {/* Notification de persistance */}
+      <PersistenceNotification />
     </div>
   )
 }

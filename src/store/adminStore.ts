@@ -15,6 +15,18 @@ interface AdminState {
   technicians: TechnicianWithStats[]
   billings: BillingWithDetails[]
   
+  // Cache et persistance
+  lastFetched: {
+    missions: number | null
+    technicians: number | null
+    billings: number | null
+  }
+  cacheValid: {
+    missions: boolean
+    technicians: boolean
+    billings: boolean
+  }
+  
   // Synchronisation
   lastSync: Date | null
   isConnected: boolean
@@ -42,9 +54,9 @@ interface AdminState {
   
   // Actions
   fetchAllData: () => Promise<void>
-  fetchMissions: () => Promise<void>
-  fetchTechnicians: () => Promise<void>
-  fetchBillings: () => Promise<void>
+  fetchMissions: (force?: boolean) => Promise<void>
+  fetchTechnicians: (force?: boolean) => Promise<void>
+  fetchBillings: (force?: boolean) => Promise<void>
   refreshData: () => Promise<void>
   refreshMissions: () => Promise<void>
   clearData: () => void
@@ -54,7 +66,13 @@ interface AdminState {
   validateTechnician: (technicianId: string, isValidated: boolean) => Promise<void>
   cancelPendingAssignments: (missionId: string) => Promise<void>
   deleteTechnician: (technicianId: string) => Promise<void>
+  
+  // Gestion du cache
+  invalidateCache: (type?: 'missions' | 'technicians' | 'billings') => void
+  isDataStale: (type: 'missions' | 'technicians' | 'billings') => boolean
 }
+
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
 export const useAdminStore = create<AdminState>((set, get) => ({
   loading: {
@@ -66,6 +84,18 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   missions: [],
   technicians: [],
   billings: [],
+  
+  // Cache et persistance
+  lastFetched: {
+    missions: null,
+    technicians: null,
+    billings: null
+  },
+  cacheValid: {
+    missions: false,
+    technicians: false,
+    billings: false
+  },
   
   // Synchronisation
   lastSync: null,
@@ -91,6 +121,41 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     }
   },
 
+  isDataStale: (type) => {
+    const { lastFetched } = get()
+    const lastFetchedTime = lastFetched[type]
+    if (!lastFetchedTime) return true
+    return Date.now() - lastFetchedTime > CACHE_DURATION
+  },
+
+  invalidateCache: (type) => {
+    if (type) {
+      set(state => ({
+        cacheValid: {
+          ...state.cacheValid,
+          [type]: false
+        },
+        lastFetched: {
+          ...state.lastFetched,
+          [type]: null
+        }
+      }))
+    } else {
+      set({
+        cacheValid: {
+          missions: false,
+          technicians: false,
+          billings: false
+        },
+        lastFetched: {
+          missions: null,
+          technicians: null,
+          billings: null
+        }
+      })
+    }
+  },
+
   fetchAllData: async () => {
     set(state => ({
       loading: {
@@ -113,7 +178,11 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     }
   },
 
-  fetchMissions: async () => {
+  fetchMissions: async (force?: boolean) => {
+    if (!force && !get().isDataStale('missions')) {
+      return
+    }
+
     set(state => ({ loading: { ...state.loading, missions: true } }))
     
     try {
@@ -146,7 +215,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       set(state => ({
         missions,
         loading: { ...state.loading, missions: false },
-        stats: { ...state.stats, missions: stats }
+        stats: { ...state.stats, missions: stats },
+        lastFetched: { ...state.lastFetched, missions: Date.now() },
+        cacheValid: { ...state.cacheValid, missions: true }
       }))
     } catch (error) {
       console.error('Erreur lors du chargement des missions:', error)
@@ -157,7 +228,11 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     }
   },
 
-  fetchTechnicians: async () => {
+  fetchTechnicians: async (force?: boolean) => {
+    if (!force && !get().isDataStale('technicians')) {
+      return
+    }
+
     set(state => ({ loading: { ...state.loading, technicians: true } }))
     
     try {
@@ -293,7 +368,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       set(state => ({
         technicians: techniciansWithStats,
         loading: { ...state.loading, technicians: false },
-        stats: { ...state.stats, technicians: stats }
+        stats: { ...state.stats, technicians: stats },
+        lastFetched: { ...state.lastFetched, technicians: Date.now() },
+        cacheValid: { ...state.cacheValid, technicians: true }
       }))
     } catch (error) {
       console.error('Erreur lors du chargement des techniciens:', error)
@@ -304,7 +381,11 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     }
   },
 
-  fetchBillings: async () => {
+  fetchBillings: async (force?: boolean) => {
+    if (!force && !get().isDataStale('billings')) {
+      return
+    }
+
     set(state => ({ loading: { ...state.loading, billings: true } }))
     
     try {
@@ -356,7 +437,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       set(state => ({
         billings,
         loading: { ...state.loading, billings: false },
-        stats: { ...state.stats, billings: stats }
+        stats: { ...state.stats, billings: stats },
+        lastFetched: { ...state.lastFetched, billings: Date.now() },
+        cacheValid: { ...state.cacheValid, billings: true }
       }))
     } catch (error) {
       console.error('Erreur lors du chargement des facturations:', error)
@@ -609,6 +692,16 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           validatedAmount: 0,
           paidAmount: 0
         }
+      },
+      lastFetched: {
+        missions: null,
+        technicians: null,
+        billings: null
+      },
+      cacheValid: {
+        missions: false,
+        technicians: false,
+        billings: false
       }
     })
   },
@@ -626,8 +719,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
 
       if (error) throw error
 
-      // Rafraîchir la liste des techniciens
-      await get().fetchTechnicians()
+      // Invalider le cache et rafraîchir la liste des techniciens
+      get().invalidateCache('technicians')
+      await get().fetchTechnicians(true)
       
       console.log(`Technicien ${technicianId} ${isValidated ? 'validé' : 'dévalidé'} avec succès`)
     } catch (error) {
@@ -649,8 +743,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
 
       if (error) throw error
 
-      // Rafraîchir les données
-      await get().fetchMissions()
+      // Invalider le cache et rafraîchir les données
+      get().invalidateCache('missions')
+      await get().fetchMissions(true)
       
       console.log(`Demandes en attente annulées pour la mission ${missionId}`)
     } catch (error) {
@@ -669,8 +764,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
 
       if (error) throw error
 
-      // Rafraîchir la liste des techniciens
-      await get().fetchTechnicians()
+      // Invalider le cache et rafraîchir la liste des techniciens
+      get().invalidateCache('technicians')
+      await get().fetchTechnicians(true)
       
       console.log(`Technicien ${technicianId} supprimé avec succès`)
     } catch (error) {

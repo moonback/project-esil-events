@@ -23,7 +23,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { DashboardCard } from '@/components/ui/dashboard-card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { getMissionTypeColor } from '@/lib/utils'
+import { getMissionTypeColor, formatMissionTimeRange, formatMissionHours, getMissionDuration } from '@/lib/utils'
 import { 
   Filter, 
   Search, 
@@ -607,15 +607,7 @@ export function AdminAgendaTab() {
                                   <div className="flex items-center space-x-1">
                                     <Clock className="h-3 w-3" />
                                     <span>
-                                      {(() => {
-                                        try {
-                                          const startDate = parseISO(convertUTCToLocal(mission.date_start).toISOString())
-                                          const endDate = parseISO(convertUTCToLocal(mission.date_end).toISOString())
-                                          return `${format(startDate, 'dd/MM HH:mm', { locale: fr })} - ${format(endDate, 'HH:mm', { locale: fr })}`
-                                        } catch (error) {
-                                          return 'Heures non disponibles'
-                                        }
-                                      })()}
+                                      {formatMissionHours(mission.date_start, mission.date_end)}
                                     </span>
                                   </div>
                                   
@@ -793,15 +785,7 @@ export function AdminAgendaTab() {
                   <div className="flex items-center space-x-2">
                     <Clock className="h-3 w-3 text-gray-500" />
                     <span>
-                      {(() => {
-                        try {
-                          const startDate = parseISO(convertUTCToLocal(selectedEvent.resource.date_start).toISOString())
-                          const endDate = parseISO(convertUTCToLocal(selectedEvent.resource.date_end).toISOString())
-                          return `${format(startDate, 'dd/MM/yyyy HH:mm', { locale: fr })} - ${format(endDate, 'HH:mm', { locale: fr })}`
-                        } catch (error) {
-                          return 'Heures non disponibles'
-                        }
-                      })()}
+                      {formatMissionTimeRange(selectedEvent.resource.date_start, selectedEvent.resource.date_end)}
                     </span>
                   </div>
                   
@@ -822,6 +806,38 @@ export function AdminAgendaTab() {
                     <p className="mt-1 text-gray-600">{selectedEvent.resource.description}</p>
                   </div>
                 )}
+
+                {/* Section horaires détaillée */}
+                <div className="space-y-2 pt-2 border-t">
+                  <div className="flex items-center space-x-2">
+                    <Clock className="h-3 w-3 text-blue-600" />
+                    <strong className="text-xs">Horaires de la mission</strong>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Horaires complets:</span>
+                      <span className="font-medium">
+                        {formatMissionTimeRange(selectedEvent.resource.date_start, selectedEvent.resource.date_end)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Heures uniquement:</span>
+                      <span className="font-medium">
+                        {formatMissionHours(selectedEvent.resource.date_start, selectedEvent.resource.date_end)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Durée totale:</span>
+                      <span className="font-medium">
+                        {getMissionDuration(selectedEvent.resource.date_start, selectedEvent.resource.date_end)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Fuseau horaire:</span>
+                      <span className="text-xs text-gray-500">Heure locale (UTC converti)</span>
+                    </div>
+                  </div>
+                </div>
 
                 {selectedEvent.resource.mission_assignments.length > 0 ? (
                   <div className="space-y-2">

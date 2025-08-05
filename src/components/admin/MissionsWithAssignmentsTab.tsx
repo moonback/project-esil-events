@@ -34,15 +34,8 @@ export function MissionsWithAssignmentsTab() {
 
   // Charger les missions au montage du composant
   useEffect(() => {
-    console.log('🚀 MissionsWithAssignmentsTab: fetchMissions appelé')
     fetchMissions()
   }, [fetchMissions])
-
-  // Log des données reçues
-  useEffect(() => {
-    console.log('📊 MissionsWithAssignmentsTab: missions reçues:', missions)
-    console.log('📊 MissionsWithAssignmentsTab: loading:', loading)
-  }, [missions, loading])
 
   const convertUTCToLocal = (dateString: string): string => {
     try {

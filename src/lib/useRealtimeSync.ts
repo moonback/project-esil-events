@@ -3,27 +3,35 @@ import { supabase } from '@/lib/supabase'
 import { useAdminStore } from '@/store/adminStore'
 
 export function useRealtimeSync() {
-  const { refreshData } = useAdminStore()
+  const { refreshData, refreshMissions } = useAdminStore()
   const isSubscribed = useRef(false)
+  const lastRefreshTime = useRef<{ [key: string]: number }>({})
 
   useEffect(() => {
-    if (isSubscribed.current) return
+    if (isSubscribed.current) {
+      return
+    }
 
     isSubscribed.current = true
+
+    // Fonction helper pour éviter les appels trop fréquents
+    const debouncedRefresh = (key: string, refreshFn: () => void) => {
+      const now = Date.now()
+      const lastTime = lastRefreshTime.current[key] || 0
+      if (now - lastTime > 1000) { // Debounce de 1 seconde
+        lastRefreshTime.current[key] = now
+        refreshFn()
+      }
+    }
 
     // Écouter les changements sur les missions
     const missionsSubscription = supabase
       .channel('missions_changes')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'missions'
-        },
-        () => {
-          console.log('Changement détecté sur les missions')
-          refreshData()
+        { event: '*', schema: 'public', table: 'missions' },
+        (payload) => {
+          debouncedRefresh('missions', refreshMissions)
         }
       )
       .subscribe()
@@ -33,14 +41,9 @@ export function useRealtimeSync() {
       .channel('mission_assignments_changes')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'mission_assignments'
-        },
-        () => {
-          console.log('Changement détecté sur les assignations')
-          refreshData()
+        { event: '*', schema: 'public', table: 'mission_assignments' },
+        (payload) => {
+          debouncedRefresh('assignments', refreshMissions)
         }
       )
       .subscribe()
@@ -50,14 +53,9 @@ export function useRealtimeSync() {
       .channel('users_changes')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'users'
-        },
-        () => {
-          console.log('Changement détecté sur les utilisateurs')
-          refreshData()
+        { event: '*', schema: 'public', table: 'users' },
+        (payload) => {
+          debouncedRefresh('users', refreshData)
         }
       )
       .subscribe()
@@ -67,14 +65,9 @@ export function useRealtimeSync() {
       .channel('billing_changes')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'billing'
-        },
-        () => {
-          console.log('Changement détecté sur les facturations')
-          refreshData()
+        { event: '*', schema: 'public', table: 'billing' },
+        (payload) => {
+          debouncedRefresh('billing', refreshData)
         }
       )
       .subscribe()
@@ -84,14 +77,21 @@ export function useRealtimeSync() {
       .channel('availability_changes')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'availability'
-        },
-        () => {
-          console.log('Changement détecté sur les disponibilités')
-          refreshData()
+        { event: '*', schema: 'public', table: 'availability' },
+        (payload) => {
+          debouncedRefresh('availability', refreshData)
+        }
+      )
+      .subscribe()
+
+    // Écouter les changements sur les indisponibilités
+    const unavailabilitySubscription = supabase
+      .channel('unavailability_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'unavailability' },
+        (payload) => {
+          debouncedRefresh('unavailability', refreshData)
         }
       )
       .subscribe()
@@ -103,10 +103,9 @@ export function useRealtimeSync() {
       supabase.removeChannel(usersSubscription)
       supabase.removeChannel(billingSubscription)
       supabase.removeChannel(availabilitySubscription)
+      supabase.removeChannel(unavailabilitySubscription)
     }
-  }, [refreshData])
+  }, []) // Suppression des dépendances qui causaient les re-rendus infinis
 
-  return {
-    isSubscribed: isSubscribed.current
-  }
+  return { isSubscribed: isSubscribed.current }
 } 

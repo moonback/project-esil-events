@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAdminStore } from '@/store/adminStore'
+import { useMissionsStore } from '@/store/missionsStore'
 
 export function useRealtimeSync() {
-  const { refreshData } = useAdminStore()
+  const { refreshData, resetStore: resetAdminStore } = useAdminStore()
+  const { refreshMissions, resetStore: resetMissionsStore } = useMissionsStore()
   const isSubscribed = useRef(false)
 
   useEffect(() => {
@@ -21,9 +23,9 @@ export function useRealtimeSync() {
           schema: 'public',
           table: 'missions'
         },
-        () => {
-          console.log('Changement détecté sur les missions')
-          refreshData()
+        (payload) => {
+          console.log('Changement détecté sur les missions:', payload.eventType)
+          refreshMissions()
         }
       )
       .subscribe()
@@ -38,9 +40,10 @@ export function useRealtimeSync() {
           schema: 'public',
           table: 'mission_assignments'
         },
-        () => {
-          console.log('Changement détecté sur les assignations')
-          refreshData()
+        (payload) => {
+          console.log('Changement détecté sur les assignations:', payload.eventType)
+          // Rafraîchir immédiatement les missions quand les assignations changent
+          refreshMissions()
         }
       )
       .subscribe()
@@ -55,8 +58,8 @@ export function useRealtimeSync() {
           schema: 'public',
           table: 'users'
         },
-        () => {
-          console.log('Changement détecté sur les utilisateurs')
+        (payload) => {
+          console.log('Changement détecté sur les utilisateurs:', payload.eventType)
           refreshData()
         }
       )
@@ -72,8 +75,8 @@ export function useRealtimeSync() {
           schema: 'public',
           table: 'billing'
         },
-        () => {
-          console.log('Changement détecté sur les facturations')
+        (payload) => {
+          console.log('Changement détecté sur les facturations:', payload.eventType)
           refreshData()
         }
       )
@@ -89,12 +92,23 @@ export function useRealtimeSync() {
           schema: 'public',
           table: 'availability'
         },
-        () => {
-          console.log('Changement détecté sur les disponibilités')
+        (payload) => {
+          console.log('Changement détecté sur les disponibilités:', payload.eventType)
           refreshData()
         }
       )
       .subscribe()
+
+    // Écouter les changements d'authentification
+    const authSubscription = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Changement d\'authentification détecté:', event)
+      
+      if (event === 'SIGNED_OUT') {
+        // Nettoyer les stores lors de la déconnexion
+        resetAdminStore()
+        resetMissionsStore()
+      }
+    })
 
     return () => {
       isSubscribed.current = false
@@ -103,8 +117,13 @@ export function useRealtimeSync() {
       supabase.removeChannel(usersSubscription)
       supabase.removeChannel(billingSubscription)
       supabase.removeChannel(availabilitySubscription)
+      
+      // Nettoyer l'écouteur d'authentification
+      if (authSubscription.data.subscription) {
+        authSubscription.data.subscription.unsubscribe()
+      }
     }
-  }, [refreshData])
+  }, [refreshData, refreshMissions, resetAdminStore, resetMissionsStore])
 
   return {
     isSubscribed: isSubscribed.current

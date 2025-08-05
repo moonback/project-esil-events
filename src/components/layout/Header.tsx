@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useAdminStore } from '@/store/adminStore'
+import { useMissionsStore } from '@/store/missionsStore'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
@@ -37,40 +38,34 @@ const useFullscreen = () => {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
   }, [])
 
-  const toggleFullscreen = useCallback(async () => {
-    try {
-      if (!document.fullscreenElement) {
-        await document.documentElement.requestFullscreen()
-      } else {
-        await document.exitFullscreen()
-      }
-    } catch (error) {
-      console.warn('Fullscreen toggle failed:', error)
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen()
+    } else {
+      document.exitFullscreen()
     }
   }, [])
 
   return { isFullscreen, toggleFullscreen }
 }
 
-// Hook pour formater les temps relatifs
-const useRelativeTime = (timestamp: string | null) => {
-  return useMemo(() => {
-    if (!timestamp) return 'Jamais'
-    
-    const now = new Date()
-    const time = new Date(timestamp)
-    const diffMs = now.getTime() - time.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    
-    if (diffMins < 1) return 'À l\'instant'
-    if (diffMins < 60) return `Il y a ${diffMins} min`
-    
-    const diffHours = Math.floor(diffMins / 60)
-    if (diffHours < 24) return `Il y a ${diffHours}h`
-    
-    const diffDays = Math.floor(diffHours / 24)
-    return `Il y a ${diffDays}j`
-  }, [timestamp])
+// Fonction utilitaire pour formater les temps relatifs (pas un hook)
+const formatRelativeTime = (timestamp: string | null): string => {
+  if (!timestamp) return 'Jamais'
+  
+  const now = new Date()
+  const time = new Date(timestamp)
+  const diffMs = now.getTime() - time.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  
+  if (diffMins < 1) return 'À l\'instant'
+  if (diffMins < 60) return `Il y a ${diffMins} min`
+  
+  const diffHours = Math.floor(diffMins / 60)
+  if (diffHours < 24) return `Il y a ${diffHours}h`
+  
+  const diffDays = Math.floor(diffHours / 24)
+  return `Il y a ${diffDays}j`
 }
 
 // Composant pour les statistiques rapides
@@ -152,15 +147,35 @@ const ConnectionStatus = ({ isConnected, lastSync }: {
 )
 
 export function Header() {
-  const { profile, signOut } = useAuthStore()
-  const { isConnected, refreshData, stats, lastSync } = useAdminStore()
+  const { profile, signOut, isAuthenticated } = useAuthStore()
+  const { isConnected, refreshData, stats, lastSync, resetStore: resetAdminStore } = useAdminStore()
+  const { resetStore: resetMissionsStore } = useMissionsStore()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [notifications] = useState<NotificationData>({ count: 3, hasUrgent: true })
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   
   const { isFullscreen, toggleFullscreen } = useFullscreen()
-  const formattedLastSync = useRelativeTime(lastSync?.toISOString() || null)
+  
+  // Gestion sécurisée de lastSync
+  const formattedLastSync = useMemo(() => {
+    if (!lastSync) return 'Jamais'
+    
+    // Vérifier si lastSync est un objet Date valide
+    if (lastSync instanceof Date && !isNaN(lastSync.getTime())) {
+      return formatRelativeTime(lastSync.toISOString())
+    }
+    
+    // Si c'est une chaîne, essayer de la convertir en Date
+    if (typeof lastSync === 'string') {
+      const date = new Date(lastSync)
+      if (!isNaN(date.getTime())) {
+        return formatRelativeTime(date.toISOString())
+      }
+    }
+    
+    return 'Jamais'
+  }, [lastSync])
 
   // Fermer les menus lors des clics extérieurs
   useEffect(() => {
@@ -190,6 +205,31 @@ export function Header() {
     }
   }, [isRefreshing, refreshData])
 
+  // Gestion améliorée de la déconnexion
+  const handleSignOut = useCallback(async () => {
+    try {
+      console.log('Déconnexion en cours...')
+      
+      // Nettoyer tous les stores avant la déconnexion
+      resetAdminStore()
+      resetMissionsStore()
+      
+      // Effectuer la déconnexion
+      await signOut()
+      
+      // Rediriger vers la page de connexion
+      window.location.href = '/'
+      
+      console.log('Déconnexion terminée')
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error)
+      // Même en cas d'erreur, nettoyer les stores et rediriger
+      resetAdminStore()
+      resetMissionsStore()
+      window.location.href = '/'
+    }
+  }, [signOut, resetAdminStore, resetMissionsStore])
+
   // Calcul mémorisé des statistiques
   const quickStats = useMemo((): QuickStats | null => {
     if (!stats) return null
@@ -203,6 +243,11 @@ export function Header() {
   }, [stats])
 
   const isAdmin = profile?.role === 'admin'
+
+  // Si l'utilisateur n'est pas authentifié, ne pas afficher le header
+  if (!isAuthenticated) {
+    return null
+  }
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl shadow-sm border-b border-gray-200/60">
@@ -249,144 +294,133 @@ export function Header() {
           <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Statistiques rapides - Desktop seulement pour admin */}
             {isAdmin && quickStats && (
-              <div className="hidden xl:flex items-center space-x-3 px-4 py-2 bg-gray-50 rounded-xl border border-gray-200">
-                <div className="flex items-center space-x-1">
-                  <Activity className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-semibold text-gray-700">{quickStats.missions}</span>
-                  <span className="text-xs text-gray-500">missions</span>
-                </div>
-                
+              <div className="hidden lg:flex items-center space-x-4">
+                <QuickStatsCard
+                  icon={Activity}
+                  value={quickStats.missions}
+                  label="Missions"
+                  color="blue"
+                  trend="neutral"
+                />
+                <QuickStatsCard
+                  icon={UsersIcon}
+                  value={quickStats.technicians}
+                  label="Techniciens"
+                  color="green"
+                  trend="up"
+                />
+                <QuickStatsCard
+                  icon={DollarSign}
+                  value={quickStats.revenue > 0 ? `${(quickStats.revenue / 1000).toFixed(1)}k€` : '0€'}
+                  label="Revenus"
+                  color="amber"
+                  trend="up"
+                />
                 {quickStats.pending > 0 && (
-                  <>
-                    <div className="w-px h-4 bg-gray-300" />
-                    <div className="flex items-center space-x-1">
-                      <AlertCircle className="h-4 w-4 text-orange-600" />
-                      <span className="text-sm font-semibold text-orange-700">{quickStats.pending} sans technicien</span>
-
-                    </div>
-                  </>
+                  <QuickStatsCard
+                    icon={AlertCircle}
+                    value={quickStats.pending}
+                    label="En attente"
+                    color="orange"
+                    trend="down"
+                  />
                 )}
               </div>
             )}
 
-            {/* Notifications */}
-            {/* <Button
-              variant="ghost"
-              size="sm"
-              className="relative p-2 rounded-xl text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-all duration-200"
-            >
-              <Bell className="h-4 w-4" />
-              {notifications.count > 0 && (
-                <span className={cn(
-                  "absolute -top-1 -right-1 h-5 w-5 text-xs rounded-full flex items-center justify-center font-semibold",
-                  notifications.hasUrgent 
-                    ? "bg-red-500 text-white animate-pulse" 
-                    : "bg-blue-500 text-white"
-                )}>
-                  {notifications.count > 9 ? '9+' : notifications.count}
-                </span>
+            {/* Actions principales */}
+            <div className="flex items-center space-x-2">
+              {/* Bouton de rafraîchissement - Admin seulement */}
+              {isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  className="p-2 rounded-xl text-gray-600 hover:bg-gray-100"
+                  title="Actualiser les données"
+                >
+                  <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
+                </Button>
               )}
-            </Button> */}
 
-            {/* Bouton de rafraîchissement - Admin seulement */}
-            {isAdmin && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="hidden sm:flex p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200 disabled:opacity-50"
-                title="Actualiser les données"
-              >
-                <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
-              </Button>
-            )}
-
-            {/* Plein écran - Admin seulement */}
-            {isAdmin && (
+              {/* Bouton plein écran */}
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleFullscreen}
-                className="hidden lg:flex p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200"
+                className="p-2 rounded-xl text-gray-600 hover:bg-gray-100"
                 title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
               >
                 {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
               </Button>
-            )}
 
-            {/* Profil utilisateur - Desktop */}
-            <div 
-              className="hidden sm:block relative" 
-              data-menu
-            >
-              <button
-                onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center space-x-3 px-3 py-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md"
-              >
-                <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 text-white">
-                  <User className="h-3 w-3" />
-                </div>
-                <div className="hidden md:block text-left">
-                  <p className="font-semibold text-sm text-gray-900">{profile?.name}</p>
-                  <p className="text-xs text-gray-500">
-                    {isAdmin ? 'Administrateur' : 'Technicien'}
-                  </p>
-                </div>
-                <ChevronDown className={cn(
-                  "h-4 w-4 text-gray-400 transition-transform duration-200",
-                  showProfileMenu && "rotate-180"
-                )} />
-              </button>
-              
-              {/* Menu déroulant du profil */}
-              <div className={cn(
-                "absolute top-full right-0 mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-lg transition-all duration-200 z-50",
-                showProfileMenu ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-2"
-              )}>
-                <div className="p-4 border-b border-gray-100">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 text-white">
-                      <User className="h-5 w-5" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900">{profile?.name}</p>
-                      <p className="text-sm text-gray-500">{profile?.email}</p>
-                      <div className="mt-2">
-                        <RoleBadge role={profile?.role || ''} />
+              {/* Menu profil */}
+              <div className="relative" data-menu>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  className="flex items-center space-x-2 p-2 rounded-xl text-gray-700 hover:bg-gray-100"
+                >
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white text-sm font-semibold">
+                    {profile?.name?.charAt(0) || 'U'}
+                  </div>
+                  <div className="hidden sm:block text-left">
+                    <p className="text-sm font-medium text-gray-900">{profile?.name}</p>
+                    <p className="text-xs text-gray-500">{profile?.email}</p>
+                  </div>
+                  <ChevronDown className="h-4 w-4 text-gray-500" />
+                </Button>
+
+                {/* Menu déroulant */}
+                <div className={cn(
+                  "absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50 transition-all duration-200",
+                  showProfileMenu ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
+                )}>
+                  <div className="px-4 py-3 border-b border-gray-100">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-semibold">
+                        {profile?.name?.charAt(0) || 'U'}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">{profile?.name}</p>
+                        <p className="text-sm text-gray-500">{profile?.email}</p>
+                        <RoleBadge role={profile?.role || 'technicien'} />
                       </div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="p-2">
-                  {/* <Button variant="ghost" size="sm" className="w-full justify-start text-sm hover:bg-gray-50 rounded-lg">
-                    <User className="h-4 w-4 mr-3" />
-                    Mon profil
-                  </Button>
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm hover:bg-gray-50 rounded-lg">
-                    <Settings className="h-4 w-4 mr-3" />
-                    Paramètres
-                  </Button>
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm hover:bg-gray-50 rounded-lg">
-                    <Bell className="h-4 w-4 mr-3" />
-                    Notifications
-                    {notifications.count > 0 && (
-                      <Badge variant="secondary" className="ml-auto text-xs">
-                        {notifications.count}
-                      </Badge>
-                    )}
-                  </Button> */}
-                  <div className="border-t border-gray-100 my-2"></div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={signOut}
-                    className="w-full justify-start text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg"
-                  >
-                    <LogOut className="h-4 w-4 mr-3" />
-                    Déconnexion
-                  </Button>
+
+                  <div className="py-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="w-full justify-start text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
+                    >
+                      <User className="h-4 w-4 mr-3" />
+                      Mon profil
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="w-full justify-start text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
+                    >
+                      <Settings className="h-4 w-4 mr-3" />
+                      Paramètres
+                    </Button>
+
+                    <div className="border-t border-gray-100 my-2"></div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={handleSignOut}
+                      className="w-full justify-start text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg"
+                    >
+                      <LogOut className="h-4 w-4 mr-3" />
+                      Déconnexion
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -504,7 +538,7 @@ export function Header() {
                   
                   <Button
                     size="sm"
-                    onClick={signOut}
+                    onClick={handleSignOut}
                     className="w-full justify-start space-x-3 p-3 rounded-xl text-sm font-semibold bg-gradient-to-r from-red-50 to-pink-50 text-red-600 hover:from-red-100 hover:to-pink-100 border border-red-200"
                   >
                     <LogOut className="h-4 w-4" />

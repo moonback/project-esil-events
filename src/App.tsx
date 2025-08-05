@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { AuthForm } from '@/components/auth/AuthForm'
-
 import { Layout } from '@/components/layout/Layout'
+import { AdminDashboard } from '@/components/admin/AdminDashboard'
+import { TechnicianDashboard } from '@/components/technician/TechnicianDashboard'
 import { Sparkles, Loader2, AlertCircle, CheckCircle } from 'lucide-react'
 import { NotificationContainer } from '@/components/ui/notification'
 import { useAppState } from '@/lib/useErrorHandler'
@@ -150,7 +151,7 @@ const useAppInitialization = () => {
 }
 
 function App() {
-  const { user, loading } = useAuthStore()
+  const { user, loading, isAuthenticated, profile } = useAuthStore()
   const { initializing, initializeApp } = useAppInitialization()
 
   // Initialisation de l'application
@@ -171,8 +172,10 @@ function App() {
     <div className="app-container">
       {/* Contenu principal avec transition améliorée */}
       <main className="transition-all duration-500 ease-in-out transform">
-        {user ? (
-          <Layout key="layout" />
+        {user && isAuthenticated ? (
+          <Layout>
+            {profile?.role === 'admin' ? <AdminDashboard /> : <TechnicianDashboard />}
+          </Layout>
         ) : (
           <AuthForm key="auth" />
         )}

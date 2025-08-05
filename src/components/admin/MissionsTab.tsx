@@ -8,7 +8,7 @@ import {
   Clock, Search, CheckCircle, XCircle, AlertCircle,
   TrendingUp, Activity, X, Trash, Play,
   User, ArrowRight, Check, List} from 'lucide-react'
-import { formatDateTime, formatCurrency, getMissionTypeColor } from '@/lib/utils'
+import { formatDateTime, formatCurrency, getMissionTypeColor, formatMissionTimeRange } from '@/lib/utils'
 import { parseISO, isValid } from 'date-fns'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -410,17 +410,18 @@ const MissionCard = memo(({
                   <Calendar className="h-4 w-4 text-blue-600" />
                   <span className="text-sm font-medium text-blue-700">Date & Heure</span>
                 </div>
-                <p className="text-sm text-blue-800 mt-1 font-semibold">{formatDateTimeUTC(mission.date_start)}</p>
+                <p className="text-sm text-blue-800 mt-1 font-semibold">{formatMissionTimeRange(mission.date_start, mission.date_end)}</p>
               </div>
               
               <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
                 <div className="flex items-center space-x-2">
                   <MapPin className="h-4 w-4 text-emerald-600" />
-                  <span className="text-sm font-medium text-emerald-700">Lieu</span>
+                  <span className="text-sm font-medium text-emerald-700">Adresse</span>
                 </div>
-                <p className="text-sm text-emerald-800 mt-1 font-semibold truncate" title={mission.location}>
+                <p className="text-sm text-emerald-800 mt-1 font-semibold" title={mission.location}>
                   {mission.location}
                 </p>
+                
               </div>
             </div>
 

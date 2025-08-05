@@ -192,9 +192,9 @@ export function MissionsWithAssignmentsTab() {
             <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune mission trouvée</h3>
             <p className="text-gray-500 text-sm">Les missions apparaîtront ici une fois créées</p>
           </div>
-        ) : (
-          <div className="space-y-6">
-            {missions.map((mission) => {
+                 ) : (
+           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+             {missions.map((mission) => {
               const pendingAssignments = mission.mission_assignments?.filter((a: any) => a.status === 'proposé') || []
               const acceptedAssignments = mission.mission_assignments?.filter((a: any) => a.status === 'accepté') || []
               const validatedAcceptedAssignments = acceptedAssignments.filter((a: any) => a.users.is_validated)
